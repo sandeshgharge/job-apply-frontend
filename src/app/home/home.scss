@@ -1,0 +1,89 @@
+.app-shell {
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 1.5rem;
+  height: 56px;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #111;
+  min-width: 140px;
+  b { color: #1a56db; }
+}
+
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+  .tab-icon { font-size: 1rem; }
+  &:hover { background: #f3f4f6; color: #374151; }
+  &.active {
+    background: #eff6ff;
+    color: #1a56db;
+  }
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 140px;
+  justify-content: flex-end;
+}
+
+.user-name {
+  font-size: 0.85rem;
+  color: #4b5563;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.logout-btn {
+  padding: 5px 12px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #374151;
+  cursor: pointer;
+  &:hover { background: #f9fafb; }
+}
+
+.content {
+  padding: 2rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}

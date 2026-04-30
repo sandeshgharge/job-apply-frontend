@@ -1,0 +1,168 @@
+<div class="tracker-page">
+  <div class="page-header">
+    <div>
+      <h2>Job Applications</h2>
+      <p class="subtitle">{{ jobs().length }} applications tracked · {{ jobs() | jobCount:'Offer' }} offers</p>
+    </div>
+    <button class="btn-primary" (click)="openAddModal()">+ Add Application</button>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <button class="filter-btn" [class.active]="filterStatus() === 'All'" (click)="filterStatus.set('All')">
+      All ({{ jobs().length }})
+    </button>
+    @for (s of statuses; track s) {
+      <button class="filter-btn filter-btn-{{ statusColor(s) }}"
+        [class.active]="filterStatus() === s"
+        (click)="filterStatus.set(s)">
+        {{ s }} ({{ jobs() | jobCount:s }})
+      </button>
+    }
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    @if (filteredJobs().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">◈</div>
+        <p>No applications found. Add your first one!</p>
+        <button class="btn-primary" (click)="openAddModal()">+ Add Application</button>
+      </div>
+    } @else {
+      <table class="jobs-table">
+        <thead>
+          <tr>
+            <th class="sortable" (click)="toggleSort('company')">
+              Company <span class="sort-icon">{{ sortIcon('company') }}</span>
+            </th>
+            <th>Role</th>
+            <th>Location</th>
+            <th class="sortable" (click)="toggleSort('appliedDate')">
+              Applied <span class="sort-icon">{{ sortIcon('appliedDate') }}</span>
+            </th>
+            <th>Contact</th>
+            <th>Salary</th>
+            <th class="sortable" (click)="toggleSort('status')">
+              Status <span class="sort-icon">{{ sortIcon('status') }}</span>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (job of filteredJobs(); track job.id) {
+            <tr>
+              <td>
+                <div class="company-cell">
+                  <div class="company-avatar">{{ job.company[0] }}</div>
+                  <div>
+                    <div class="company-name">{{ job.company }}</div>
+                    @if (job.jobUrl) {
+                      <a class="job-url-link" [href]="job.jobUrl" target="_blank">View posting ↗</a>
+                    }
+                  </div>
+                </div>
+              </td>
+              <td class="role-cell">{{ job.role }}</td>
+              <td class="muted">{{ job.location }}</td>
+              <td class="muted">{{ formatDate(job.appliedDate) }}</td>
+              <td class="muted">{{ job.contactName || '—' }}</td>
+              <td class="muted">{{ job.salary || '—' }}</td>
+              <td>
+                <select class="status-select status-select-{{ statusColor(job.status) }}"
+                  [ngModel]="job.status"
+                  (ngModelChange)="quickStatusChange(job.id, $event)">
+                  @for (s of statuses; track s) {
+                    <option [value]="s">{{ s }}</option>
+                  }
+                </select>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-icon" (click)="openEditModal(job)" title="Edit">✎</button>
+                  <button class="btn-icon btn-icon-danger" (click)="deleteJob(job.id)" title="Delete">✕</button>
+                </div>
+              </td>
+            </tr>
+            @if (job.notes) {
+              <tr class="notes-row">
+                <td colspan="8">
+                  <span class="notes-label">Notes:</span> {{ job.notes }}
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- Modal -->
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="showModal.set(false)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ editingJob() ? 'Edit Application' : 'New Application' }}</h3>
+          <button class="modal-close" (click)="showModal.set(false)">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-grid">
+            <div class="field">
+              <label>Company *</label>
+              <input type="text" placeholder="e.g. SAP SE"
+                [ngModel]="form().company" (ngModelChange)="updateFormField('company', $event)" />
+            </div>
+            <div class="field">
+              <label>Role *</label>
+              <input type="text" placeholder="e.g. Frontend Developer"
+                [ngModel]="form().role" (ngModelChange)="updateFormField('role', $event)" />
+            </div>
+            <div class="field">
+              <label>Location</label>
+              <input type="text" placeholder="e.g. München, DE"
+                [ngModel]="form().location" (ngModelChange)="updateFormField('location', $event)" />
+            </div>
+            <div class="field">
+              <label>Applied Date</label>
+              <input type="date" [ngModel]="form().appliedDate" (ngModelChange)="updateFormField('appliedDate', $event)" />
+            </div>
+            <div class="field">
+              <label>Hiring Manager / Contact</label>
+              <input type="text" placeholder="e.g. Frau Schmidt"
+                [ngModel]="form().contactName" (ngModelChange)="updateFormField('contactName', $event)" />
+            </div>
+            <div class="field">
+              <label>Expected Salary (Gehalt)</label>
+              <input type="text" placeholder="e.g. 75,000 €"
+                [ngModel]="form().salary" (ngModelChange)="updateFormField('salary', $event)" />
+            </div>
+            <div class="field">
+              <label>Status</label>
+              <select [ngModel]="form().status" (ngModelChange)="updateFormStatus($event)">
+                @for (s of statuses; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Job Posting URL</label>
+              <input type="url" placeholder="https://..."
+                [ngModel]="form().jobUrl" (ngModelChange)="updateFormField('jobUrl', $event)" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Notes</label>
+            <textarea rows="3" placeholder="Any notes about this application…"
+              [ngModel]="form().notes" (ngModelChange)="updateFormField('notes', $event)"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-outline" (click)="showModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="saveJob()" [disabled]="!form().company || !form().role">
+            {{ editingJob() ? 'Save Changes' : 'Add Application' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
