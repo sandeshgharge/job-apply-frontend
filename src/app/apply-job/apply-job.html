@@ -1,0 +1,222 @@
+<div class="wizard-page">
+
+  <!-- Step indicator -->
+  <div class="step-indicator">
+    @for (s of [{n:1,label:'Fetch Job'},{n:2,label:'CV Skills'},{n:3,label:'Cover Letter'}]; track s.n) {
+      <div class="step-item" [class.active]="step() === s.n" [class.done]="step() > s.n">
+        <div class="step-bubble">
+          @if (step() > s.n) { ✓ } @else { {{ s.n }} }
+        </div>
+        <span class="step-label">{{ s.label }}</span>
+      </div>
+      @if (s.n < 3) { <div class="step-connector" [class.done]="step() > s.n"></div> }
+    }
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- STEP 1 — Fetch Job Details                        -->
+  <!-- ══════════════════════════════════════════════════ -->
+  @if (step() === 1) {
+    <div class="step-panel">
+      <div class="step-header">
+        <h2>Fetch Job Details</h2>
+        <p class="subtitle">Paste a job posting URL to auto-load details, or type the description manually</p>
+      </div>
+
+      <div class="url-row">
+        <input class="url-input" type="url" placeholder="https://www.linkedin.com/jobs/… or any job posting URL"
+          [ngModel]="jobUrl()" (ngModelChange)="jobUrl.set($event)"
+          (keydown.enter)="fetchJob()" />
+        <button class="btn-fetch" (click)="fetchJob()" [disabled]="fetchLoading() || !jobUrl().trim()">
+          @if (fetchLoading()) { <span class="spinner"></span> Loading… }
+          @else { ↓ Fetch }
+        </button>
+      </div>
+
+      @if (parseLoading()) {
+        <div class="parse-notice">
+          <span class="spinner-sm-blue"></span> Extracting company & role info…
+        </div>
+      }
+
+      @if (parsedCompany() || parsedRole()) {
+        <div class="parsed-meta-row">
+          @if (parsedCompany()) { <span class="meta-chip">🏢 {{ parsedCompany() }}</span> }
+          @if (parsedRole()) { <span class="meta-chip">💼 {{ parsedRole() }}</span> }
+          @if (parsedLocation()) { <span class="meta-chip">📍 {{ parsedLocation() }}</span> }
+        </div>
+      }
+
+      <div class="field mt">
+        <label>Job Description</label>
+        <textarea class="jd-textarea" rows="18"
+          placeholder="Job description will appear here after fetching, or paste it directly…"
+          [ngModel]="jobDescription()" (ngModelChange)="jobDescription.set($event)"></textarea>
+      </div>
+
+      <div class="step-footer">
+        <span class="char-count">{{ jobDescription().length }} characters</span>
+        <button class="btn-next" (click)="goToStep2()" [disabled]="!jobDescription().trim()">
+          Next: Cover Letter →
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- STEP 2 — Cover Letter                             -->
+  <!-- ══════════════════════════════════════════════════ -->
+  @if (step() === 2) {
+    <div class="step-panel">
+      <div class="step-header-row">
+        <div>
+          <h2>Cover Letter</h2>
+          <p class="subtitle">
+            @if (!previewMode()) { Craft your Anschreiben — AI-assisted, tailored to the role }
+            @else { Review and finalise your letter }
+          </p>
+        </div>
+        <div class="step-header-actions">
+          <button class="btn-outline" (click)="previewMode.set(!previewMode())">
+            {{ previewMode() ? '← Editor' : '👁 Preview' }}
+          </button>
+          <button class="btn-generate" (click)="generateFullLetter()" [disabled]="generatingFull()">
+            @if (generatingFull()) { <span class="spinner"></span> Generating… }
+            @else { ✦ Generate Full Letter }
+          </button>
+        </div>
+      </div>
+
+      @if (!previewMode()) {
+        <!-- Meta fields -->
+        <div class="panel">
+          <h3 class="panel-title">Applicant & Position Details</h3>
+          <div class="fields-grid">
+            <div class="field">
+              <label>Applicant Name</label>
+              <input type="text" placeholder="e.g. Maria Müller"
+                [ngModel]="meta().applicantName" (ngModelChange)="updateMeta('applicantName', $event)" />
+            </div>
+            <div class="field">
+              <label>Applicant Location</label>
+              <input type="text" placeholder="e.g. Berlin, Germany"
+                [ngModel]="meta().applicantLocation" (ngModelChange)="updateMeta('applicantLocation', $event)" />
+            </div>
+            <div class="field">
+              <label>Company Name</label>
+              <input type="text" [ngModel]="meta().companyName" (ngModelChange)="updateMeta('companyName', $event)" />
+            </div>
+            <div class="field">
+              <label>Company Location</label>
+              <input type="text" [ngModel]="meta().companyLocation" (ngModelChange)="updateMeta('companyLocation', $event)" />
+            </div>
+            <div class="field">
+              <label>Role</label>
+              <input type="text" [ngModel]="meta().role" (ngModelChange)="updateMeta('role', $event)" />
+            </div>
+            <div class="field">
+              <label>Hiring Manager</label>
+              <input type="text" placeholder="e.g. Frau Schmidt"
+                [ngModel]="meta().hiringManager" (ngModelChange)="updateMeta('hiringManager', $event)" />
+            </div>
+            <div class="field">
+              <label>Date</label>
+              <input type="date" [ngModel]="meta().date" (ngModelChange)="updateMeta('date', $event)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Sections -->
+        <div class="sections-header">
+          <h3 class="panel-title">Letter Sections</h3>
+          <button class="btn-add" (click)="addSection()">+ Add Section</button>
+        </div>
+
+        @for (section of sections(); track section.id) {
+          <div class="section-card">
+            <div class="section-top">
+              <input class="section-title-input"
+                [ngModel]="section.title" (ngModelChange)="updateSection(section.id, 'title', $event)"
+                placeholder="Section title" />
+              <button class="btn-remove" (click)="removeSection(section.id)">✕</button>
+            </div>
+            <textarea class="section-content"
+              [ngModel]="section.content" (ngModelChange)="updateSection(section.id, 'content', $event)"
+              placeholder="Write here or use AI generate…" rows="4"></textarea>
+            <div class="section-ai-row">
+              <input class="prompt-input"
+                [ngModel]="section.prompt" (ngModelChange)="updateSection(section.id, 'prompt', $event)"
+                placeholder="Optional AI prompt — e.g. 'Emphasise my Angular experience'" />
+              <button class="btn-ai" (click)="generateSection(section.id)" [disabled]="section.loading">
+                @if (section.loading) { <span class="spinner-sm"></span> Generating… }
+                @else { ✦ AI Generate }
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      @if (previewMode()) {
+        <div class="preview-panel">
+          <div class="preview-toolbar">
+            <span class="preview-label">Letter Preview</span>
+            <button class="btn-outline" (click)="copyToClipboard()">⎘ Copy</button>
+          </div>
+          <div class="letter-preview">
+            <div class="letter-meta-block">
+              <div class="letter-sender">
+                <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
+                <span>{{ meta().applicantLocation }}</span>
+              </div>
+              <div class="letter-date">{{ formatDisplayDate(meta().date) }}</div>
+            </div>
+            <div class="letter-recipient">
+              <div>{{ meta().companyName }}</div>
+              <div>{{ meta().companyLocation }}</div>
+            </div>
+            <div class="letter-salutation">Dear {{ meta().hiringManager || 'Hiring Team' }},</div>
+            @for (section of sections(); track section.id) {
+              @if (section.content) {
+                <div class="letter-paragraph">
+                  <div class="para-label">{{ section.title }}</div>
+                  <p>{{ section.content }}</p>
+                </div>
+              }
+            }
+            <div class="letter-closing">
+              <p>Yours sincerely,</p>
+              <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="step-footer apply-footer">
+        <button class="btn-back" (click)="step.set(1)">← Back</button>
+        <div class="footer-right">
+          <button class="btn-next" (click)="goToStep3()">
+            Next: CV Skills →
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- STEP 3 — CV Builder                               -->
+  <!-- ══════════════════════════════════════════════════ -->
+  @if (step() === 3) {
+    <div class="step-panel">
+      <app-cv-builder [prefillSkills]="skillGroups()" />
+      <div class="step-footer apply-footer">
+        <button class="btn-back" (click)="step.set(2)">← Back</button>
+        <div class="footer-right">
+          <button class="btn-apply" (click)="applyJob()" [disabled]="applyLoading()">
+            @if (applyLoading()) { <span class="spinner"></span> Submitting… }
+            @else { ✓ Mark as Applied }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

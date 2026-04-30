@@ -1,0 +1,142 @@
+<div class="cover-letter-page">
+  <div class="page-header">
+    <div>
+      <h2>Cover Letter Generator</h2>
+      <p class="subtitle">Powered by AI — tailored for the German job market</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-outline" (click)="previewMode.set(!previewMode())">
+        {{ previewMode() ? '← Editor' : '👁 Preview' }}
+      </button>
+      <button class="btn-generate" (click)="generateFullLetter()" [disabled]="generatingFull()">
+        @if (generatingFull()) {
+          <span class="spinner"></span> Generating…
+        } @else {
+          ✦ Generate Full Letter
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (!previewMode()) {
+    <div class="editor-layout">
+      <div class="panel meta-panel">
+        <h3 class="panel-title">Applicant & Position Details</h3>
+        <div class="fields-grid">
+          <div class="field">
+            <label>Applicant Name</label>
+            <input type="text" placeholder="e.g. Maria Müller"
+              [ngModel]="meta().applicantName" (ngModelChange)="updateMeta('applicantName', $event)" />
+          </div>
+          <div class="field">
+            <label>Applicant Location</label>
+            <input type="text" placeholder="e.g. Berlin, Germany"
+              [ngModel]="meta().applicantLocation" (ngModelChange)="updateMeta('applicantLocation', $event)" />
+          </div>
+          <div class="field">
+            <label>Company Name</label>
+            <input type="text" placeholder="e.g. SAP SE"
+              [ngModel]="meta().companyName" (ngModelChange)="updateMeta('companyName', $event)" />
+          </div>
+          <div class="field">
+            <label>Company Location</label>
+            <input type="text" placeholder="e.g. Walldorf, Germany"
+              [ngModel]="meta().companyLocation" (ngModelChange)="updateMeta('companyLocation', $event)" />
+          </div>
+          <div class="field">
+            <label>Role / Position</label>
+            <input type="text" placeholder="e.g. Senior Frontend Developer"
+              [ngModel]="meta().role" (ngModelChange)="updateMeta('role', $event)" />
+          </div>
+          <div class="field">
+            <label>Hiring Manager</label>
+            <input type="text" placeholder="e.g. Frau Schmidt"
+              [ngModel]="meta().hiringManager" (ngModelChange)="updateMeta('hiringManager', $event)" />
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" [ngModel]="meta().date" (ngModelChange)="updateMeta('date', $event)" />
+          </div>
+        </div>
+      </div>
+
+      <div class="sections-area">
+        <div class="sections-header">
+          <h3 class="panel-title">Letter Sections</h3>
+          <button class="btn-add" (click)="addSection()">+ Add Section</button>
+        </div>
+
+        @for (section of sections(); track section.id) {
+          <div class="section-card">
+            <div class="section-top">
+              <input class="section-title-input"
+                [ngModel]="section.title" (ngModelChange)="updateSection(section.id, 'title', $event)"
+                placeholder="Section title" />
+              <button class="btn-remove" (click)="removeSection(section.id)">✕</button>
+            </div>
+            <textarea class="section-content"
+              [ngModel]="section.content" (ngModelChange)="updateSection(section.id, 'content', $event)"
+              placeholder="Write your content here, or use AI to generate it…" rows="4"></textarea>
+            <div class="section-ai-row">
+              <input class="prompt-input"
+                [ngModel]="section.prompt" (ngModelChange)="updateSection(section.id, 'prompt', $event)"
+                placeholder="Optional AI prompt — e.g. 'Emphasise my 5 years of Angular experience'" />
+              <button class="btn-ai" (click)="generateSection(section.id)" [disabled]="section.loading">
+                @if (section.loading) {
+                  <span class="spinner-sm"></span> Generating…
+                } @else {
+                  ✦ AI Generate
+                }
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (sections().length === 0) {
+          <div class="empty-sections">
+            No sections yet. Click <strong>Add Section</strong> or <strong>Generate Full Letter</strong>.
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (previewMode()) {
+    <div class="preview-panel">
+      <div class="preview-toolbar">
+        <span class="preview-label">Letter Preview</span>
+        <button class="btn-outline" (click)="copyToClipboard()">
+          {{ copySuccess() ? '✓ Copied!' : '⎘ Copy to Clipboard' }}
+        </button>
+      </div>
+      <div class="letter-preview">
+        <div class="letter-meta-block">
+          <div class="letter-sender">
+            <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
+            <span>{{ meta().applicantLocation }}</span>
+          </div>
+          <div class="letter-date">{{ formatDisplayDate(meta().date) }}</div>
+        </div>
+        <div class="letter-recipient">
+          <div>{{ meta().companyName }}</div>
+          <div>{{ meta().companyLocation }}</div>
+        </div>
+        <div class="letter-salutation">
+          Dear {{ meta().hiringManager || 'Hiring Team' }},
+        </div>
+        @for (section of sections(); track section.id) {
+          @if (section.content) {
+            <div class="letter-paragraph">
+              <div class="para-label">{{ section.title }}</div>
+              <p>{{ section.content }}</p>
+            </div>
+          }
+        }
+        <div class="letter-closing">
+          <p>Yours sincerely,</p>
+          <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
+        </div>
+      </div>
+    </div>
+  }
+</div>

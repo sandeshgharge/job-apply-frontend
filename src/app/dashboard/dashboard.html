@@ -1,0 +1,90 @@
+<div class="dashboard">
+  <div class="page-header">
+    <h2>Welcome back, <span class="name">{{ user?.name | titlecase }}</span></h2>
+    <p class="subtitle">Here's your job search overview</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue">◈</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats().total }}</div>
+        <div class="stat-label">Total Applications</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">✓</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats().active }}</div>
+        <div class="stat-label">Active Applications</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber">◷</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats().interviews }}</div>
+        <div class="stat-label">Interviews Scheduled</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">★</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats().offers }}</div>
+        <div class="stat-label">Offers Received</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h3 class="panel-title">Upcoming Interviews</h3>
+      @if (upcomingInterviews().length === 0) {
+        <div class="empty-state">No interviews scheduled yet.</div>
+      }
+      @for (job of upcomingInterviews(); track job.id) {
+        <div class="interview-row">
+          <div class="interview-avatar">{{ job.company[0] }}</div>
+          <div class="interview-info">
+            <div class="interview-company">{{ job.company }}</div>
+            <div class="interview-role">{{ job.role }}</div>
+          </div>
+          <span class="badge badge-amber">{{ job.status }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="panel">
+      <h3 class="panel-title">Recent Applications</h3>
+      @for (job of recentActivity(); track job.id) {
+        <div class="activity-row">
+          <div class="activity-info">
+            <div class="activity-company">{{ job.company }}</div>
+            <div class="activity-meta">{{ job.role }} · {{ job.location }}</div>
+          </div>
+          <div class="activity-right">
+            <span class="badge badge-{{ statusColor(job.status) }}">{{ job.status }}</span>
+            <div class="activity-date">{{ formatDate(job.appliedDate) }}</div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="panel progress-panel">
+    <h3 class="panel-title">Application Pipeline</h3>
+    <div class="pipeline">
+      @for (stage of pipelineData(); track stage.label) {
+        <div class="pipeline-stage">
+          <div class="pipeline-bar-wrap">
+            <div class="pipeline-bar"
+              [style.height.%]="barHeight(stage.count)"
+              [style.background]="stage.color">
+            </div>
+          </div>
+          <div class="pipeline-count" [style.color]="stage.color">{{ stage.count }}</div>
+          <div class="pipeline-label">{{ stage.label }}</div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

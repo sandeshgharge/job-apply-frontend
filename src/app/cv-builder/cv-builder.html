@@ -1,0 +1,422 @@
+<div class="cv-builder">
+
+  <!-- ── Top bar ──────────────────────────────────────────────── -->
+  <div class="cv-topbar">
+    <div class="cv-topbar-left">
+      <h2>CV Builder</h2>
+      <div class="completion-wrap">
+        <div class="completion-bar">
+          <div class="completion-fill" [style.width.%]="completionScore()"></div>
+        </div>
+        <span class="completion-label">{{ completionScore() }}% complete</span>
+      </div>
+    </div>
+    <div class="cv-topbar-actions">
+      <button class="btn-edit-toggle" [class.active]="editMode()" (click)="editMode.set(!editMode())">
+        {{ editMode() ? '✓ Done Editing' : '✎ Edit Mode' }}
+      </button>
+      <button class="btn-action" (click)="saveNow()">💾 Save</button>
+      <button class="btn-action" (click)="exportJson()">↓ Export</button>
+      <button class="btn-action btn-danger-soft" (click)="clearCv()">✕ Clear</button>
+    </div>
+  </div>
+
+  @if (editMode()) {
+    <div class="cv-hint">
+      ✎ Edit mode — checkboxes visible · Drag <strong>⠿</strong> handles to reorder sections and items
+    </div>
+  }
+
+  <!-- ── Sections ─────────────────────────────────────────────── -->
+  <div class="sections-list">
+    @for (sec of sections(); track sec.id) {
+      <div class="section-wrapper"
+        [class.drag-over]="dragOverId() === sec.id"
+        [class.section-excluded]="!sec.include"
+        draggable="true"
+        (dragstart)="onSectionDragStart(sec.id, $event)"
+        (dragover)="onSectionDragOver(sec.id, $event)"
+        (drop)="onSectionDrop(sec.id)"
+        (dragend)="onSectionDragEnd()">
+
+        <div class="section-header" (click)="toggleCollapse(sec.id)">
+          <div class="sh-left">
+            <span class="drag-handle" (click)="$event.stopPropagation()">⠿</span>
+            @if (editMode()) {
+              <input type="checkbox" class="sec-checkbox"
+                [checked]="sec.include"
+                (click)="$event.stopPropagation()"
+                (change)="toggleSectionInclude(sec.id)"
+                [title]="sec.include ? 'Exclude from CV' : 'Include in CV'" />
+            }
+            <span class="sec-icon">{{ sec.icon }}</span>
+            <span class="sec-label">{{ sec.label }}</span>
+            @if (!sectionHasData(sec.id)) { <span class="badge-empty">empty</span> }
+            @if (!sec.include) { <span class="badge-excluded">excluded</span> }
+          </div>
+          <span class="collapse-caret">{{ sec.collapsed ? '▶' : '▼' }}</span>
+        </div>
+
+        @if (!sec.collapsed) {
+          <div class="section-body">
+
+            <!-- ══ PERSONAL INFO ══════════════════════════════════ -->
+            @if (sec.id === 'personal') {
+              <div class="fields-grid">
+                <div class="field"><label>First Name</label><input type="text" [ngModel]="cv().personalInfo.firstName" (ngModelChange)="updatePersonal('firstName',$event)" placeholder="Maria" /></div>
+                <div class="field"><label>Last Name</label><input type="text" [ngModel]="cv().personalInfo.lastName" (ngModelChange)="updatePersonal('lastName',$event)" placeholder="Müller" /></div>
+                <div class="field field-full"><label>Professional Headline</label><input type="text" [ngModel]="cv().personalInfo.headline" (ngModelChange)="updatePersonal('headline',$event)" placeholder="Senior Angular Developer · 5 yrs · Berlin" /></div>
+                <div class="field"><label>Email</label><input type="email" [ngModel]="cv().personalInfo.email" (ngModelChange)="updatePersonal('email',$event)" placeholder="maria@example.com" /></div>
+                <div class="field"><label>Phone</label><input type="tel" [ngModel]="cv().personalInfo.phone" (ngModelChange)="updatePersonal('phone',$event)" placeholder="+49 170 1234567" /></div>
+              </div>
+              <div class="sub-label">Address</div>
+              <div class="fields-grid">
+                <div class="field"><label>City</label><input type="text" [ngModel]="cv().personalInfo.address.city" (ngModelChange)="updateAddress('city',$event)" placeholder="Berlin" /></div>
+                <div class="field"><label>State</label><input type="text" [ngModel]="cv().personalInfo.address.state" (ngModelChange)="updateAddress('state',$event)" placeholder="Brandenburg" /></div>
+                <div class="field"><label>Country</label><input type="text" [ngModel]="cv().personalInfo.address.country" (ngModelChange)="updateAddress('country',$event)" placeholder="Germany" /></div>
+              </div>
+              <div class="sub-label">Online Links</div>
+              <div class="fields-grid">
+                <div class="field"><label>LinkedIn</label><input type="url" [ngModel]="cv().personalInfo.links.linkedin" (ngModelChange)="updateLink('linkedin',$event)" placeholder="linkedin.com/in/..." /></div>
+                <div class="field"><label>GitHub</label><input type="url" [ngModel]="cv().personalInfo.links.github" (ngModelChange)="updateLink('github',$event)" placeholder="github.com/..." /></div>
+                <div class="field"><label>Portfolio</label><input type="url" [ngModel]="cv().personalInfo.links.portfolio" (ngModelChange)="updateLink('portfolio',$event)" placeholder="https://..." /></div>
+                <div class="field"><label>Website</label><input type="url" [ngModel]="cv().personalInfo.links.website" (ngModelChange)="updateLink('website',$event)" placeholder="https://..." /></div>
+              </div>
+            }
+
+            <!-- ══ SUMMARY ═════════════════════════════════════════ -->
+            @if (sec.id === 'summary') {
+              <div class="field">
+                <label>Professional Summary</label>
+                <textarea rows="5" placeholder="Briefly describe your professional background, key strengths, and career goals…"
+                  [ngModel]="cv().summary" (ngModelChange)="updateSummary($event)"></textarea>
+                <span class="field-hint">{{ cv().summary.length }} / 600 characters recommended</span>
+              </div>
+            }
+
+            <!-- ══ EXPERIENCE ══════════════════════════════════════ -->
+            @if (sec.id === 'experience') {
+              <button class="btn-add-item" (click)="addExperience()">+ Add Experience</button>
+              @for (exp of cv().experience; track exp.id; let ei = $index) {
+                <div class="item-card" draggable="true"
+                  (dragstart)="onItemDragStart('experience', ei, $event)"
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('experience', ei)">
+                  <div class="item-header">
+                    <span class="drag-handle">⠿</span>
+                    @if (editMode()) { <input type="checkbox" [checked]="exp.include" (change)="updateExp(exp.id,'include',!exp.include)" /> }
+                    <span class="item-title">{{ exp.jobTitle || 'New Position' }}
+                      @if (exp.company) { <span class="item-sub">@ {{ exp.company }}</span> }
+                    </span>
+                    <button class="btn-x" (click)="removeExperience(exp.id)">✕</button>
+                  </div>
+                  <div class="fields-grid">
+                    <div class="field"><label>Job Title</label><input type="text" [ngModel]="exp.jobTitle" (ngModelChange)="updateExp(exp.id,'jobTitle',$event)" placeholder="Senior Developer" /></div>
+                    <div class="field"><label>Company</label><input type="text" [ngModel]="exp.company" (ngModelChange)="updateExp(exp.id,'company',$event)" placeholder="SAP SE" /></div>
+                    <div class="field"><label>Location</label><input type="text" [ngModel]="exp.location" (ngModelChange)="updateExp(exp.id,'location',$event)" placeholder="Walldorf, Germany" /></div>
+                    <div class="field"><label>Start Date</label><input type="month" [ngModel]="exp.startDate" (ngModelChange)="updateExp(exp.id,'startDate',$event)" /></div>
+                    <div class="field">
+                      <label>End Date</label>
+                      <input type="month" [ngModel]="exp.endDate" (ngModelChange)="updateExp(exp.id,'endDate',$event)" [disabled]="exp.current" />
+                      <label class="inline-check"><input type="checkbox" [checked]="exp.current" (change)="updateExp(exp.id,'current',!exp.current)" /> Currently here</label>
+                    </div>
+                  </div>
+                  <div class="sub-label">
+                    Responsibilities
+                    <button class="btn-add-sub" (click)="addResponsibility(exp.id)">+ Add</button>
+                  </div>
+                  @for (r of exp.responsibilities; track r.id; let ri = $index) {
+                    <div class="resp-row" draggable="true"
+                      (dragstart)="onItemDragStart('resp_'+exp.id, ri, $event)"
+                      (dragover)="onItemDragOver($event)" (drop)="onItemDrop('resp_'+exp.id, ri)">
+                      <span class="drag-handle sm">⠿</span>
+                      @if (editMode()) { <input type="checkbox" [checked]="r.include" (change)="updateResponsibility(exp.id,r.id,'include',!r.include)" /> }
+                      <input type="text" class="resp-input" [ngModel]="r.text" (ngModelChange)="updateResponsibility(exp.id,r.id,'text',$event)" placeholder="Describe a key responsibility or achievement…" />
+                      <button class="btn-x sm" (click)="removeResponsibility(exp.id,r.id)">✕</button>
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            <!-- ══ EDUCATION ═══════════════════════════════════════ -->
+            @if (sec.id === 'education') {
+              <button class="btn-add-item" (click)="addEducation()">+ Add Education</button>
+              @for (edu of cv().education; track edu.id; let ei = $index) {
+                <div class="item-card" draggable="true"
+                  (dragstart)="onItemDragStart('education', ei, $event)"
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('education', ei)">
+                  <div class="item-header">
+                    <span class="drag-handle">⠿</span>
+                    @if (editMode()) { <input type="checkbox" [checked]="edu.include" (change)="updateEdu(edu.id,'include', !edu.include ? 'true' : 'false')" /> }
+                    <span class="item-title">{{ edu.degree || 'New Education' }}
+                      @if (edu.institution) { <span class="item-sub">@ {{ edu.institution }}</span> }
+                    </span>
+                    <button class="btn-x" (click)="removeEducation(edu.id)">✕</button>
+                  </div>
+                  <div class="fields-grid">
+                    <div class="field"><label>Degree</label><input type="text" [ngModel]="edu.degree" (ngModelChange)="updateEdu(edu.id,'degree',$event)" placeholder="Bachelor of Science" /></div>
+                    <div class="field"><label>Field of Study</label><input type="text" [ngModel]="edu.fieldOfStudy" (ngModelChange)="updateEdu(edu.id,'fieldOfStudy',$event)" placeholder="Computer Science" /></div>
+                    <div class="field"><label>Institution</label><input type="text" [ngModel]="edu.institution" (ngModelChange)="updateEdu(edu.id,'institution',$event)" placeholder="TU München" /></div>
+                    <div class="field"><label>Location</label><input type="text" [ngModel]="edu.location" (ngModelChange)="updateEdu(edu.id,'location',$event)" /></div>
+                    <div class="field"><label>Start Date</label><input type="month" [ngModel]="edu.startDate" (ngModelChange)="updateEdu(edu.id,'startDate',$event)" /></div>
+                    <div class="field"><label>End Date</label><input type="month" [ngModel]="edu.endDate" (ngModelChange)="updateEdu(edu.id,'endDate',$event)" /></div>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- ══ SKILLS ══════════════════════════════════════════ -->
+            @if (sec.id === 'skills') {
+              <div class="skills-builder">
+                @for (def of [
+                  {f:'technical',  label:'Technical Skills',       ph:'e.g. TypeScript'},
+                  {f:'frameworks', label:'Frameworks & Libraries',  ph:'e.g. Angular'},
+                  {f:'tools',      label:'Tools',                   ph:'e.g. Docker'},
+                  {f:'soft',       label:'Soft Skills',             ph:'e.g. Leadership'}
+                ]; track def.f) {
+                  <div class="skill-row">
+                    <div class="skill-row-label">{{ def.label }}</div>
+                    <div class="chips-wrap">
+                      @for (s of $any(cv().skills)[def.f]; track s; let si = $index) {
+                        <span class="cv-chip">{{ s }}
+                          @if (editMode()) { <button class="chip-x" (click)="removeSkillFromList($any(def.f), si)">✕</button> }
+                        </span>
+                      }
+                      <div class="chip-add-row">
+                        <input class="chip-input" [placeholder]="def.ph"
+                          [ngModel]="newSkillInputs[def.f]"
+                          (ngModelChange)="newSkillInputs[def.f]=$event"
+                          (keydown.enter)="addSkillToList($any(def.f), newSkillInputs[def.f]); newSkillInputs[def.f]=''" />
+                        <button class="btn-chip-add" (click)="addSkillToList($any(def.f),newSkillInputs[def.f]); newSkillInputs[def.f]=''">+</button>
+                      </div>
+                    </div>
+                  </div>
+                }
+                <div class="skill-row">
+                  <div class="skill-row-label">Languages</div>
+                  <div class="lang-list">
+                    @for (lang of cv().skills.languages; track lang.id) {
+                      <div class="lang-row">
+                        <input class="lang-input" type="text" [ngModel]="lang.language" (ngModelChange)="updateLanguage(lang.id,'language',$event)" placeholder="e.g. German" />
+                        <select class="lang-select" [ngModel]="lang.proficiency" (ngModelChange)="updateLanguage(lang.id,'proficiency',$event)">
+                          @for (p of proficiencyLevels; track p) { <option [value]="p">{{ p }}</option> }
+                        </select>
+                        <button class="btn-x sm" (click)="removeLanguage(lang.id)">✕</button>
+                      </div>
+                    }
+                    <button class="btn-add-sub" (click)="addLanguage()">+ Add Language</button>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- ══ PROJECTS ════════════════════════════════════════ -->
+            @if (sec.id === 'projects') {
+              <button class="btn-add-item" (click)="addProject()">+ Add Project</button>
+              @for (proj of cv().projects; track proj.id; let pi = $index) {
+                <div class="item-card" draggable="true"
+                  (dragstart)="onItemDragStart('projects', pi, $event)"
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('projects', pi)">
+                  <div class="item-header">
+                    <span class="drag-handle">⠿</span>
+                    @if (editMode()) { <input type="checkbox" [checked]="proj.include" (change)="updateProject(proj.id,'include',!proj.include)" /> }
+                    <span class="item-title">{{ proj.title || 'New Project' }}</span>
+                    <button class="btn-x" (click)="removeProject(proj.id)">✕</button>
+                  </div>
+                  <div class="fields-grid">
+                    <div class="field"><label>Title</label><input type="text" [ngModel]="proj.title" (ngModelChange)="updateProject(proj.id,'title',$event)" /></div>
+                    <div class="field"><label>Your Role</label><input type="text" [ngModel]="proj.role" (ngModelChange)="updateProject(proj.id,'role',$event)" placeholder="Lead Developer" /></div>
+                    <div class="field"><label>Start</label><input type="month" [ngModel]="proj.startDate" (ngModelChange)="updateProject(proj.id,'startDate',$event)" /></div>
+                    <div class="field"><label>End</label><input type="month" [ngModel]="proj.endDate" (ngModelChange)="updateProject(proj.id,'endDate',$event)" /></div>
+                    <div class="field field-full"><label>Link</label><input type="url" [ngModel]="proj.link" (ngModelChange)="updateProject(proj.id,'link',$event)" placeholder="https://github.com/..." /></div>
+                    <div class="field field-full"><label>Description</label><textarea rows="2" [ngModel]="proj.description" (ngModelChange)="updateProject(proj.id,'description',$event)" placeholder="What did you build and why?"></textarea></div>
+                  </div>
+                  <div class="sub-label">Technologies</div>
+                  <div class="chips-wrap">
+                    @for (t of proj.technologies; track t; let ti = $index) {
+                      <span class="cv-chip">{{ t }}<button class="chip-x" (click)="removeProjectTech(proj.id, ti)">✕</button></span>
+                    }
+                    <div class="chip-add-row">
+                      <input class="chip-input" placeholder="Add tech…"
+                        [ngModel]="newSkillInputs['p_'+proj.id]"
+                        (ngModelChange)="newSkillInputs['p_'+proj.id]=$event"
+                        (keydown.enter)="addProjectTech(proj.id,newSkillInputs['p_'+proj.id]); newSkillInputs['p_'+proj.id]=''" />
+                      <button class="btn-chip-add" (click)="addProjectTech(proj.id,newSkillInputs['p_'+proj.id]); newSkillInputs['p_'+proj.id]=''">+</button>
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- ══ CERTIFICATIONS ══════════════════════════════════ -->
+            @if (sec.id === 'certifications') {
+              <button class="btn-add-item" (click)="addCertification()">+ Add Certification</button>
+              @for (cert of cv().certifications; track cert.id; let ci = $index) {
+                <div class="item-card" draggable="true"
+                  (dragstart)="onItemDragStart('certifications', ci, $event)"
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('certifications', ci)">
+                  <div class="item-header">
+                    <span class="drag-handle">⠿</span>
+                    @if (editMode()) { <input type="checkbox" [checked]="cert.include" (change)="updateCert(cert.id,'include',!cert.include)" /> }
+                    <span class="item-title">{{ cert.name || 'New Certification' }}</span>
+                    <button class="btn-x" (click)="removeCertification(cert.id)">✕</button>
+                  </div>
+                  <div class="fields-grid">
+                    <div class="field"><label>Name</label><input type="text" [ngModel]="cert.name" (ngModelChange)="updateCert(cert.id,'name',$event)" placeholder="AWS Solutions Architect" /></div>
+                    <div class="field"><label>Issuer</label><input type="text" [ngModel]="cert.issuer" (ngModelChange)="updateCert(cert.id,'issuer',$event)" /></div>
+                    <div class="field"><label>Issue Date</label><input type="month" [ngModel]="cert.issueDate" (ngModelChange)="updateCert(cert.id,'issueDate',$event)" /></div>
+                    <div class="field"><label>Expiry Date</label><input type="month" [ngModel]="cert.expiryDate" (ngModelChange)="updateCert(cert.id,'expiryDate',$event)" /></div>
+                    <div class="field"><label>Credential ID</label><input type="text" [ngModel]="cert.credentialId" (ngModelChange)="updateCert(cert.id,'credentialId',$event)" /></div>
+                    <div class="field"><label>Credential URL</label><input type="url" [ngModel]="cert.credentialUrl" (ngModelChange)="updateCert(cert.id,'credentialUrl',$event)" /></div>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- ══ AWARDS ══════════════════════════════════════════ -->
+            @if (sec.id === 'awards') {
+              <button class="btn-add-item" (click)="addAward()">+ Add Award</button>
+              @for (award of cv().awards; track award.id; let ai = $index) {
+                <div class="item-card" draggable="true"
+                  (dragstart)="onItemDragStart('awards', ai, $event)"
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('awards', ai)">
+                  <div class="item-header">
+                    <span class="drag-handle">⠿</span>
+                    @if (editMode()) { <input type="checkbox" [checked]="award.include" (change)="updateAward(award.id,'include',!award.include)" /> }
+                    <span class="item-title">{{ award.title || 'New Award' }}</span>
+                    <button class="btn-x" (click)="removeAward(award.id)">✕</button>
+                  </div>
+                  <div class="fields-grid">
+                    <div class="field"><label>Title</label><input type="text" [ngModel]="award.title" (ngModelChange)="updateAward(award.id,'title',$event)" /></div>
+                    <div class="field"><label>Issuer</label><input type="text" [ngModel]="award.issuer" (ngModelChange)="updateAward(award.id,'issuer',$event)" /></div>
+                    <div class="field"><label>Date</label><input type="month" [ngModel]="award.date" (ngModelChange)="updateAward(award.id,'date',$event)" /></div>
+                    <div class="field field-full"><label>Description</label><textarea rows="2" [ngModel]="award.description" (ngModelChange)="updateAward(award.id,'description',$event)"></textarea></div>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- ══ PUBLICATIONS ════════════════════════════════════ -->
+            @if (sec.id === 'publications') {
+              <button class="btn-add-item" (click)="addPublication()">+ Add Publication</button>
+              @for (pub of cv().publications; track pub.id; let pi = $index) {
+                <div class="item-card" draggable="true"
+                  (dragstart)="onItemDragStart('publications', pi, $event)"
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('publications', pi)">
+                  <div class="item-header">
+                    <span class="drag-handle">⠿</span>
+                    @if (editMode()) { <input type="checkbox" [checked]="pub.include" (change)="updatePub(pub.id,'include',!pub.include)" /> }
+                    <span class="item-title">{{ pub.title || 'New Publication' }}</span>
+                    <button class="btn-x" (click)="removePublication(pub.id)">✕</button>
+                  </div>
+                  <div class="fields-grid">
+                    <div class="field"><label>Title</label><input type="text" [ngModel]="pub.title" (ngModelChange)="updatePub(pub.id,'title',$event)" /></div>
+                    <div class="field"><label>Publisher</label><input type="text" [ngModel]="pub.publisher" (ngModelChange)="updatePub(pub.id,'publisher',$event)" /></div>
+                    <div class="field"><label>Date</label><input type="month" [ngModel]="pub.date" (ngModelChange)="updatePub(pub.id,'date',$event)" /></div>
+                    <div class="field"><label>Link</label><input type="url" [ngModel]="pub.link" (ngModelChange)="updatePub(pub.id,'link',$event)" /></div>
+                    <div class="field field-full"><label>Description</label><textarea rows="2" [ngModel]="pub.description" (ngModelChange)="updatePub(pub.id,'description',$event)"></textarea></div>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- ══ VOLUNTEER ═══════════════════════════════════════ -->
+            @if (sec.id === 'volunteer') {
+              <button class="btn-add-item" (click)="addVolunteer()">+ Add Volunteer Experience</button>
+              @for (vol of cv().volunteerExperience; track vol.id; let vi = $index) {
+                <div class="item-card" draggable="true"
+                  (dragstart)="onItemDragStart('volunteerExperience', vi, $event)"
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('volunteerExperience', vi)">
+                  <div class="item-header">
+                    <span class="drag-handle">⠿</span>
+                    @if (editMode()) { <input type="checkbox" [checked]="vol.include" (change)="updateVol(vol.id,'include',!vol.include)" /> }
+                    <span class="item-title">{{ vol.role || 'New Role' }} @if(vol.organization){<span class="item-sub">@ {{ vol.organization }}</span>}</span>
+                    <button class="btn-x" (click)="removeVolunteer(vol.id)">✕</button>
+                  </div>
+                  <div class="fields-grid">
+                    <div class="field"><label>Role</label><input type="text" [ngModel]="vol.role" (ngModelChange)="updateVol(vol.id,'role',$event)" /></div>
+                    <div class="field"><label>Organization</label><input type="text" [ngModel]="vol.organization" (ngModelChange)="updateVol(vol.id,'organization',$event)" /></div>
+                    <div class="field"><label>Location</label><input type="text" [ngModel]="vol.location" (ngModelChange)="updateVol(vol.id,'location',$event)" /></div>
+                    <div class="field"><label>Start</label><input type="month" [ngModel]="vol.startDate" (ngModelChange)="updateVol(vol.id,'startDate',$event)" /></div>
+                    <div class="field"><label>End</label><input type="month" [ngModel]="vol.endDate" (ngModelChange)="updateVol(vol.id,'endDate',$event)" /></div>
+                    <div class="field field-full"><label>Description</label><textarea rows="2" [ngModel]="vol.description" (ngModelChange)="updateVol(vol.id,'description',$event)"></textarea></div>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- ══ INTERESTS ═══════════════════════════════════════ -->
+            @if (sec.id === 'interests') {
+              <div class="chips-wrap">
+                @for (interest of cv().interests; track interest; let ii = $index) {
+                  <span class="cv-chip interest">{{ interest }}
+                    @if (editMode()) { <button class="chip-x" (click)="removeInterest(ii)">✕</button> }
+                  </span>
+                }
+                <div class="chip-add-row">
+                  <input class="chip-input" placeholder="e.g. Open Source, Hiking…"
+                    [ngModel]="newInterest()" (ngModelChange)="newInterest.set($event)"
+                    (keydown.enter)="addInterest()" />
+                  <button class="btn-chip-add" (click)="addInterest()">+</button>
+                </div>
+              </div>
+            }
+
+            <!-- ══ REFERENCES ══════════════════════════════════════ -->
+            @if (sec.id === 'references') {
+              <button class="btn-add-item" (click)="addReference()">+ Add Reference</button>
+              @for (ref of cv().references; track ref.id; let ri = $index) {
+                <div class="item-card" draggable="true"
+                  (dragstart)="onItemDragStart('references', ri, $event)"
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('references', ri)">
+                  <div class="item-header">
+                    <span class="drag-handle">⠿</span>
+                    @if (editMode()) { <input type="checkbox" [checked]="ref.include" (change)="updateRef(ref.id,'include',!ref.include)" /> }
+                    <span class="item-title">{{ ref.name || 'New Reference' }} @if(ref.company){<span class="item-sub">@ {{ ref.company }}</span>}</span>
+                    <button class="btn-x" (click)="removeReference(ref.id)">✕</button>
+                  </div>
+                  <div class="fields-grid">
+                    <div class="field"><label>Name</label><input type="text" [ngModel]="ref.name" (ngModelChange)="updateRef(ref.id,'name',$event)" /></div>
+                    <div class="field"><label>Position</label><input type="text" [ngModel]="ref.position" (ngModelChange)="updateRef(ref.id,'position',$event)" /></div>
+                    <div class="field"><label>Company</label><input type="text" [ngModel]="ref.company" (ngModelChange)="updateRef(ref.id,'company',$event)" /></div>
+                    <div class="field"><label>Email</label><input type="email" [ngModel]="ref.email" (ngModelChange)="updateRef(ref.id,'email',$event)" /></div>
+                    <div class="field"><label>Phone</label><input type="tel" [ngModel]="ref.phone" (ngModelChange)="updateRef(ref.id,'phone',$event)" /></div>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- ══ CUSTOM SECTIONS ══════════════════════════════════ -->
+            @if (sec.id === 'custom') {
+              <button class="btn-add-item" (click)="addCustomSection()">+ Add Custom Section</button>
+              @for (cs of cv().customSections; track cs.id) {
+                <div class="item-card">
+                  <div class="item-header">
+                    <span class="drag-handle">⠿</span>
+                    @if (editMode()) { <input type="checkbox" [checked]="cs.include" (change)="updateCustomSection(cs.id,'include',!cs.include)" /> }
+                    <input class="custom-title-input" type="text" [ngModel]="cs.sectionTitle" (ngModelChange)="updateCustomSection(cs.id,'sectionTitle',$event)" placeholder="Section title" />
+                    <button class="btn-x" (click)="removeCustomSection(cs.id)">✕</button>
+                  </div>
+                  @for (item of cs.items; track item.id) {
+                    <div class="resp-row">
+                      <span class="drag-handle sm">⠿</span>
+                      @if (editMode()) { <input type="checkbox" [checked]="item.include" (change)="updateCustomItem(cs.id, item.id, item.text)" /> }
+                      <input class="resp-input" type="text" [ngModel]="item.text" (ngModelChange)="updateCustomItem(cs.id,item.id,$event)" placeholder="Item text…" />
+                      <button class="btn-x sm" (click)="removeCustomItem(cs.id,item.id)">✕</button>
+                    </div>
+                  }
+                  <button class="btn-add-sub mt-sm" (click)="addCustomItem(cs.id)">+ Add Item</button>
+                </div>
+              }
+            }
+
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="cv-footer">
+    Last saved: {{ cv().metadata.updatedAt | date:'dd MMM yyyy, HH:mm' }} · v{{ cv().metadata.version }} · source: {{ cv().metadata.source }}
+  </div>
+</div>
