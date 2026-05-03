@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CvBuilderComponent } from '../cv-builder/cv-builder';
 import { ToastService } from '../utils/services/toast';
 import { JobsService, SkillGroup } from '../utils/services/jobs';
+import { CoverLetterComponent } from "../cover-letter/cover-letter";
 
 export interface CoverLetterSection {
   id: string; title: string; content: string; prompt: string; loading: boolean;
@@ -26,7 +27,7 @@ const CAT_ICONS: Record<string, string> = {
 
 @Component({
   selector: 'app-apply-job',
-  imports: [FormsModule, CvBuilderComponent],
+  imports: [FormsModule, CvBuilderComponent, CoverLetterComponent],
   templateUrl: './apply-job.html',
   styleUrl: './apply-job.scss'
 })
