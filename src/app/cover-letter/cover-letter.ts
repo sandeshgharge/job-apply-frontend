@@ -2,8 +2,10 @@ import { Component, signal, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast';
 import { Store } from '@ngrx/store';
-import { selectCurrentUser, selectCurrentUserLocation, selectCurrentUserName } from '../utils/store/auth/auth.selectors';
-import { selectJobDetails } from '../utils/store/job-application/selectors';
+import { selectCurrentUserLocation, selectCurrentUserName } from '../utils/store/auth/auth.selectors';
+import { JobDetails } from '../utils/entities/job-details';
+import { JobsService } from '../utils/services/jobs';
+import { AsyncPipe } from '@angular/common';
 
 export interface CoverLetterSection {
   id: string;
@@ -13,24 +15,15 @@ export interface CoverLetterSection {
   loading: boolean;
 }
 
-export interface CoverLetterMeta {
-  applicantName: string;
-  applicantLocation: string;
-  companyName: string;
-  companyLocation: string;
-  role: string;
-  hiringManager: string;
-  date: string;
-}
-
 @Component({
   selector: 'app-cover-letter',
-  imports: [FormsModule],
+  imports: [FormsModule, AsyncPipe],
   templateUrl: './cover-letter.html',
   styleUrl: './cover-letter.scss'
 })
 export class CoverLetterComponent {
   private toast = inject(ToastService);
+  private jobsService = inject(JobsService);
   private store = inject(Store);
 
   // ── Common prompt — applied globally to every section call ─────
@@ -38,22 +31,31 @@ export class CoverLetterComponent {
 
 
   
-  private applicantName = this.store.selectSignal(selectCurrentUserName) ?? '';
-  private applicantLocation = this.store.selectSignal(selectCurrentUserLocation) ?? '';
-  private jobDetails = this.store.selectSignal(selectJobDetails) ?? null;
+  applicantName = this.store.selectSignal(selectCurrentUserName) ?? '';
+  applicantLocation = this.store.selectSignal(selectCurrentUserLocation) ?? '';
+  jobDetails = this.jobsService.jobDetails$;
 
-
-
-  meta = signal<CoverLetterMeta>({
+  meta = signal({
     applicantName: this.applicantName(),
     applicantLocation: this.applicantLocation(),
-    companyName: this.jobDetails()?.companyName ?? '',
-    companyLocation: this.jobDetails()?.companyLocation ?? '',
-    role: this.jobDetails()?.role ?? '',
-    hiringManager: this.jobDetails()?.contactName ?? '',
-    date: new Date().toISOString().split('T')[0]
+    companyName: '',
+    companyLocation: '',
+    role: '',
+    date: new Date().toISOString().split('T')[0],
+    hiringManager: ''
   });
 
+  constructor() {
+    this.jobDetails.subscribe((j) => {
+      this.meta.update(m => ({
+        ...m,
+        companyName: j?.companyName || '',
+        companyLocation: j?.companyLocation || '',
+        role: j?.role || '',
+        hiringManager: j ?.contactName || 'Hiring Manager'
+      }))
+    }); 
+  }
   
   sections = signal<CoverLetterSection[]>([
     { id: '1', title: 'Introduction',      content: '', sectionPrompt: '', loading: false },
@@ -67,8 +69,8 @@ export class CoverLetterComponent {
   copySuccess    = signal(false);
 
   // ── Meta ───────────────────────────────────────────────────────
-  updateMeta(field: keyof CoverLetterMeta, value: string) {
-    this.meta.update(m => ({ ...m, [field]: value }));
+  updateField(field: keyof JobDetails, value: string) {
+    this.jobsService.updateField(field, value);
   }
 
   // ── Sections ───────────────────────────────────────────────────

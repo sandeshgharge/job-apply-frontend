@@ -39,13 +39,18 @@
         </div>
       }
 
-      @if (parsedCompany() || parsedRole()) {
-        <div class="parsed-meta-row">
-          @if (parsedCompany()) { <span class="meta-chip">🏢 {{ parsedCompany() }}</span> }
-          @if (parsedRole()) { <span class="meta-chip">💼 {{ parsedRole() }}</span> }
-          @if (parsedLocation()) { <span class="meta-chip">📍 {{ parsedLocation() }}</span> }
-        </div>
-      }
+
+      <!--
+        @if (parsedCompany() || parsedRole()) {
+          <div class="parsed-meta-row">
+            @if (parsedCompany()) { <span class="meta-chip">🏢 {{ parsedCompany() }}</span> }
+            @if (parsedRole()) { <span class="meta-chip">💼 {{ parsedRole() }}</span> }
+            @if (parsedLocation()) { <span class="meta-chip">📍 {{ parsedLocation() }}</span> }
+          </div>
+       }
+      -->
+
+     
 
       <div class="field mt">
         <label>Job Description</label>
@@ -56,7 +61,7 @@
 
       <div class="step-footer">
         <span class="char-count">{{ jobDescription().length }} characters</span>
-        <button class="btn-next" (click)="goToStep(2)" [disabled]="!jobDescription().trim()">
+        <button class="btn-next" (click)="extractDataForCoverLetter()" [disabled]="!jobDescription().trim()">
           Next: Cover Letter →
         </button>
       </div>

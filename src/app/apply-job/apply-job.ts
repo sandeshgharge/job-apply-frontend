@@ -4,21 +4,9 @@ import { CvBuilderComponent } from '../cv-builder/cv-builder';
 import { ToastService } from '../utils/services/toast';
 import { JobsService } from '../utils/services/jobs';
 import { CoverLetterComponent } from "../cover-letter/cover-letter";
-import { SkillGroup } from '../utils/entities/job-details';
+import { JobDetails, SkillGroup } from '../utils/entities/job-details';
 import { Store } from '@ngrx/store';
-import { extractJobDetails, goToStep } from '../utils/store/job-application/actions';
-import { selectJobApplicationStep, selectJobDescription, selectJobDescriptionLoading, selectJobDetailsExtracting, selectJobUrl } from '../utils/store/job-application/selectors';
-import { filter, pairwise, take } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-export interface CoverLetterSection {
-  id: string; title: string; content: string; prompt: string; loading: boolean;
-}
-export interface CoverLetterMeta {
-  applicantName: string; applicantLocation: string;
-  companyName: string; companyLocation: string;
-  role: string; hiringManager: string; date: string;
-}
+import { selectCurrentUserLocation, selectCurrentUserName } from '../utils/store/auth/auth.selectors';
 
 const SKILL_CATEGORIES = [
   'Programming Languages','Language Frameworks','Databases',
@@ -42,34 +30,20 @@ export class ApplyJobComponent {
   private jobsService = inject(JobsService);
   private store = inject(Store);
 
-  step = this.store.selectSignal(selectJobApplicationStep);
-  loading = this.store.selectSignal(selectJobDetailsExtracting);
+  step = signal(1);
+  loading = signal(false);
 
   // Step 1
   jobUrl = signal('');
   jobDescription = signal<string>('');
   fetchLoading = signal(false);
 
-  parseLoading = this.store.selectSignal(selectJobDetailsExtracting);
-  parsedCompany = signal('');
-  parsedRole = signal('');
-  parsedLocation = signal('');
+  parseLoading = signal(false);
 
   // Step 2
   skillGroups = signal<SkillGroup[]>(SKILL_CATEGORIES.map(c => ({ category: c, skills: [] })));
   newSkills: Record<string, string> = {};
 
-  // Step 3
-  meta = signal<CoverLetterMeta>({
-    applicantName: '', applicantLocation: '', companyName: '', companyLocation: '',
-    role: '', hiringManager: '', date: new Date().toISOString().split('T')[0]
-  });
-  sections = signal<CoverLetterSection[]>([
-    { id: '1', title: 'Introduction', content: '', prompt: '', loading: false },
-    { id: '2', title: 'Why this company?', content: '', prompt: '', loading: false },
-    { id: '3', title: 'Why me?', content: '', prompt: '', loading: false },
-    { id: '4', title: 'Closing', content: '', prompt: '', loading: false },
-  ]);
   generatingFull = signal(false);
   previewMode = signal(false);
   applyLoading = signal(false);
@@ -84,6 +58,7 @@ export class ApplyJobComponent {
     this.jobsService.extractJobDescription(url).subscribe({
       next: desc => {
         this.jobDescription.set(desc.description);
+        this.jobUrl.set(desc.url);
         this.toast.show('Job description loaded! Extracting details...');
       },
       error: err => {
@@ -98,143 +73,49 @@ export class ApplyJobComponent {
 
   extractJobDetails() {
     if (!this.jobDescription().trim()) { this.toast.show('Please enter a job description first.', 'error'); return; }
-    this.store.dispatch(extractJobDetails(this.jobDescription()));
-  }
-
-  goToStep(val: number) {
-    this.store.dispatch(goToStep(val ));
-  }
-
-  // ── Step 2 ─────────────────────────────────────────────────────
-
-  addSkill(category: string) {
-    const val = (this.newSkills[category] ?? '').trim();
-    if (!val) return;
-    this.skillGroups.update(gs => gs.map(g => g.category === category ? { ...g, skills: [...g.skills, val] } : g));
-    this.newSkills[category] = '';
-  }
-
-  removeSkill(category: string, skill: string) {
-    this.skillGroups.update(gs => gs.map(g => g.category === category ? { ...g, skills: g.skills.filter(s => s !== skill) } : g));
-  }
-
-  totalSkills() { return this.skillGroups().reduce((a, g) => a + g.skills.length, 0); }
-
-  generateCvPdf() {
-    import('jspdf').then(({ jsPDF }) => {
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const m = this.meta();
-      let y = 22;
-      doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(17,17,17);
-      doc.text(m.applicantName || 'Your Name', 20, y); y += 9;
-      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(100,100,100);
-      doc.text(`${m.applicantLocation || 'Location'} · ${m.role || this.parsedRole() || 'Role'} · ${m.companyName || this.parsedCompany() || 'Company'}`, 20, y); y += 8;
-      doc.setDrawColor(26, 86, 219); doc.setLineWidth(0.8); doc.line(20, y, 190, y); y += 9;
-      for (const group of this.skillGroups().filter(g => g.skills.length > 0)) {
-        if (y > 262) { doc.addPage(); y = 20; }
-        doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(26, 86, 219);
-        doc.text(group.category, 20, y); y += 6;
-        doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 40, 40);
-        const lines = doc.splitTextToSize(group.skills.join('   ·   '), 170);
-        for (const line of lines) { doc.text(line, 20, y); y += 5; }
-        y += 4;
+    this.parseLoading.set(true);
+    this.jobsService.extractJobDetails(this.jobDescription()).subscribe({
+      next: details => {
+        console.log('Extracted job details:', details);
+        //this.jobDetails.update(j => ({ ...j, ...details }));
+        this.toast.show('Job details extracted! You can edit them if needed.');
+      },
+      error: err => {
+        console.error('Error extracting job details:', err);
+        this.toast.show('Failed to extract job details', 'error');
       }
-      doc.setFontSize(8); doc.setTextColor(180,180,180);
-      doc.text(`JobApply.de — ${new Date().toLocaleDateString('de-DE')}`, 20, 287);
-      doc.save(`CV_${m.companyName || this.parsedCompany() || 'Application'}.pdf`);
-      this.toast.show('PDF downloaded!');
+    }).add(() => {
+      this.parseLoading.set(false);
     });
   }
 
-  // ── Step 3 ─────────────────────────────────────────────────────
-  updateMeta(field: keyof CoverLetterMeta, value: string) { this.meta.update(m => ({ ...m, [field]: value })); }
-  addSection() {
-    this.sections.update(s => [...s, { id: Date.now().toString(), title: 'New Section', content: '', prompt: '', loading: false }]);
-  }
-  removeSection(id: string) { this.sections.update(s => s.filter(sec => sec.id !== id)); }
-  updateSection(id: string, field: keyof CoverLetterSection, value: string) {
-    this.sections.update(s => s.map(sec => sec.id === id ? { ...sec, [field]: value } : sec));
-  }
-  formatDisplayDate(d: string) {
-    return d ? new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+  extractDataForCoverLetter() {
+    if (!this.jobDescription().trim()) {
+    return;
   }
 
-  async generateSection(sectionId: string) {
-    const m = this.meta(); const section = this.sections().find(s => s.id === sectionId); if (!section) return;
-    this.sections.update(s => s.map(sec => sec.id === sectionId ? { ...sec, loading: true } : sec));
-    const skills = this.skillGroups().flatMap(g => g.skills).join(', ');
-    const system = `You are an expert career coach for German job applications. Write professional cover letter paragraphs in English. Return only the paragraph text.`;
-    const prompt = section.prompt
-      ? `${section.prompt}\n\nApplicant: ${m.applicantName}, Role: ${m.role} at ${m.companyName}. Skills: ${skills}. Section: "${section.title}". Existing: "${section.content}".`
-      : `Write "${section.title}" paragraph. Applicant: ${m.applicantName || '[Name]'}. Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation}. Skills: ${skills}. 3-4 sentences, professional, Germany-appropriate.`;
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 600, system, messages: [{ role: 'user', content: prompt }] }) });
-      const data = await res.json();
-      const text = data.content?.find((c: any) => c.type === 'text')?.text ?? '';
-      this.sections.update(s => s.map(sec => sec.id === sectionId ? { ...sec, content: text, loading: false } : sec));
-      this.toast.show('Section generated!');
-    } catch { this.sections.update(s => s.map(sec => sec.id === sectionId ? { ...sec, loading: false } : sec)); this.toast.show('Failed.', 'error'); }
+  this.parseLoading.set(true);
+
+  this.jobsService.extractJobDetails(this.jobDescription())
+    .subscribe({
+      next: details => {
+        this.jobsService.setJobDetails(details);
+        this.toast.show('Data extracted for cover letter!');
+        this.goToStep(2);
+      },
+      error: err => {
+        console.error(err);
+      }
+    });
   }
 
-  async generateFullLetter() {
-    this.generatingFull.set(true);
-    const m = this.meta();
-    const skills = this.skillGroups().flatMap(g => g.skills).slice(0, 12).join(', ');
-    const sections = this.sections().map(s => s.title).join(', ');
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1200, system: 'Generate cover letter sections as JSON array only, no markdown.', messages: [{ role: 'user', content: `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation}. Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation}. Hiring manager: ${m.hiringManager || 'Hiring Team'}. Skills: ${skills}. Sections needed: ${sections}. Return [{"title":"...","content":"..."}]. 3-4 sentences each.` }] }) });
-      const data = await res.json();
-      const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
-      const parsed: { title: string; content: string }[] = JSON.parse(raw.replace(/```json|```/g, '').trim());
-      this.sections.update(secs => secs.map(sec => { const match = parsed.find(p => p.title.toLowerCase().includes(sec.title.toLowerCase().split(' ')[0])); return match ? { ...sec, content: match.content } : sec; }));
-      this.previewMode.set(true);
-      this.toast.show('Cover letter generated!');
-    } catch { this.toast.show('Generation failed.', 'error'); }
-    finally { this.generatingFull.set(false); }
+  goToStep(val: number) {
+    this.step.set(val);
   }
-
-  get previewText(): string {
-    const m = this.meta();
-    const body = this.sections().map(s => s.content).filter(Boolean).join('\n\n');
-    return `${m.applicantName}\n${m.applicantLocation}\n\n${this.formatDisplayDate(m.date)}\n\n${m.companyName}\n${m.companyLocation}\n\nDear ${m.hiringManager || 'Hiring Team'},\n\n${body}\n\nYours sincerely,\n${m.applicantName}`;
-  }
-
-  async copyToClipboard() { await navigator.clipboard.writeText(this.previewText); this.toast.show('Copied!'); }
 
   applyJob() {
-    this.applyLoading.set(true);
-    const m = this.meta();
-    const jobData = {
-      companyName: m.companyName || this.parsedCompany() || 'Unknown Company',
-      role: m.role || this.parsedRole() || 'Unknown Role',
-      companyLocation: m.companyLocation || this.parsedLocation() || '',
-      appliedDate: new Date().toISOString().split('T')[0],
-      status: 'Applied' as const,
-      jobUrl: this.jobUrl(),
-      jobDescription: this.jobDescription(),
-      skillGroups: this.skillGroups(),
-      coverLetter: this.previewText,
-      contactName: m.hiringManager,
-    };
-    setTimeout(() => {
-      this.jobsService.addJob(jobData);
-      this.toast.show(`Applied to ${jobData.companyName}! Added to Job Tracker.`);
-      this.applyLoading.set(false);
-      this.store.dispatch(goToStep(1));
-      this.jobUrl.set(''); //this.jobDescription.set('');
-      this.parsedCompany.set(''); this.parsedRole.set(''); this.parsedLocation.set('');
-      this.skillGroups.set(SKILL_CATEGORIES.map(c => ({ category: c, skills: [] })));
-      this.sections.set([
-        { id: '1', title: 'Introduction', content: '', prompt: '', loading: false },
-        { id: '2', title: 'Why this company?', content: '', prompt: '', loading: false },
-        { id: '3', title: 'Why me?', content: '', prompt: '', loading: false },
-        { id: '4', title: 'Closing', content: '', prompt: '', loading: false },
-      ]);
-      const saved = { applicantName: m.applicantName, applicantLocation: m.applicantLocation };
-      this.meta.set({ ...saved, companyName: '', companyLocation: '', role: '', hiringManager: '', date: new Date().toISOString().split('T')[0] });
-      this.previewMode.set(false);
-    }, 500);
   }
+
 }
 
 // NOTE: CvBuilderComponent is imported via apply-job template for Step 3

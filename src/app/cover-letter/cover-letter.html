@@ -26,37 +26,37 @@
         <div class="field">
           <label>Applicant Name</label>
           <input type="text" placeholder="e.g. Maria Müller"
-            [ngModel]="meta().applicantName" (ngModelChange)="updateMeta('applicantName', $event)" />
+            [ngModel]="applicantName()" />
         </div>
         <div class="field">
           <label>Applicant Location</label>
           <input type="text" placeholder="e.g. Berlin, Germany"
-            [ngModel]="meta().applicantLocation" (ngModelChange)="updateMeta('applicantLocation', $event)" />
+            [ngModel]="applicantLocation()" />
         </div>
         <div class="field">
           <label>Company Name</label>
           <input type="text" placeholder="e.g. SAP SE"
-            [ngModel]="meta().companyName" (ngModelChange)="updateMeta('companyName', $event)" />
+            [ngModel]="(jobDetails | async)?.companyName" (ngModelChange)="updateField('companyName', $event)" />
         </div>
         <div class="field">
           <label>Company Location</label>
           <input type="text" placeholder="e.g. Walldorf, Germany"
-            [ngModel]="meta().companyLocation" (ngModelChange)="updateMeta('companyLocation', $event)" />
+            [ngModel]="(jobDetails | async)?.companyLocation" (ngModelChange)="updateField('companyLocation', $event)" />
         </div>
         <div class="field">
           <label>Role</label>
           <input type="text" placeholder="e.g. Senior Frontend Developer"
-            [ngModel]="meta().role" (ngModelChange)="updateMeta('role', $event)" />
+            [ngModel]="(jobDetails | async)?.role" (ngModelChange)="updateField('role', $event)" />
         </div>
         <div class="field">
           <label>Hiring Manager</label>
           <input type="text" placeholder="e.g. Frau Schmidt"
-            [ngModel]="meta().hiringManager" (ngModelChange)="updateMeta('hiringManager', $event)" />
+            [ngModel]="(jobDetails | async)?.contactName" (ngModelChange)="updateField('contactName', $event)" />
         </div>
         <div class="field">
           <label>Date</label>
           <input type="date"
-            [ngModel]="meta().date" (ngModelChange)="updateMeta('date', $event)" />
+            [ngModel]="(jobDetails | async)?.appliedDate" (ngModelChange)="updateField('appliedDate', $event)" />
         </div>
       </div>
     </div>
@@ -147,17 +147,17 @@
       <div class="letter-preview">
         <div class="letter-meta-block">
           <div class="letter-sender">
-            <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
-            <span>{{ meta().applicantLocation }}</span>
+            <strong>{{ applicantName() || '[Your Name]' }}</strong>
+            <span>{{ applicantLocation() }}</span>
           </div>
-          <div class="letter-date">{{ formatDisplayDate(meta().date) }}</div>
+          <div class="letter-date">{{ formatDisplayDate('') }}</div>
         </div>
         <div class="letter-recipient">
-          <div>{{ meta().companyName }}</div>
-          <div>{{ meta().companyLocation }}</div>
+          <div>{{ (jobDetails | async)?.companyName }}</div>
+          <div>{{ (jobDetails | async)?.companyLocation }}</div>
         </div>
         <div class="letter-salutation">
-          Dear {{ meta().hiringManager || 'Hiring Team' }},
+          Dear {{ (jobDetails | async)?.contactName || 'Hiring Team' }},
         </div>
         @for (section of sections(); track section.id) {
           @if (section.content) {
@@ -169,7 +169,7 @@
         }
         <div class="letter-closing">
           <p>Yours sincerely,</p>
-          <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
+          <strong>{{ applicantName() || '[Your Name]' }}</strong>
         </div>
       </div>
     </div>

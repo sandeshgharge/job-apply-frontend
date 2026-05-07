@@ -26,7 +26,7 @@ export class JobTrackerComponent {
 
   form = signal<Omit<JobDetails, 'id'>>({
     companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0],
-    status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: ''
+    status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: '', jobDescription: ''
   });
 
   filteredJobs = computed(() => {
@@ -42,13 +42,13 @@ export class JobTrackerComponent {
 
   openAddModal() {
     this.editingJob.set(null);
-    this.form.set({ companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0], status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: '' });
+    this.form.set({ companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0], status: 'Applied', notes: '', salary: '', contactName: '', jobUrl: '', jobDescription: '' });
     this.showModal.set(true);
   }
 
   openEditModal(job: JobDetails) {
     this.editingJob.set(job);
-    this.form.set({ companyName: job.companyName, role: job.role, companyLocation: job.companyLocation, appliedDate: job.appliedDate, status: job.status, notes: job.notes ?? '', salary: job.salary ?? '', contactName: job.contactName ?? '', jobUrl: job.jobUrl ?? '' });
+    this.form.set({ companyName: job.companyName, role: job.role, companyLocation: job.companyLocation, appliedDate: job.appliedDate, status: job.status, notes: job.notes ?? '', salary: job.salary ?? '', contactName: job.contactName ?? '', jobUrl: job.jobUrl ?? '', jobDescription: job.jobDescription ?? '' });
     this.showModal.set(true);
   }
 

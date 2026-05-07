@@ -15,16 +15,16 @@ export interface SkillGroup {
 
 export interface JobDetails {
   id?: string;
-  companyName?: string;
-  role?: string;
-  companyLocation?: string;
-  appliedDate?: string;
-  status?: JobStatus;
+  companyName: string;
+  role: string;
+  companyLocation: string;
+  appliedDate: string;
+  status: JobStatus;
   salary?: string;
   contactName?: string;
   jobUrl?: string;
   notes?: string;
-  jobDescription?: string;
+  jobDescription: string;
   skillGroups?: SkillGroup[];
   coverLetter?: string;
 }
