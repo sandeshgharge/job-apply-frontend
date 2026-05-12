@@ -7,12 +7,13 @@ import { JobTrackerComponent } from '../job-tracker/job-tracker';
 import { ToastComponent } from '../toast/toast';
 import { Store } from '@ngrx/store';
 import { logout } from '../utils/store/auth/auth.actions';
+import { ProfileInfo } from "../profile-info/profile-info";
 
-type TabId = 'dashboard' | 'apply-job' | 'job-tracker';
+type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 
 @Component({
   selector: 'app-home',
-  imports: [DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent],
+  imports: [DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent, ProfileInfo],
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })
@@ -26,6 +27,7 @@ export class HomeComponent {
     { id: 'dashboard',  label: 'Home',       icon: '⊞' },
     { id: 'apply-job',  label: 'Apply Job',  icon: '✦' },
     { id: 'job-tracker', label: 'My Jobs',   icon: '◈' },
+    { id: 'profile',    label: 'Profile',    icon: '⚙' },
   ];
 
   get user() { return this.auth.getUser(); }

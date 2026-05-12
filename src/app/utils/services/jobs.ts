@@ -22,9 +22,7 @@ export class JobsService {
   jobs = signal<JobDetails[]>(this.storage.get<JobDetails[]>('jad_jobs', DEMO_JOBS));
 
   private jobDetails = new BehaviorSubject<JobDetails | null>(null);
-
   jobDetails$ = this.jobDetails.asObservable();
-
   setJobDetails(details: JobDetails) {
     this.jobDetails.next(details);
   }

@@ -1,22 +1,19 @@
 <div class="wizard-page">
 
   <!-- Step indicator -->
-  <div class="step-indicator">
-    @for (s of [{n:1,label:'Fetch Job'},{n:2,label:'Cover Letter'},{n:3,label:'CV Skills'}]; track s.n) {
-      <div class="step-item" [class.active]="step() === s.n" [class.done]="step() > s.n">
-        <div class="step-bubble">
-          @if (step() > s.n) { ✓ } @else { {{ s.n }} }
-        </div>
-        <span class="step-label">{{ s.label }}</span>
-      </div>
-      @if (s.n < 3) { <div class="step-connector" [class.done]="step() > s.n"></div> }
-    }
-  </div>
+  <nav class="tab-nav">
+      @for (tab of tabs; track tab.id) {
+        <button class="tab-btn" [class.active]="activeTab() === tab.id" (click)="setTab(tab.id)">
+          <span class="tab-icon">{{ tab.icon }}</span>
+          {{ tab.label }}
+        </button>
+      }
+    </nav>
 
   <!-- ══════════════════════════════════════════════════ -->
   <!-- STEP 1 — Fetch Job Details                        -->
   <!-- ══════════════════════════════════════════════════ -->
-  @if (step() === 1) {
+  @if (activeTab() === 'Fetch Job') {
     <div class="step-panel">
       <div class="step-header">
         <h2>Fetch Job Details</h2>
@@ -71,14 +68,14 @@
   <!-- ══════════════════════════════════════════════════ -->
   <!-- STEP 2 — Cover Letter                             -->
   <!-- ══════════════════════════════════════════════════ -->
-  @if (step() === 2) {
+  @if (activeTab() === 'Cover Letter') {
     <div class="step-panel">
       <app-cover-letter/>
 
       <div class="step-footer apply-footer">
-        <button class="btn-back" (click)="goToStep(1)">← Back</button>
+        <button class="btn-back" (click)="setTab('Fetch Job')">← Back</button>
         <div class="footer-right">
-          <button class="btn-next" (click)="goToStep(3)">
+          <button class="btn-next" (click)="setTab('CV')">
             Next: CV Skills →
           </button>
         </div>
@@ -89,11 +86,11 @@
   <!-- ══════════════════════════════════════════════════ -->
   <!-- STEP 3 — CV Builder                               -->
   <!-- ══════════════════════════════════════════════════ -->
-  @if (step() === 3) {
+  @if (activeTab() === 'CV') {
     <div class="step-panel">
       <app-cv-builder [prefillSkills]="skillGroups()" />
       <div class="step-footer apply-footer">
-        <button class="btn-back" (click)="goToStep(2)">← Back</button>
+        <button class="btn-back" (click)="setTab('Cover Letter')">← Back</button>
         <div class="footer-right">
           <button class="btn-apply" (click)="applyJob()" [disabled]="applyLoading()">
             @if (applyLoading()) { <span class="spinner"></span> Submitting… }

@@ -6,11 +6,10 @@ import { JobsService } from '../utils/services/jobs';
 import { CoverLetterComponent } from "../cover-letter/cover-letter";
 import { JobDetails, SkillGroup } from '../utils/entities/job-details';
 import { Store } from '@ngrx/store';
-import { selectCurrentUserLocation, selectCurrentUserName } from '../utils/store/auth/auth.selectors';
 
 const SKILL_CATEGORIES = [
-  'Programming Languages','Language Frameworks','Databases',
-  'Monitoring Tools','DevOps Tools','Cloud Platforms','Other Skills',
+  'Programming Languages', 'Language Frameworks', 'Databases',
+  'Monitoring Tools', 'DevOps Tools', 'Cloud Platforms', 'Other Skills',
 ];
 
 const CAT_ICONS: Record<string, string> = {
@@ -18,6 +17,8 @@ const CAT_ICONS: Record<string, string> = {
   'Databases': '◫', 'Monitoring Tools': '◉',
   'DevOps Tools': '⬡', 'Cloud Platforms': '☁', 'Other Skills': '◆',
 };
+
+type TabId = 'Fetch Job' | 'Cover Letter' | 'CV';
 
 @Component({
   selector: 'app-apply-job',
@@ -32,6 +33,17 @@ export class ApplyJobComponent {
 
   step = signal(1);
   loading = signal(false);
+
+  activeTab = signal<TabId>('Fetch Job');
+
+  tabs: { id: TabId; label: string; icon: string }[] = [
+    { id: 'Fetch Job', label: 'Fetch Job', icon: '📥' },
+    { id: 'CV', label: 'CV', icon: '📄' },
+    { id: 'Cover Letter', label: 'Cover Letter', icon: '📝' },
+  ];
+
+  setTab(tab: TabId) { this.activeTab.set(tab); }
+
 
   // Step 1
   jobUrl = signal('');
@@ -71,42 +83,27 @@ export class ApplyJobComponent {
     });
   }
 
-  extractJobDetails() {
-    if (!this.jobDescription().trim()) { this.toast.show('Please enter a job description first.', 'error'); return; }
-    this.parseLoading.set(true);
-    this.jobsService.extractJobDetails(this.jobDescription()).subscribe({
-      next: details => {
-        console.log('Extracted job details:', details);
-        //this.jobDetails.update(j => ({ ...j, ...details }));
-        this.toast.show('Job details extracted! You can edit them if needed.');
-      },
-      error: err => {
-        console.error('Error extracting job details:', err);
-        this.toast.show('Failed to extract job details', 'error');
-      }
-    }).add(() => {
-      this.parseLoading.set(false);
-    });
-  }
-
   extractDataForCoverLetter() {
     if (!this.jobDescription().trim()) {
-    return;
-  }
+      return;
+    }
 
-  this.parseLoading.set(true);
+    this.parseLoading.set(true);
 
-  this.jobsService.extractJobDetails(this.jobDescription())
-    .subscribe({
-      next: details => {
-        this.jobsService.setJobDetails(details);
-        this.toast.show('Data extracted for cover letter!');
-        this.goToStep(2);
-      },
-      error: err => {
-        console.error(err);
-      }
-    });
+    this.jobsService.extractJobDetails(this.jobDescription())
+      .subscribe({
+        next: details => {
+          this.jobsService.setJobDetails(details);
+          this.toast.show('Data extracted for cover letter!');
+
+        },
+        error: err => {
+          console.error(err);
+        }
+      }).add(() => {
+        this.parseLoading.set(false);
+      });
+    this.goToStep(2);
   }
 
   goToStep(val: number) {

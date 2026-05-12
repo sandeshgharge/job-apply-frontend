@@ -20,9 +20,10 @@ export class AuthEffects {
             ofType(login),
             switchMap(({ email, password }) => {
                 console.log("Attempting login with email:", email);
-                if (this.authService.login(email, password)) {
+                let usr : User | null = this.authService.login(email, password);
+                if (usr) {
                     
-                    return of(loginSuccess({ user: this.authService.getUser() as User, token: "abc123" }));
+                    return of(loginSuccess({ user: usr, token: "abc123" }));
                 } else {
                     return of(loginFailure({ error: "Invalid credentials" }));
                 }
@@ -35,7 +36,6 @@ export class AuthEffects {
             ofType(loginSuccess),
             tap(({ user }) => {
                 // Here you can perform side effects like navigation or showing a success message
-                sessionStorage.setItem('user', user ? JSON.stringify(user) : '');
                 this.router.navigate(['/home']);
                 console.log("Login successful for user:", user);
             })

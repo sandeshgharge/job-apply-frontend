@@ -6,14 +6,7 @@ import { selectCurrentUserLocation, selectCurrentUserName } from '../utils/store
 import { JobDetails } from '../utils/entities/job-details';
 import { JobsService } from '../utils/services/jobs';
 import { AsyncPipe } from '@angular/common';
-
-export interface CoverLetterSection {
-  id: string;
-  title: string;
-  content: string;
-  sectionPrompt: string; // section-specific instruction
-  loading: boolean;
-}
+import { CoverLetterSection } from '../utils/entities/cover-letter';
 
 @Component({
   selector: 'app-cover-letter',

@@ -2,32 +2,41 @@ import { inject, Injectable, signal } from '@angular/core';
 import { User } from '../entities/user';
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../store/auth/auth.selectors';
+import { supabase } from '../supabase/client'
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private currentUser = signal<User | null>(null);
+
   private store = inject(Store);
-  private user = this.store.selectSignal(selectCurrentUser);
 
-  login(email: string, password: string): boolean {
-    if (email && password.length >= 6) {
-      const name = email.split('@')[0].replace(/[._]/g, ' ');
-      this.currentUser.set({ email, name, location: '' });
-      
-      return true;
-    }
-    return false;
+  async login(email: string, password: string) {
+    return await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
   }
 
-  logout(): void {
-    this.currentUser.set(null);
+  async signUp(email: string, password: string) {
+    return await supabase.auth.signUp({
+      email,
+      password
+    });
   }
 
-  getUser(): User | null {
-    return this.currentUser();
+  async logout() {
+    return await supabase.auth.signOut();
   }
 
-  isLoggedIn(): boolean {
-    return !!this.currentUser();
+  async getUser() {
+    return await supabase.auth.getUser();
+  }
+
+  async isLoggedIn(): Promise<boolean> {
+    const { data } = await supabase.auth.getSession();
+    return !!data.session;
+  }
+
+  onAuthStateChange(callback: any) {
+    return supabase.auth.onAuthStateChange(callback);
   }
 }
