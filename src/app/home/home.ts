@@ -30,7 +30,7 @@ export class HomeComponent {
     { id: 'profile',    label: 'Profile',    icon: '⚙' },
   ];
 
-  get user() { return this.auth.getUser(); }
+  user =  this.auth.getUser();
   logout() { this.store.dispatch(logout()); }
   setTab(tab: TabId) { this.activeTab.set(tab); }
 }

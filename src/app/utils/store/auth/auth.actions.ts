@@ -16,6 +16,11 @@ export const loginFailure = createAction(
   props<{ error: string }>()
 );
 
+export const changePassword = createAction(
+  '[Auth] Change Password', 
+  props<{ password:string }>()
+);
+
 export const logout = createAction('[Auth] Logout');
 
 export const autoLogin = createAction('[Auth] Auto Login');

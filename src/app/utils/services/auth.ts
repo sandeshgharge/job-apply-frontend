@@ -2,41 +2,58 @@ import { inject, Injectable, signal } from '@angular/core';
 import { User } from '../entities/user';
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../store/auth/auth.selectors';
-import { supabase } from '../supabase/client'
+import { from, of, switchMap, throwError } from 'rxjs';
+import { SupabaseClient } from '../supabase/client';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
   private store = inject(Store);
+  private supabase = inject(SupabaseClient).client;
 
-  async login(email: string, password: string) {
-    return await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+  login(email: string, password: string) {
+    return from(
+      this.supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+    ).pipe(
+      switchMap(response => {
+
+        if (response.error) {
+          return throwError(() => response.error);
+        }
+
+        return of(response);
+      })
+    );
   }
 
   async signUp(email: string, password: string) {
-    return await supabase.auth.signUp({
+    return await this.supabase.auth.signUp({
       email,
       password
     });
   }
 
   async logout() {
-    return await supabase.auth.signOut();
+    return await this.supabase.auth.signOut();
   }
 
-  async getUser() {
-    return await supabase.auth.getUser();
+  getUser() {
+    return this.store.selectSignal(selectCurrentUser);
   }
 
   async isLoggedIn(): Promise<boolean> {
-    const { data } = await supabase.auth.getSession();
+    const { data } = await this.supabase.auth.getSession();
     return !!data.session;
   }
 
   onAuthStateChange(callback: any) {
-    return supabase.auth.onAuthStateChange(callback);
+    return this.supabase.auth.onAuthStateChange(callback);
+  }
+
+  setPassword(newPassword: string) {
+    return from(this.supabase.auth.updateUser({ password: newPassword }));
   }
 }

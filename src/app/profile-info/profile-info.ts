@@ -41,7 +41,7 @@ export class ProfileInfo {
     return {
       firstName: saved?.firstName ?? firstName,
       lastName: saved?.lastName ?? rest.join(' '),
-      email: saved?.email ?? user?.email ?? '',
+      email: saved?.email ?? user()?.email ?? '',
       apiUrl: saved?.apiUrl ?? '',
       apiKey: saved?.apiKey ?? ''
     };

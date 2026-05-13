@@ -17,7 +17,7 @@ export class DashboardComponent {
   stats = computed(() => this.jobsService.getStats());
   jobs = computed(() => this.jobsService.jobs());
 
-  get user() { return this.auth.getUser(); }
+  user=this.auth.getUser();
 
   upcomingInterviews = computed(() =>
     this.jobsService.jobs().filter(j => j.status?.includes('Interview')).slice(0, 5)
