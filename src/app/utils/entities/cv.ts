@@ -72,3 +72,10 @@ export interface CvSection {
   include: boolean;
   collapsed: boolean;
 }
+
+export interface CVInfo {
+  data: CvData;
+  createdAt: string;
+  updatedAt: string;
+  version: string;
+}

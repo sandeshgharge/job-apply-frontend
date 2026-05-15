@@ -23,9 +23,11 @@ export class AuthEffects {
                 return this.authService.login(email, password).pipe(
 
                     switchMap(response => {
+                        console.log("Login response received:", response);
                         const name = email.split('@')[0].replace(/[._]/g, ' ');
+                        const id = response.data.user?.id || '';
                         return of(loginSuccess({
-                            user: { email, name },
+                            user: { email, name, id },
                             token: response.data.session?.access_token || ''
                         }));
                     }),
@@ -42,6 +44,7 @@ export class AuthEffects {
             ofType(loginSuccess),
             tap(({ user, token }) => {
                 // Here you can perform side effects like navigation or showing a success message
+
                 this.router.navigate(['/home']);
                 console.log("Login successful for user:", user, "with token:", token);
             })

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { SupabaseClient } from '../utils/supabase/client';
+import { supabase } from '../utils/supabase/client';
 
 @Component({
   selector: 'app-auth-callback',
@@ -11,22 +11,21 @@ import { SupabaseClient } from '../utils/supabase/client';
 export class AuthCallback {
 
   constructor(
-    private router: Router,
-    private supabase: SupabaseClient
+    private router: Router
   ) {}
 
   async ngOnInit() {
 
     const {
       data: { session }
-    } = await this.supabase.auth.getSession();
+    } = await supabase.auth.getSession();
 
     if (!session) {
       this.router.navigate(['/login']);
       return;
     }
 
-    const { data: profile } = await this.supabase.client
+    const { data: profile } = await supabase
       .from('user_details')
       .select()
       .eq('id', session.user.id)

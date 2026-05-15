@@ -7,13 +7,13 @@ import { JobTrackerComponent } from '../job-tracker/job-tracker';
 import { ToastComponent } from '../toast/toast';
 import { Store } from '@ngrx/store';
 import { logout } from '../utils/store/auth/auth.actions';
-import { ProfileInfo } from "../profile-info/profile-info";
+import { ProfileInfoComponent } from "../profile-info/profile-info";
 
 type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 
 @Component({
   selector: 'app-home',
-  imports: [DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent, ProfileInfo],
+  imports: [DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent, ProfileInfoComponent],
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })

@@ -4,13 +4,13 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
-import { AuthEffects } from './utils/store/auth/auth.effects';
-import { reducers } from './utils/store';
+import { reducers } from './utils/store/app.reducer';
+import { effects } from './utils/store/app.effects';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes), 
     provideStore(reducers), 
-    provideEffects([AuthEffects])
+    provideEffects(effects)
   ],
 };

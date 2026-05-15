@@ -1,20 +1,43 @@
-import { inject } from "@angular/core";
-import { SupabaseClient } from "../supabase/client";
+import { inject, Injectable } from "@angular/core";
+import { supabase } from "../supabase/client";
+import { Store } from "@ngrx/store";
+import { HttpClient } from "@angular/common/http";
+import { selectCurrentUser } from "../store/auth/auth.selectors";
+import { catchError, from, map } from "rxjs";
+import { mapProfileDtoToProfile } from "../supabase/mapper";
 
+@Injectable({ providedIn: 'root' })
 export class ProfileService {
-    private supabase = inject(SupabaseClient).client;
 
+    constructor(private http: HttpClient) { }
+    private store = inject(Store);
 
-    async getProfile() {
-        const { data: { session } } = await this.supabase.auth.getSession();
-        if (!session) {
-            throw new Error('No active session found');
-        }
+    userId = this.store.selectSignal(selectCurrentUser);
 
-        const { data: profile, error } = await this.supabase
+    getProfile() {
+        console.log('Fetching profile for user ID:', this.userId());
+        return from(supabase
             .from('user_details')
             .select()
-            .eq('id', session.user.id)
-            .single();
+            .eq('id', this.userId()?.id)
+            .single()
+        ).pipe(
+            map(response => {
+                if (response.error) {
+                    throw response.error;
+                }
+
+                return mapProfileDtoToProfile(
+                    response.data
+                );
+            }),
+            catchError(error => {
+                console.error('Error fetching profile data:', error);
+                throw error;
+            })
+        );
     }
+
+
+
 }
