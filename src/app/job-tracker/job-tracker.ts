@@ -1,8 +1,8 @@
 import { Component, signal, inject, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { JobsService } from '../utils/services/jobs';
+import { JobsService } from '../utils/services/jobs.service';
 import { JobCountPipe } from '../utils/pipes/job-count.pipe';
-import { ToastService } from '../utils/services/toast';
+import { ToastService } from '../utils/services/toast.service';
 import { JobDetails, JobStatus } from '../utils/entities/job-details';
 
 @Component({

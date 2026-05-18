@@ -1,6 +1,6 @@
 import { Component, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../utils/services/auth';
+import { AuthService } from '../utils/services/auth.service';
 import { DashboardComponent } from '../dashboard/dashboard';
 import { ApplyJobComponent } from '../apply-job/apply-job';
 import { JobTrackerComponent } from '../job-tracker/job-tracker';
@@ -8,6 +8,7 @@ import { ToastComponent } from '../toast/toast';
 import { Store } from '@ngrx/store';
 import { logout } from '../utils/store/auth/auth.actions';
 import { ProfileInfoComponent } from "../profile-info/profile-info";
+import { selectCurrentUser } from '../utils/store/auth/auth.selectors';
 
 type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 
@@ -18,7 +19,6 @@ type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
   styleUrl: './home.scss'
 })
 export class HomeComponent {
-  private auth = inject(AuthService);
   private store = inject(Store);
 
   activeTab = signal<TabId>('dashboard');
@@ -30,7 +30,8 @@ export class HomeComponent {
     { id: 'profile',    label: 'Profile',    icon: '⚙' },
   ];
 
-  user =  this.auth.getUser();
+  user =  this.store.selectSignal(selectCurrentUser)();
+  
   logout() { this.store.dispatch(logout()); }
   setTab(tab: TabId) { this.activeTab.set(tab); }
 }

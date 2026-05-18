@@ -1,7 +1,7 @@
 import { createReducer, on } from "@ngrx/store";
 import { ProfileInfo } from "../../entities/user";
 import { ProfileInfoState } from "./profile.state";
-import { loadProfileInfo, loadProfileInfoFailure, loadProfileInfoSuccess } from "./profile.actions";
+import { loadProfileInfo, loadProfileInfoFailure, loadProfileInfoSuccess, updateProfileInfo } from "./profile.actions";
 
 export const initialProfileState : ProfileInfoState = {
     profileInfo: null,
@@ -23,12 +23,20 @@ export const profileReducer = createReducer(
     on(loadProfileInfoSuccess, (state, { profileInfo }) => ({
         ...state,
         profileInfo,
-        loading: false
+        loading: false,
+        error: null
     })),
 
     on(loadProfileInfoFailure, (state, { error }) => ({
         ...state,
         loading: false,
         error
-    }))
+    })),
+
+    on(updateProfileInfo, (state, { profileInfo }) => ({
+        ...state,
+        profileInfo: { ...state.profileInfo, ...profileInfo }
+    })),
+
+
 );

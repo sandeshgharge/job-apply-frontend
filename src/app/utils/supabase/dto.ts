@@ -5,5 +5,5 @@ export interface ProfileDTO {
     email: string;
     agent_api_key: string;
     agent_api_url: string;
-    created_at: string;
+    created_at?: string;
 }

@@ -1,8 +1,8 @@
 import { inject, Injectable } from "@angular/core";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { autoLogin, changePassword, login, loginFailure, loginSuccess, logout } from "./auth.actions";
-import { AuthService } from "../../services/auth";
-import { catchError, map, mergeMap, of, switchMap, tap } from "rxjs";
+import { AuthService } from "../../services/auth.service";
+import { catchError, from, map, mergeMap, of, switchMap, tap } from "rxjs";
 import { User } from "../../entities/user";
 import { Router } from "@angular/router";
 
@@ -79,16 +79,24 @@ export class AuthEffects {
     autoLogin$ = createEffect(() =>
         this.actions$.pipe(
             ofType(autoLogin),
-            tap(() => {
-                const stored = sessionStorage.getItem('user');
-                if (stored) {
-                    const user = JSON.parse(stored);
-                    console.log("Auto-login successful for user:", user);
-                    return loginSuccess({ user, token: "abc123" });
-                } else {
-                    console.log("No user found for auto-login");
-                    return logout();
-                }
+            switchMap(() => {
+                console.log("Attempting auto-login...");
+                return from(this.authService.getSession()).pipe(
+                    map(({ data: { session } }) => {
+                        if (session) {
+                            const user = { email: session.user.email || '', name: session.user.email?.split('@')[0].replace(/[._]/g, ' ') || '', id: session.user.id };
+                            console.log("Auto-login successful for user:", user);
+                            return loginSuccess({ user, token: session.access_token });
+                        } else {
+                            console.log("No session found for auto-login");
+                            return logout(); // No session, ensure we're logged out
+                        }
+                    }),
+                    catchError(error => {
+                        console.error("Auto-login failed with error:", error);
+                        return of(logout());
+                    })
+                );
             })
         )
     );
