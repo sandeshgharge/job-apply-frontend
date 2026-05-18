@@ -5,6 +5,8 @@ import { HttpClient } from "@angular/common/http";
 import { selectCurrentUser } from "../store/auth/auth.selectors";
 import { catchError, from, map } from "rxjs";
 import { mapProfileDtoToProfile } from "../supabase/mapper";
+import { ProfileInfo } from "../entities/user";
+import { ProfileDTO } from "../supabase/dto";
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
@@ -16,28 +18,20 @@ export class ProfileService {
 
     getProfile() {
         console.log('Fetching profile for user ID:', this.userId());
-        return from(supabase
+        return supabase
             .from('user_details')
             .select()
             .eq('id', this.userId()?.id)
             .single()
-        ).pipe(
-            map(response => {
-                if (response.error) {
-                    throw response.error;
-                }
-
-                return mapProfileDtoToProfile(
-                    response.data
-                );
-            }),
-            catchError(error => {
-                console.error('Error fetching profile data:', error);
-                throw error;
-            })
-        );
     }
 
-
-
+    updateProfile(profileInfo: ProfileDTO) {
+        console.log('Updating profile for user ID:', this.userId());
+        return supabase
+            .from('user_details')
+            .update({
+                ...profileInfo
+            })
+            .eq('id', this.userId()?.id)
+    }
 }

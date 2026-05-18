@@ -1,8 +1,8 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CvBuilderComponent } from '../cv-builder/cv-builder';
-import { ToastService } from '../utils/services/toast';
-import { JobsService } from '../utils/services/jobs';
+import { ToastService } from '../utils/services/toast.service';
+import { JobsService } from '../utils/services/jobs.service';
 import { CoverLetterComponent } from "../cover-letter/cover-letter";
 import { JobDetails, SkillGroup } from '../utils/entities/job-details';
 import { Store } from '@ngrx/store';

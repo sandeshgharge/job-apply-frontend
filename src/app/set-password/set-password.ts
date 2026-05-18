@@ -1,7 +1,7 @@
 import { Component, signal, inject, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { ToastService } from '../utils/services/toast';
+import { ToastService } from '../utils/services/toast.service';
 import { changePassword } from '../utils/store/auth/auth.actions';
 
 export interface PasswordForm {

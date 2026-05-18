@@ -1,8 +1,8 @@
 import { Component, signal, inject, computed, Input } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ToastService } from '../utils/services/toast';
-import { StorageService } from '../utils/services/storage';
+import { ToastService } from '../utils/services/toast.service';
+import { StorageService } from '../utils/services/storage.service';
 import { CvCertification, CvCustomSection, CvData, CvEducation, CvExperience, CvProject, CvSection, CvSkills } from '../utils/entities/cv';
 
 

@@ -14,3 +14,16 @@ export function mapProfileDtoToProfile(
     apiKey: dto.agent_api_key
   };
 }
+
+export function mapProfileToProfileDto(
+  profile: ProfileInfo
+): ProfileDTO {
+  return {
+    id: profile.id,
+    first_name: profile.firstName,
+    last_name: profile.lastName,
+    email: profile.email,
+    agent_api_url: profile.apiUrl,
+    agent_api_key: profile.apiKey
+  };
+}

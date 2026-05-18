@@ -1,7 +1,7 @@
 import { Component, signal, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../utils/services/auth';
+import { AuthService } from '../utils/services/auth.service';
 import { login } from '../utils/store/auth/auth.actions';
 import { Store } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';

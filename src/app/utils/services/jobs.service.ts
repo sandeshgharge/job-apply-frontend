@@ -1,5 +1,5 @@
 import { Injectable, signal, inject, effect } from '@angular/core';
-import { StorageService } from './storage';
+import { StorageService } from './storage.service';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { JobDetails } from '../entities/job-details';
 import { HttpClient } from '@angular/common/http';

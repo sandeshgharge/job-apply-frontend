@@ -1,4 +1,5 @@
 import { createAction, props } from "@ngrx/store";
+import { ProfileInfo } from "../../entities/user";
 
 
 export const loadProfileInfo = createAction(
@@ -7,7 +8,7 @@ export const loadProfileInfo = createAction(
 
 export const loadProfileInfoSuccess = createAction(
     '[Profile] Load Profile Info Success',
-    props<{ profileInfo: any }>()
+    props<{ profileInfo: ProfileInfo }>()
 );
 
 export const loadProfileInfoFailure = createAction(
@@ -17,7 +18,7 @@ export const loadProfileInfoFailure = createAction(
 
 export const updateProfileInfo = createAction(
     '[Profile] Update Profile Info',
-    props<{ profileInfo: any }>()
+    props<{ profileInfo: ProfileInfo }>()
 );
 
 export const clearProfileInfo = createAction(

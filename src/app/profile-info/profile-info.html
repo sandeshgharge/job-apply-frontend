@@ -4,23 +4,23 @@
   </div>
   <div class="form-group">
     <label for="firstName">First Name</label>
-    <input type="text" id="firstName" name="firstName" [(ngModel)]="profile.firstName" placeholder="Enter first name" />
+    <input type="text" id="firstName" name="firstName" [ngModel]="profile().firstName" (input)="onFieldChange('firstName', $event.target.value)" placeholder="Enter first name" />
   </div>
   <div class="form-group">
     <label for="lastName">Last Name</label>
-    <input type="text" id="lastName" name="lastName" [(ngModel)]="profile.lastName" placeholder="Enter last name" />
+    <input type="text" id="lastName" name="lastName" [ngModel]="profile().lastName" (input)="onFieldChange('lastName', $event.target.value)" placeholder="Enter last name" />
   </div>
   <div class="form-group">
     <label for="email">Email Id</label>
-    <input type="email" id="email" name="email" [(ngModel)]="profile.email" placeholder="Enter email address" />
+    <input type="email" id="email" name="email" [ngModel]="profile().email" (input)="onFieldChange('email', $event.target.value)" placeholder="Enter email address" />
   </div>
   <div class="form-group">
     <label for="apiUrl">Agent API URL</label>
-    <input type="url" id="apiUrl" name="apiUrl" [(ngModel)]="profile.apiUrl" placeholder="https://api.example.com" />
+    <input type="url" id="apiUrl" name="apiUrl" [ngModel]="profile().apiUrl" (input)="onFieldChange('apiUrl', $event.target.value)" placeholder="https://api.example.com" />
   </div>
   <div class="form-group">
     <label for="apiKey">Agent API Key</label>
-    <input type="text" id="apiKey" name="apiKey" [(ngModel)]="profile.apiKey" placeholder="Enter API key" />
+    <input type="text" id="apiKey" name="apiKey" [ngModel]="profile().apiKey" (input)="onFieldChange('apiKey', $event.target.value)" placeholder="Enter API key" />
   </div>
   <button class="save-button" type="button" (click)="saveChanges()">Save Changes</button>
 </div>

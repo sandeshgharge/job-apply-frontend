@@ -8,8 +8,6 @@ import { supabase } from '../supabase/client';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private store = inject(Store);
-
   login(email: string, password: string) {
     return from(
       supabase.auth.signInWithPassword({
@@ -39,8 +37,8 @@ export class AuthService {
     return await supabase.auth.signOut();
   }
 
-  getUser() {
-    return this.store.selectSignal(selectCurrentUser);
+  getSession() {
+    return supabase.auth.getSession();
   }
 
   async isLoggedIn(): Promise<boolean> {

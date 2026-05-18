@@ -1,10 +1,10 @@
 import { Component, signal, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ToastService } from '../utils/services/toast';
+import { ToastService } from '../utils/services/toast.service';
 import { Store } from '@ngrx/store';
 import { selectCurrentUserLocation, selectCurrentUserName } from '../utils/store/auth/auth.selectors';
 import { JobDetails } from '../utils/entities/job-details';
-import { JobsService } from '../utils/services/jobs';
+import { JobsService } from '../utils/services/jobs.service';
 import { AsyncPipe } from '@angular/common';
 import { CoverLetterSection } from '../utils/entities/cover-letter';
 
