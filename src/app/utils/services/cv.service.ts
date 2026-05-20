@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { BackendApiService } from '../backend-service/backend-api-services';
 import { CvData, CVInfo } from '../entities/cv';
+import { BackendApiService } from './backend-service/backend-api-services';
 
 @Injectable({ providedIn: 'root' })
 export class CvService {
@@ -12,7 +12,7 @@ export class CvService {
    * Save a CV
    */
   async saveCV(cvInfo: CVInfo): Promise<any> {
-    return this.backendApi.put('cv/' + cvInfo._id, cvInfo);
+    return this.backendApi.put('cv/' + cvInfo.id, cvInfo);
   }
 
   /**
@@ -39,8 +39,8 @@ export class CvService {
   /**
    * Get all CVs
    */
-  async getCVs(): Promise<CVInfo []> {
-    return this.backendApi.get('/cvs');
+  async getCVs(uID : string): Promise<CVInfo []> {
+    return this.backendApi.get('cv/user/'+uID);
   }
 
   /**

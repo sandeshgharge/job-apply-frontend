@@ -21,7 +21,7 @@
         }
       </select>
       <button class="btn-action" (click)="saveNow()">💾 Save</button>
-      <button class="btn-action" (click)="saveNew()">💾 SaveAs</button>
+      <button class="btn-action" (click)="openSaveAsDialog()">💾 SaveAs</button>
       <!--<button class="btn-action" (click)="exportJson()">↓ Export</button>-->
       <button class="btn-action btn-danger-soft" (click)="clearCv()">✕ Clear</button>
     </div>
@@ -69,22 +69,22 @@
             <!-- ══ PERSONAL INFO ══════════════════════════════════ -->
             @if (sec.id === 'personal') {
               <div class="fields-grid">
-                <div class="field"><label>First Name</label><input type="text" [ngModel]="cv().personalInfo.firstName" (ngModelChange)="updatePersonal('firstName',$event)" placeholder="Maria" /></div>
-                <div class="field"><label>Last Name</label><input type="text" [ngModel]="cv().personalInfo.lastName" (ngModelChange)="updatePersonal('lastName',$event)" placeholder="Müller" /></div>
-                <div class="field field-full"><label>Professional Headline</label><input type="text" [ngModel]="cv().personalInfo.headline" (ngModelChange)="updatePersonal('headline',$event)" placeholder="Senior Angular Developer · 5 yrs · Berlin" /></div>
-                <div class="field"><label>Email</label><input type="email" [ngModel]="cv().personalInfo.email" (ngModelChange)="updatePersonal('email',$event)" placeholder="maria@example.com" /></div>
-                <div class="field"><label>Phone</label><input type="tel" [ngModel]="cv().personalInfo.phone" (ngModelChange)="updatePersonal('phone',$event)" placeholder="+49 170 1234567" /></div>
+                <div class="field"><label>First Name</label><input type="text" [ngModel]="cv().cvData.personalInfo.firstName" (ngModelChange)="updatePersonal('firstName',$event)" placeholder="Maria" /></div>
+                <div class="field"><label>Last Name</label><input type="text" [ngModel]="cv().cvData.personalInfo.lastName" (ngModelChange)="updatePersonal('lastName',$event)" placeholder="Müller" /></div>
+                <div class="field field-full"><label>Professional Headline</label><input type="text" [ngModel]="cv().cvData.personalInfo.headline" (ngModelChange)="updatePersonal('headline',$event)" placeholder="Senior Angular Developer · 5 yrs · Berlin" /></div>
+                <div class="field"><label>Email</label><input type="email" [ngModel]="cv().cvData.personalInfo.email" (ngModelChange)="updatePersonal('email',$event)" placeholder="maria@example.com" /></div>
+                <div class="field"><label>Phone</label><input type="tel" [ngModel]="cv().cvData.personalInfo.phone" (ngModelChange)="updatePersonal('phone',$event)" placeholder="+49 170 1234567" /></div>
               </div>
               <div class="sub-label">Address</div>
               <div class="fields-grid">
-                <div class="field"><label>Location</label><input type="text" [ngModel]="cv().personalInfo.address" (ngModelChange)="updatePersonal('address',$event)" placeholder="Berlin" /></div>
+                <div class="field"><label>Location</label><input type="text" [ngModel]="cv().cvData.personalInfo.address" (ngModelChange)="updatePersonal('address',$event)" placeholder="Berlin" /></div>
               </div>
               <div class="sub-label">Online Links</div>
               <div class="fields-grid">
-                <div class="field"><label>LinkedIn</label><input type="url" [ngModel]="cv().personalInfo.links.linkedin" (ngModelChange)="updateLink('linkedin',$event)" placeholder="linkedin.com/in/..." /></div>
-                <div class="field"><label>GitHub</label><input type="url" [ngModel]="cv().personalInfo.links.github" (ngModelChange)="updateLink('github',$event)" placeholder="github.com/..." /></div>
-                <div class="field"><label>Portfolio</label><input type="url" [ngModel]="cv().personalInfo.links.portfolio" (ngModelChange)="updateLink('portfolio',$event)" placeholder="https://..." /></div>
-                <div class="field"><label>Website</label><input type="url" [ngModel]="cv().personalInfo.links.website" (ngModelChange)="updateLink('website',$event)" placeholder="https://..." /></div>
+                <div class="field"><label>LinkedIn</label><input type="url" [ngModel]="cv().cvData.personalInfo.links.linkedin" (ngModelChange)="updateLink('linkedin',$event)" placeholder="linkedin.com/in/..." /></div>
+                <div class="field"><label>GitHub</label><input type="url" [ngModel]="cv().cvData.personalInfo.links.github" (ngModelChange)="updateLink('github',$event)" placeholder="github.com/..." /></div>
+                <div class="field"><label>Portfolio</label><input type="url" [ngModel]="cv().cvData.personalInfo.links.portfolio" (ngModelChange)="updateLink('portfolio',$event)" placeholder="https://..." /></div>
+                <div class="field"><label>Website</label><input type="url" [ngModel]="cv().cvData.personalInfo.links.website" (ngModelChange)="updateLink('website',$event)" placeholder="https://..." /></div>
               </div>
             }
 
@@ -93,15 +93,15 @@
               <div class="field">
                 <label>Professional Summary</label>
                 <textarea rows="5" placeholder="Briefly describe your professional background, key strengths, and career goals…"
-                  [ngModel]="cv().summary" (ngModelChange)="updateSummary($event)"></textarea>
-                <span class="field-hint">{{ cv().summary.length }} / 600 characters recommended</span>
+                  [ngModel]="cv().cvData.summary" (ngModelChange)="updateSummary($event)"></textarea>
+                <span class="field-hint">{{ cv().cvData.summary.length }} / 600 characters recommended</span>
               </div>
             }
 
             <!-- ══ EXPERIENCE ══════════════════════════════════════ -->
             @if (sec.id === 'experience') {
               <button class="btn-add-item" (click)="addExperience()">+ Add Experience</button>
-              @for (exp of cv().experience; track exp.id; let ei = $index) {
+              @for (exp of cv().cvData.experience; track exp.id; let ei = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('experience', ei, $event)"
                   (dragover)="onItemDragOver($event)" (drop)="onItemDrop('experience', ei)">
@@ -145,7 +145,7 @@
             <!-- ══ EDUCATION ═══════════════════════════════════════ -->
             @if (sec.id === 'education') {
               <button class="btn-add-item" (click)="addEducation()">+ Add Education</button>
-              @for (edu of cv().education; track edu.id; let ei = $index) {
+              @for (edu of cv().cvData.education; track edu.id; let ei = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('education', ei, $event)"
                   (dragover)="onItemDragOver($event)" (drop)="onItemDrop('education', ei)">
@@ -181,7 +181,7 @@
                   <div class="skill-row">
                     <div class="skill-row-label">{{ def.label }}</div>
                     <div class="chips-wrap">
-                      @for (s of $any(cv().skills)[def.f]; track s; let si = $index) {
+                      @for (s of $any(cv().cvData.skills)[def.f]; track s; let si = $index) {
                         <span class="cv-chip">{{ s }}
                           @if (editMode()) { <button class="chip-x" (click)="removeSkillFromList($any(def.f), si)">✕</button> }
                         </span>
@@ -199,7 +199,7 @@
                 <div class="skill-row">
                   <div class="skill-row-label">Languages</div>
                   <div class="lang-list">
-                    @for (lang of cv().skills.languages; track lang.id) {
+                    @for (lang of cv().cvData.skills.languages; track lang.id) {
                       <div class="lang-row">
                         <input class="lang-input" type="text" [ngModel]="lang.language" (ngModelChange)="updateLanguage(lang.id,'language',$event)" placeholder="e.g. German" />
                         <select class="lang-select" [ngModel]="lang.proficiency" (ngModelChange)="updateLanguage(lang.id,'proficiency',$event)">
@@ -217,7 +217,7 @@
             <!-- ══ PROJECTS ════════════════════════════════════════ -->
             @if (sec.id === 'projects') {
               <button class="btn-add-item" (click)="addProject()">+ Add Project</button>
-              @for (proj of cv().projects; track proj.id; let pi = $index) {
+              @for (proj of cv().cvData.projects; track proj.id; let pi = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('projects', pi, $event)"
                   (dragover)="onItemDragOver($event)" (drop)="onItemDrop('projects', pi)">
@@ -255,7 +255,7 @@
             <!-- ══ CERTIFICATIONS ══════════════════════════════════ -->
             @if (sec.id === 'certifications') {
               <button class="btn-add-item" (click)="addCertification()">+ Add Certification</button>
-              @for (cert of cv().certifications; track cert.id; let ci = $index) {
+              @for (cert of cv().cvData.certifications; track cert.id; let ci = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('certifications', ci, $event)"
                   (dragover)="onItemDragOver($event)" (drop)="onItemDrop('certifications', ci)">
@@ -280,7 +280,7 @@
             <!-- ══ AWARDS ══════════════════════════════════════════ -->
             @if (sec.id === 'awards') {
               <button class="btn-add-item" (click)="addAward()">+ Add Award</button>
-              @for (award of cv().awards; track award.id; let ai = $index) {
+              @for (award of cv().cvData.awards; track award.id; let ai = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('awards', ai, $event)"
                   (dragover)="onItemDragOver($event)" (drop)="onItemDrop('awards', ai)">
@@ -303,7 +303,7 @@
             <!-- ══ PUBLICATIONS ════════════════════════════════════ -->
             @if (sec.id === 'publications') {
               <button class="btn-add-item" (click)="addPublication()">+ Add Publication</button>
-              @for (pub of cv().publications; track pub.id; let pi = $index) {
+              @for (pub of cv().cvData.publications; track pub.id; let pi = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('publications', pi, $event)"
                   (dragover)="onItemDragOver($event)" (drop)="onItemDrop('publications', pi)">
@@ -327,7 +327,7 @@
             <!-- ══ VOLUNTEER ═══════════════════════════════════════ -->
             @if (sec.id === 'volunteer') {
               <button class="btn-add-item" (click)="addVolunteer()">+ Add Volunteer Experience</button>
-              @for (vol of cv().volunteerExperience; track vol.id; let vi = $index) {
+              @for (vol of cv().cvData.volunteerExperience; track vol.id; let vi = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('volunteerExperience', vi, $event)"
                   (dragover)="onItemDragOver($event)" (drop)="onItemDrop('volunteerExperience', vi)">
@@ -352,7 +352,7 @@
             <!-- ══ INTERESTS ═══════════════════════════════════════ -->
             @if (sec.id === 'interests') {
               <div class="chips-wrap">
-                @for (interest of cv().interests; track interest; let ii = $index) {
+                @for (interest of cv().cvData.interests; track interest; let ii = $index) {
                   <span class="cv-chip interest">{{ interest }}
                     @if (editMode()) { <button class="chip-x" (click)="removeInterest(ii)">✕</button> }
                   </span>
@@ -369,7 +369,7 @@
             <!-- ══ REFERENCES ══════════════════════════════════════ -->
             @if (sec.id === 'references') {
               <button class="btn-add-item" (click)="addReference()">+ Add Reference</button>
-              @for (ref of cv().references; track ref.id; let ri = $index) {
+              @for (ref of cv().cvData.references; track ref.id; let ri = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('references', ri, $event)"
                   (dragover)="onItemDragOver($event)" (drop)="onItemDrop('references', ri)">
@@ -393,7 +393,7 @@
             <!-- ══ CUSTOM SECTIONS ══════════════════════════════════ -->
             @if (sec.id === 'custom') {
               <button class="btn-add-item" (click)="addCustomSection()">+ Add Custom Section</button>
-              @for (cs of cv().customSections; track cs.id) {
+              @for (cs of cv().cvData.customSections; track cs.id) {
                 <div class="item-card">
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
@@ -421,6 +421,23 @@
   </div>
 
   <div class="cv-footer">
-    Last saved: {{ cv().metadata.updatedAt | date:'dd MMM yyyy, HH:mm' }} · v{{ cv().metadata.version }} · source: {{ cv().metadata.source }}
+    Last saved: {{ '' | date:'dd MMM yyyy, HH:mm' }} · v{{ cv().version }} · title: {{ cv().title }}
   </div>
+
+  <!-- Save As Dialog -->
+  @if (showSaveAsDialog()) {
+    <div class="modal-overlay" (click)="closeSaveAsDialog()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <h3>Save CV As</h3>
+        <p class="modal-hint">Enter a title for the new CV version</p>
+        <div class="modal-input-group">
+          <input type="text" class="modal-input" [ngModel]="cv().title" (ngModelChange)="updateTitle('title', $event)" placeholder="e.g. CV - Senior Developer" autofocus />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="closeSaveAsDialog()">Cancel</button>
+          <button class="btn-primary" (click)="confirmSaveAs()">Save As</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

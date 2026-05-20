@@ -20,11 +20,9 @@ export class AuthEffects {
         this.actions$.pipe(
             ofType(login),
             switchMap(({ email, password }) => {
-                console.log("Attempting login with email:", email);
                 return this.authService.login(email, password).pipe(
 
                     switchMap(response => {
-                        console.log("Login response received:", response);
                         const name = email.split('@')[0].replace(/[._]/g, ' ');
                         const id = response.data.user?.id || '';
                         return of(loginSuccess({
@@ -45,10 +43,7 @@ export class AuthEffects {
             ofType(loginSuccess),
             tap(({ user, token }) => {
                 // Here you can perform side effects like navigation or showing a success message
-
-                this.router.navigate(['/home']);
-                console.log("Login successful for user:", user, "with token:", token);
-                
+                this.router.navigate(['/home']);                
             })
 
         ), { dispatch: false }
@@ -95,7 +90,6 @@ export class AuthEffects {
                     map(({ data: { session } }) => {
                         if (session) {
                             const user = { email: session.user.email || '', name: session.user.email?.split('@')[0].replace(/[._]/g, ' ') || '', id: session.user.id };
-                            console.log("Auto-login successful for user:", user);
                             return loginSuccess({ user, token: session.access_token });
                         } else {
                             console.log("No session found for auto-login");

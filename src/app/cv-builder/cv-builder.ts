@@ -2,8 +2,10 @@ import { Component, signal, inject, computed, Input, OnInit } from '@angular/cor
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
-import { CvCertification, CvCustomSection, CvData, CvEducation, CvExperience, CVInfo, CvProject, CvSection, CvSkills, defaultCV } from '../utils/entities/cv';
+import { CvCertification, CvCustomSection, CvEducation, CvExperience, CVInfo, CvProject, CvSection, CvSkills, defaultCV } from '../utils/entities/cv';
 import { CvService } from '../utils/services/cv.service';
+import { Store } from '@ngrx/store';
+import { selectCurrentUser } from '../utils/store/auth/auth.selectors';
 
 
 
@@ -17,26 +19,34 @@ const PROFICIENCY_LEVELS = ['Beginner', 'Elementary', 'Intermediate', 'Upper-Int
   templateUrl: './cv-builder.html',
   styleUrl: './cv-builder.scss'
 })
-export class CvBuilderComponent implements OnInit{
-  
+export class CvBuilderComponent implements OnInit {
+
   private toast = inject(ToastService);
   private cvService = inject(CvService);
+  private store = inject(Store)
 
-  cvInfo : CVInfo[] = [];
-  defaultVersion = signal(1);
-  cv = signal<CvData>(defaultCV());
+  cvInfo: CVInfo[] = [];
+  selectedVersion = signal(1);
+  cv = signal<CVInfo>(defaultCV());
+  userID = this.store.selectSignal(selectCurrentUser)()?.id
 
   ngOnInit(): void {
-    this.cvService.getCVs().then(data => {
-      this.cvInfo = data;
-      this.cv.set(this.cvInfo.find(c => c.version == this.defaultVersion())?.data || this.cv())
-  }).catch(error => this.toast.show(error))
+    if (this.userID)
+      this.cvService.getCVs(this.userID).then(data => {
+        if (data) {
+          console.log(data)
+          this.cvInfo = data;
+          this.cv.set(this.cvInfo[0] || this.cv())
+        }
+      }).catch(error => console.log(error))
+
+      this.cv.update(c => ({...c, userId: this.userID || ''}))
   }
 
   // Optional: pre-fill from job description skills
   @Input() set prefillSkills(groups: Array<{ category: string; skills: string[] }>) {
     if (!groups?.length) return;
-    const cv = this.cv();
+    const cv = this.cv().cvData;
     const tech = groups.find(g => g.category === 'Frontend')?.skills ?? [];
     const fw = groups.find(g => g.category === 'Backend')?.skills ?? [];
     const tools = [
@@ -46,11 +56,14 @@ export class CvBuilderComponent implements OnInit{
     ];
     this.cv.update(c => ({
       ...c,
-      skills: {
-        ...c.skills,
-        technical: [...new Set([...c.skills.technical, ...tech])],
-        frameworks: [...new Set([...c.skills.frameworks, ...fw])],
-        tools: [...new Set([...c.skills.tools, ...tools])],
+      cvData: {
+        ...c.cvData,
+        skills: {
+          ...c.cvData.skills,
+          technical: [...new Set([...c.cvData.skills.technical, ...tech])],
+          frameworks: [...new Set([...c.cvData.skills.frameworks, ...fw])],
+          tools: [...new Set([...c.cvData.skills.tools, ...tools])],
+        },
       }
     }));
     this.toast.show('Skills pre-filled from job description!');
@@ -58,6 +71,10 @@ export class CvBuilderComponent implements OnInit{
 
   // Global edit mode — shows checkboxes and edit controls
   editMode = signal(false);
+
+  // Save As dialog
+  showSaveAsDialog = signal(false);
+  saveAsTitle = '';
 
   // Drag state
   dragSectionId = signal<string | null>(null);
@@ -74,61 +91,70 @@ export class CvBuilderComponent implements OnInit{
 
   // Sections config — drives order and visibility
   sections = signal<CvSection[]>([
-    { id: 'personal',    label: 'Personal Info',       icon: '👤', include: true,  collapsed: false },
-    { id: 'summary',     label: 'Professional Summary', icon: '📝', include: true,  collapsed: false },
-    { id: 'experience',  label: 'Work Experience',      icon: '💼', include: true,  collapsed: false },
-    { id: 'education',   label: 'Education',            icon: '🎓', include: true,  collapsed: false },
-    { id: 'skills',      label: 'Skills',               icon: '⚡', include: true,  collapsed: false },
-    { id: 'projects',    label: 'Projects',             icon: '◈',  include: true,  collapsed: true  },
-    { id: 'certifications', label: 'Certifications',   icon: '🏅', include: false, collapsed: true  },
-    { id: 'awards',      label: 'Awards',               icon: '★',  include: false, collapsed: true  },
-    { id: 'publications',label: 'Publications',         icon: '📄', include: false, collapsed: true  },
-    { id: 'volunteer',   label: 'Volunteer Experience', icon: '🤝', include: false, collapsed: true  },
-    { id: 'interests',   label: 'Interests',            icon: '✦',  include: false, collapsed: true  },
-    { id: 'references',  label: 'References',           icon: '👥', include: false, collapsed: true  },
-    { id: 'custom',      label: 'Custom Sections',      icon: '＋',  include: false, collapsed: true  },
+    { id: 'personal', label: 'Personal Info', icon: '👤', include: true, collapsed: false },
+    { id: 'summary', label: 'Professional Summary', icon: '📝', include: true, collapsed: false },
+    { id: 'experience', label: 'Work Experience', icon: '💼', include: true, collapsed: false },
+    { id: 'education', label: 'Education', icon: '🎓', include: true, collapsed: false },
+    { id: 'skills', label: 'Skills', icon: '⚡', include: true, collapsed: false },
+    { id: 'projects', label: 'Projects', icon: '◈', include: true, collapsed: true },
+    { id: 'certifications', label: 'Certifications', icon: '🏅', include: false, collapsed: true },
+    { id: 'awards', label: 'Awards', icon: '★', include: false, collapsed: true },
+    { id: 'publications', label: 'Publications', icon: '📄', include: false, collapsed: true },
+    { id: 'volunteer', label: 'Volunteer Experience', icon: '🤝', include: false, collapsed: true },
+    { id: 'interests', label: 'Interests', icon: '✦', include: false, collapsed: true },
+    { id: 'references', label: 'References', icon: '👥', include: false, collapsed: true },
+    { id: 'custom', label: 'Custom Sections', icon: '＋', include: false, collapsed: true },
   ]);
 
   proficiencyLevels = PROFICIENCY_LEVELS;
 
-  
-  // ── Autosave ──────────────────────────────────────────────────
-  private saveTimer: any;
-  autosave() {
-    clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
-      this.cv.update(c => ({ ...c, metadata: { ...c.metadata, updatedAt: new Date().toISOString() } }));
-      
-    }, 800);
-  }
-
   saveNow() {
-    if(this.cvInfo.length == 0){
-      this.cvService.saveAsCV({
-        data: this.cv()
-      }).then(res => {
-        console.log(res)
-        this.toast.show("Your first CV added!")
-      }).catch(er => this.toast.show(er))
-      return
+    if (this.cvInfo.length == 0 && this.userID) {
+      this.saveNew();
+      return;
     }
-    this.cvInfo[0].data = this.cv();
-    this.cvService.saveCV(this.cvInfo[this.defaultVersion()]).then(res => {
+    this.cvInfo[this.selectedVersion()-1] = this.cv()
+    this.cvService.saveCV(this.cvInfo[this.selectedVersion()-1]).then(res => {
       console.log(res)
       this.toast.show('CV saved!');
-    })
+    }).catch(er => this.toast.show(er, 'error'))
   }
 
-  saveNew(){
-    this.cvService.saveAsCV(this.cvInfo[this.defaultVersion()]).then(res => {
-      console.log(res)
-      this.toast.show('New CV added!');
-    })
+  openSaveAsDialog() {
+    this.showSaveAsDialog.set(true);
+  }
+
+  closeSaveAsDialog() {
+    this.showSaveAsDialog.set(false);
+  }
+
+  confirmSaveAs() {
+    const title = this.cv().title;
+    if (!title) {
+      this.toast.show('Title is required', 'error');
+      return;
+    }
+    // Get the current CV to save as new version
+    this.cvService.saveAsCV(this.cv()).then(res => {
+      console.log(res);
+      this.cvInfo.push(res);
+      this.selectedVersion.set(res.version);
+      this.cv.set(res);
+      this.toast.show('New CV saved!');
+      this.closeSaveAsDialog();
+    }).catch(er => {
+      console.log(er);
+      this.toast.show(er, 'error');
+    });
+  }
+
+  saveNew() {
+    this.openSaveAsDialog();
   }
 
   clearCv() {
-    if (!confirm('Clear all CV data? This cannot be undone.')) return; 
-    this.cv.set(defaultCV())   
+    if (!confirm('Clear all CV data? This cannot be undone.')) return;
+    this.cv.set(defaultCV())
     this.toast.show('CV cleared.', 'info');
   }
 
@@ -141,162 +167,151 @@ export class CvBuilderComponent implements OnInit{
     }
     const num = typeof v === 'string' ? parseInt(v, 10) : v;
     if (Number.isNaN(num)) return;
-    this.defaultVersion.set(num);
-    const found = this.cvInfo.find(c => c.version == this.defaultVersion());
-    if (found) this.cv.set(found.data);
+    this.selectedVersion.set(num);
+    const found = this.cvInfo.find(c => c.version == this.selectedVersion());
+    if (found) this.cv.set(found);
+  }
+
+  updateTitle(field:string, value: string){
+    this.cv.update(c => ({...c, [field]: value}))
   }
   updatePersonal(field: string, value: string) {
-    this.cv.update(c => ({ ...c, personalInfo: { ...c.personalInfo, [field]: value } }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, personalInfo: { ...c.cvData.personalInfo, [field]: value } } }));
   }
   updateLink(field: string, value: string) {
-    this.cv.update(c => ({ ...c, personalInfo: { ...c.personalInfo, links: { ...c.personalInfo.links, [field]: value } } }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, personalInfo: { ...c.cvData.personalInfo, links: { ...c.cvData.personalInfo.links, [field]: value } } } }));
   }
   updateSummary(value: string) {
-    this.cv.update(c => ({ ...c, summary: value }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, summary: value } }));
   }
 
   // ── Skills ────────────────────────────────────────────────────
   addSkillToList(field: keyof Omit<CvSkills, 'languages'>, value: string) {
     const v = value.trim();
     if (!v) return;
-    this.cv.update(c => ({ ...c, skills: { ...c.skills, [field]: [...c.skills[field] as string[], v] } }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: [...c.cvData.skills[field] as string[], v] } } }));
   }
   removeSkillFromList(field: keyof Omit<CvSkills, 'languages'>, idx: number) {
     this.cv.update(c => {
-      const arr = [...c.skills[field] as string[]];
+      const arr = [...c.cvData.skills[field] as string[]];
       arr.splice(idx, 1);
-      return { ...c, skills: { ...c.skills, [field]: arr } };
+      return { ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, [field]: arr } } };
     });
-    this.autosave();
   }
   addLanguage() {
-    this.cv.update(c => ({ ...c, skills: { ...c.skills, languages: [...c.skills.languages, { id: makeId(), language: '', proficiency: 'Intermediate' }] } }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, languages: [...c.cvData.skills.languages, { id: makeId(), language: '', proficiency: 'Intermediate' }] } } }));
   }
   removeLanguage(id: string) {
-    this.cv.update(c => ({ ...c, skills: { ...c.skills, languages: c.skills.languages.filter(l => l.id !== id) } }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, languages: c.cvData.skills.languages.filter(l => l.id !== id) } } }));
   }
   updateLanguage(id: string, field: 'language' | 'proficiency', value: string) {
-    this.cv.update(c => ({ ...c, skills: { ...c.skills, languages: c.skills.languages.map(l => l.id === id ? { ...l, [field]: value } : l) } }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, skills: { ...c.cvData.skills, languages: c.cvData.skills.languages.map(l => l.id === id ? { ...l, [field]: value } : l) } } }));
   }
 
   // ── Experience ─────────────────────────────────────────────────
   addExperience() {
     const exp: CvExperience = { id: makeId(), jobTitle: '', company: '', location: '', startDate: '', endDate: '', current: false, responsibilities: [], include: true };
-    this.cv.update(c => ({ ...c, experience: [exp, ...c.experience] }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: [exp, ...c.cvData.experience] } }));
   }
   removeExperience(id: string) {
-    this.cv.update(c => ({ ...c, experience: c.experience.filter(e => e.id !== id) }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.filter(e => e.id !== id) } }));
   }
   updateExp(id: string, field: string, value: any) {
-    this.cv.update(c => ({ ...c, experience: c.experience.map(e => e.id === id ? { ...e, [field]: value } : e) }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === id ? { ...e, [field]: value } : e) } }));
   }
   addResponsibility(expId: string) {
-    this.cv.update(c => ({ ...c, experience: c.experience.map(e => e.id === expId ? { ...e, responsibilities: [...e.responsibilities, { id: makeId(), text: '', include: true }] } : e) }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === expId ? { ...e, responsibilities: [...e.responsibilities, { id: makeId(), text: '', include: true }] } : e) } }));
   }
   removeResponsibility(expId: string, rId: string) {
-    this.cv.update(c => ({ ...c, experience: c.experience.map(e => e.id === expId ? { ...e, responsibilities: e.responsibilities.filter(r => r.id !== rId) } : e) }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === expId ? { ...e, responsibilities: e.responsibilities.filter(r => r.id !== rId) } : e) } }));
   }
   updateResponsibility(expId: string, rId: string, field: string, value: any) {
-    this.cv.update(c => ({ ...c, experience: c.experience.map(e => e.id === expId ? { ...e, responsibilities: e.responsibilities.map(r => r.id === rId ? { ...r, [field]: value } : r) } : e) }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, experience: c.cvData.experience.map(e => e.id === expId ? { ...e, responsibilities: e.responsibilities.map(r => r.id === rId ? { ...r, [field]: value } : r) } : e) } }));
   }
 
   // ── Education ─────────────────────────────────────────────────
   addEducation() {
     const edu: CvEducation = { id: makeId(), degree: '', fieldOfStudy: '', institution: '', location: '', startDate: '', endDate: '', include: true };
-    this.cv.update(c => ({ ...c, education: [edu, ...c.education] }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, education: [edu, ...c.cvData.education] } }));
   }
-  removeEducation(id: string) { this.cv.update(c => ({ ...c, education: c.education.filter(e => e.id !== id) })); this.autosave(); }
-  updateEdu(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, education: c.education.map(e => e.id === id ? { ...e, [field]: value } : e) })); this.autosave(); }
+  removeEducation(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, education: c.cvData.education.filter(e => e.id !== id) } })); }
+  updateEdu(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, education: c.cvData.education.map(e => e.id === id ? { ...e, [field]: value } : e) } })); }
 
   // ── Projects ──────────────────────────────────────────────────
   addProject() {
     const p: CvProject = { id: makeId(), title: '', description: '', technologies: [], role: '', startDate: '', endDate: '', link: '', include: true };
-    this.cv.update(c => ({ ...c, projects: [p, ...c.projects] }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: [p, ...c.cvData.projects] } }));
   }
-  removeProject(id: string) { this.cv.update(c => ({ ...c, projects: c.projects.filter(p => p.id !== id) })); this.autosave(); }
-  updateProject(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, projects: c.projects.map(p => p.id === id ? { ...p, [field]: value } : p) })); this.autosave(); }
+  removeProject(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.filter(p => p.id !== id) } })); }
+  updateProject(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => p.id === id ? { ...p, [field]: value } : p) } })); }
   addProjectTech(id: string, val: string) {
     const v = val.trim(); if (!v) return;
-    this.cv.update(c => ({ ...c, projects: c.projects.map(p => p.id === id ? { ...p, technologies: [...p.technologies, v] } : p) }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => p.id === id ? { ...p, technologies: [...p.technologies, v] } : p) } }));
   }
   removeProjectTech(id: string, idx: number) {
-    this.cv.update(c => ({ ...c, projects: c.projects.map(p => { if (p.id !== id) return p; const t = [...p.technologies]; t.splice(idx, 1); return { ...p, technologies: t }; }) }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, projects: c.cvData.projects.map(p => { if (p.id !== id) return p; const t = [...p.technologies]; t.splice(idx, 1); return { ...p, technologies: t }; }) } }));
   }
 
   // ── Certifications ────────────────────────────────────────────
   addCertification() {
     const cert: CvCertification = { id: makeId(), name: '', issuer: '', issueDate: '', expiryDate: '', credentialId: '', credentialUrl: '', include: true };
-    this.cv.update(c => ({ ...c, certifications: [cert, ...c.certifications] }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, certifications: [cert, ...c.cvData.certifications] } }));
   }
-  removeCertification(id: string) { this.cv.update(c => ({ ...c, certifications: c.certifications.filter(x => x.id !== id) })); this.autosave(); }
-  updateCert(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, certifications: c.certifications.map(x => x.id === id ? { ...x, [field]: value } : x) })); this.autosave(); }
+  removeCertification(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, certifications: c.cvData.certifications.filter(x => x.id !== id) } })); }
+  updateCert(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, certifications: c.cvData.certifications.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Awards ────────────────────────────────────────────────────
   addAward() {
-    this.cv.update(c => ({ ...c, awards: [{ id: makeId(), title: '', issuer: '', date: '', description: '', include: true }, ...c.awards] }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, awards: [{ id: makeId(), title: '', issuer: '', date: '', description: '', include: true }, ...c.cvData.awards] } }));
   }
-  removeAward(id: string) { this.cv.update(c => ({ ...c, awards: c.awards.filter(x => x.id !== id) })); this.autosave(); }
-  updateAward(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, awards: c.awards.map(x => x.id === id ? { ...x, [field]: value } : x) })); this.autosave(); }
+  removeAward(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, awards: c.cvData.awards.filter(x => x.id !== id) } })); }
+  updateAward(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, awards: c.cvData.awards.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Publications ──────────────────────────────────────────────
   addPublication() {
-    this.cv.update(c => ({ ...c, publications: [{ id: makeId(), title: '', publisher: '', date: '', link: '', description: '', include: true }, ...c.publications] }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, publications: [{ id: makeId(), title: '', publisher: '', date: '', link: '', description: '', include: true }, ...c.cvData.publications] } }));
   }
-  removePublication(id: string) { this.cv.update(c => ({ ...c, publications: c.publications.filter(x => x.id !== id) })); this.autosave(); }
-  updatePub(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, publications: c.publications.map(x => x.id === id ? { ...x, [field]: value } : x) })); this.autosave(); }
+  removePublication(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, publications: c.cvData.publications.filter(x => x.id !== id) } })); }
+  updatePub(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, publications: c.cvData.publications.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Volunteer ─────────────────────────────────────────────────
   addVolunteer() {
-    this.cv.update(c => ({ ...c, volunteerExperience: [{ id: makeId(), role: '', organization: '', location: '', startDate: '', endDate: '', description: '', include: true }, ...c.volunteerExperience] }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, volunteerExperience: [{ id: makeId(), role: '', organization: '', location: '', startDate: '', endDate: '', description: '', include: true }, ...c.cvData.volunteerExperience] } }));
   }
-  removeVolunteer(id: string) { this.cv.update(c => ({ ...c, volunteerExperience: c.volunteerExperience.filter(x => x.id !== id) })); this.autosave(); }
-  updateVol(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, volunteerExperience: c.volunteerExperience.map(x => x.id === id ? { ...x, [field]: value } : x) })); this.autosave(); }
+  removeVolunteer(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, volunteerExperience: c.cvData.volunteerExperience.filter(x => x.id !== id) } })); }
+  updateVol(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, volunteerExperience: c.cvData.volunteerExperience.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Interests ─────────────────────────────────────────────────
   addInterest() {
     const v = this.newInterest().trim(); if (!v) return;
-    this.cv.update(c => ({ ...c, interests: [...c.interests, v] }));
-    this.newInterest.set(''); this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, interests: [...c.cvData.interests, v] } }));
+    this.newInterest.set('');
   }
-  removeInterest(idx: number) { this.cv.update(c => { const a = [...c.interests]; a.splice(idx, 1); return { ...c, interests: a }; }); this.autosave(); }
+  removeInterest(idx: number) { this.cv.update(c => { const a = [...c.cvData.interests]; a.splice(idx, 1); return { ...c, cvData: { ...c.cvData, interests: a } }; }); }
 
   // ── References ────────────────────────────────────────────────
   addReference() {
-    this.cv.update(c => ({ ...c, references: [{ id: makeId(), name: '', position: '', company: '', email: '', phone: '', include: true }, ...c.references] }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, references: [{ id: makeId(), name: '', position: '', company: '', email: '', phone: '', include: true }, ...c.cvData.references] } }));
   }
-  removeReference(id: string) { this.cv.update(c => ({ ...c, references: c.references.filter(x => x.id !== id) })); this.autosave(); }
-  updateRef(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, references: c.references.map(x => x.id === id ? { ...x, [field]: value } : x) })); this.autosave(); }
+  removeReference(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, references: c.cvData.references.filter(x => x.id !== id) } })); }
+  updateRef(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, references: c.cvData.references.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
 
   // ── Custom Sections ───────────────────────────────────────────
   addCustomSection() {
     const sec: CvCustomSection = { id: makeId(), sectionTitle: 'New Section', include: true, items: [] };
-    this.cv.update(c => ({ ...c, customSections: [...c.customSections, sec] }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: [...c.cvData.customSections, sec] } }));
     this.sections.update(s => s.map(x => x.id === 'custom' ? { ...x, include: true, collapsed: false } : x));
   }
-  removeCustomSection(id: string) { this.cv.update(c => ({ ...c, customSections: c.customSections.filter(x => x.id !== id) })); this.autosave(); }
-  updateCustomSection(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, customSections: c.customSections.map(x => x.id === id ? { ...x, [field]: value } : x) })); this.autosave(); }
+  removeCustomSection(id: string) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.filter(x => x.id !== id) } })); }
+  updateCustomSection(id: string, field: string, value: any) { this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === id ? { ...x, [field]: value } : x) } })); }
   addCustomItem(secId: string) {
-    this.cv.update(c => ({ ...c, customSections: c.customSections.map(x => x.id === secId ? { ...x, items: [...x.items, { id: makeId(), text: '', include: true }] } : x) }));
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === secId ? { ...x, items: [...x.items, { id: makeId(), text: '', include: true }] } : x) } }));
   }
   removeCustomItem(secId: string, itemId: string) {
-    this.cv.update(c => ({ ...c, customSections: c.customSections.map(x => x.id === secId ? { ...x, items: x.items.filter(i => i.id !== itemId) } : x) }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === secId ? { ...x, items: x.items.filter(i => i.id !== itemId) } : x) } }));
   }
   updateCustomItem(secId: string, itemId: string, value: string) {
-    this.cv.update(c => ({ ...c, customSections: c.customSections.map(x => x.id === secId ? { ...x, items: x.items.map(i => i.id === itemId ? { ...i, text: value } : i) } : x) }));
-    this.autosave();
+    this.cv.update(c => ({ ...c, cvData: { ...c.cvData, customSections: c.cvData.customSections.map(x => x.id === secId ? { ...x, items: x.items.map(i => i.id === itemId ? { ...i, text: value } : i) } : x) } }));
   }
 
   // ── Sections management ───────────────────────────────────────
@@ -342,27 +357,26 @@ export class CvBuilderComponent implements OnInit{
     const ctx = this.dragListContext();
     if (!ctx || ctx.field !== field || ctx.fromIdx === toIdx) { this.dragListContext.set(null); return; }
     this.cv.update(c => {
-      const cv = { ...c } as any;
-      const arr = [...cv[field]];
+      const cvData = { ...c.cvData } as any;
+      const arr = [...cvData[field]];
       const [item] = arr.splice(ctx.fromIdx, 1);
       arr.splice(toIdx, 0, item);
-      cv[field] = arr;
-      return cv;
+      cvData[field] = arr;
+      return { ...c, cvData };
     });
     this.dragListContext.set(null);
-    this.autosave();
   }
   onItemDragOver(e: DragEvent) { e.preventDefault(); }
 
   exportJson() {
-    const blob = new Blob([JSON.stringify(this.cv(), null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(this.cv().cvData, null, 2)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = `cv_${this.cv().personalInfo.firstName || 'export'}.json`; a.click();
+    a.download = `cv_${this.cv().cvData.personalInfo.firstName || 'export'}.json`; a.click();
     this.toast.show('CV exported as JSON!');
   }
 
   completionScore = computed(() => {
-    const c = this.cv();
+    const c = this.cv().cvData;
     let score = 0; let total = 0;
     const check = (v: any) => { total++; if (v && (Array.isArray(v) ? v.length > 0 : String(v).trim())) score++; };
     check(c.personalInfo.firstName); check(c.personalInfo.lastName);
@@ -374,7 +388,7 @@ export class CvBuilderComponent implements OnInit{
   });
 
   sectionHasData(id: string): boolean {
-    const c = this.cv();
+    const c = this.cv().cvData;
     switch (id) {
       case 'personal': return !!(c.personalInfo.firstName || c.personalInfo.email);
       case 'summary': return !!c.summary;

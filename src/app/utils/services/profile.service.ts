@@ -17,7 +17,6 @@ export class ProfileService {
     userId = this.store.selectSignal(selectCurrentUser);
 
     getProfile() {
-        console.log('Fetching profile for user ID:', this.userId());
         return supabase
             .from('user_details')
             .select()
@@ -26,7 +25,6 @@ export class ProfileService {
     }
 
     updateProfile(profileInfo: ProfileDTO) {
-        console.log('Updating profile for user ID:', this.userId());
         return supabase
             .from('user_details')
             .update({

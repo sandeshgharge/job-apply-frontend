@@ -62,7 +62,6 @@ export interface CvData {
   interests: string[];
   references: CvReference[];
   customSections: CvCustomSection[];
-  metadata: { createdAt: string; updatedAt: string; version: string; source: string; };
 }
 
 export interface CvSection {
@@ -74,15 +73,19 @@ export interface CvSection {
 }
 
 export interface CVInfo {
-  _id?: string;
-  title?: string;
-  data: CvData;
-  createdAt?: string;
-  updatedAt?: string;
-  version?: number;
+  id?: string;
+  userId: string;
+  title: string;
+  cvData: CvData;
+
+  version: number;
 }
 
-export const defaultCV = (): CvData => ({
+export const defaultCV = (): CVInfo => ({
+  id: '',
+  userId: '',
+  title: '',
+  cvData: {
     personalInfo: {
       firstName: '',
       lastName: '',
@@ -114,12 +117,9 @@ export const defaultCV = (): CvData => ({
     volunteerExperience: [],
     interests: [],
     references: [],
-    customSections: [],
-    metadata: {
-      createdAt: '',
-      updatedAt: '',
-      version: '',
-      source: ''
-    }
+    customSections: []
+    },
+
+    version: 1
   }
 )

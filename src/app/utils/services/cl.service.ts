@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BackendApiService } from '../backend-service/backend-api-services';
+import { BackendApiService } from './backend-service/backend-api-services';
 import { CoverLetterInfo } from '../entities/cover-letter';
 
 @Injectable({ providedIn: 'root' })
