@@ -13,14 +13,14 @@ export const profileLocation = createSelector(
     (state: ProfileInfoState) => state.profileInfo?.location
 )
 
-export const selectCVInfo = createSelector(
+export const selectCVInfoList = createSelector(
     selectProfileState,
-    (state: ProfileInfoState) => state.cvInfo
+    (state: ProfileInfoState) => state.cvInfoList
 );
 
-export const selectCoverLetterInfo = createSelector(
+export const selectCoverLetterInfoList = createSelector(
     selectProfileState,
-    (state: ProfileInfoState) => state.coverLetterInfo
+    (state: ProfileInfoState) => state.coverLetterInfoList
 );
 
 export const selectLoading = createSelector(

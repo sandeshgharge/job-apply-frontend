@@ -7,12 +7,18 @@
       <p class="subtitle">AI-assisted · tailored for the German job market</p>
     </div>
     <div class="header-actions">
+      <select class="cv-version-select" (change)="onVersionChange($event)">
+        @for (v of clInfoList(); track v.version) {
+          <option [value]="v.version">{{ v.title }}</option>
+        }
+      </select>
+      <button class="btn-action" (click)="saveNow()">💾 Save</button>
+      <button class="btn-action" (click)="openSaveAsDialog()">💾 SaveAs</button>
       <button class="btn-outline" (click)="previewMode.set(!previewMode())">
         {{ previewMode() ? '← Editor' : '👁 Preview' }}
       </button>
-      <button class="btn-generate" (click)="generateFullLetter()" [disabled]="generatingFull()">
-        @if (generatingFull()) { <span class="spinner"></span> Generating… }
-        @else { ✦ Generate Full Letter }
+      <button class="btn-generate" (click)="generateFullLetter()">
+        ✦ Generate Full Letter
       </button>
     </div>
   </div>
@@ -40,7 +46,7 @@
         </div>
         <div class="field">
           <label>Company Location</label>
-          <input type="text" placeholder="e.g. Walldorf, Germany"
+          <input type="text" placeholder="e.g. Waldorf, Germany"
             [ngModel]="(jobDetails | async)?.companyLocation" (ngModelChange)="updateField('companyLocation', $event)" />
         </div>
         <div class="field">
@@ -75,18 +81,18 @@
       <textarea class="common-prompt-input"
         rows="4"
         placeholder="e.g. I have 5 years of Angular experience, worked in agile teams, and am fluent in German (B2). Keep the tone confident but not arrogant. Emphasise my leadership skills and passion for clean code."
-        [ngModel]="commonPrompt()"
-        (ngModelChange)="commonPrompt.set($event)">
+        [ngModel]="coverLetterInfo().clData.commonPrompt"
+        (ngModelChange)="updateCommonPrompt($event)">
       </textarea>
     </div>
 
     <!-- ── Sections ───────────────────────────────────────────── -->
     <div class="sections-header">
-      <h3 class="panel-title">Letter Sections</h3>
+      <h3 class="panel-title">Cover Letter Sections</h3>
       <button class="btn-add" (click)="addSection()">+ Add Section</button>
     </div>
 
-    @for (section of sections(); track section.id) {
+    @for (section of coverLetterInfo().clData.sectionPrompts; track section.id) {
       <div class="section-card">
 
         <!-- Section title row -->
@@ -127,7 +133,7 @@
       </div>
     }
 
-    @if (sections().length === 0) {
+    @if (coverLetterInfo().clData.sectionPrompts.length === 0) {
       <div class="empty-sections">
         No sections yet. Click <strong>Add Section</strong> or <strong>Generate Full Letter</strong>.
       </div>
@@ -159,7 +165,7 @@
         <div class="letter-salutation">
           Dear {{ (jobDetails | async)?.contactName || 'Hiring Team' }},
         </div>
-        @for (section of sections(); track section.id) {
+        @for (section of coverLetterInfo().clData.sectionPrompts; track section.id) {
           @if (section.content) {
             <div class="letter-paragraph">
               <div class="para-label">{{ section.title }}</div>
@@ -170,6 +176,21 @@
         <div class="letter-closing">
           <p>Yours sincerely,</p>
           <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
+        </div>
+      </div>
+    </div>
+  }
+  @if (showSaveAsDialog()) {
+    <div class="modal-overlay" (click)="closeSaveAsDialog()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <h3>Save Cover Letter As</h3>
+        <p class="modal-hint">Enter a title for the new cover letter version</p>
+        <div class="modal-input-group">
+          <input type="text" class="modal-input" [ngModel]="coverLetterTitle()" (ngModelChange)="updateTitle($event)" placeholder="e.g. Cover Letter - Senior Developer" autofocus />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="closeSaveAsDialog()">Cancel</button>
+          <button class="btn-primary" (click)="confirmSaveAs()">Save As</button>
         </div>
       </div>
     </div>

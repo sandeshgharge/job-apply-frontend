@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed, Input, OnInit } from '@angular/core';
+import { Component, signal, inject, computed, Input, OnInit, DestroyRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
@@ -6,6 +6,10 @@ import { CvCertification, CvCustomSection, CvEducation, CvExperience, CVInfo, Cv
 import { CvService } from '../utils/services/cv.service';
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../utils/store/auth/auth.selectors';
+import { selectCVInfoList } from '../utils/store/profile/profile.selector';
+import { saveNewCVInfo, saveNewCVInfoSuccess, updateCVInfo } from '../utils/store/profile/profile.actions';
+import { Actions, ofType } from '@ngrx/effects';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 
@@ -22,25 +26,28 @@ const PROFICIENCY_LEVELS = ['Beginner', 'Elementary', 'Intermediate', 'Upper-Int
 export class CvBuilderComponent implements OnInit {
 
   private toast = inject(ToastService);
-  private cvService = inject(CvService);
   private store = inject(Store)
+  private actions$ = inject(Actions);
+  private destroyRef = inject(DestroyRef);
 
-  cvInfo: CVInfo[] = [];
-  selectedVersion = signal(1);
+  cvInfoList = this.store.selectSignal(selectCVInfoList);
+  selectedVersion = signal(0);
   cv = signal<CVInfo>(defaultCV());
   userID = this.store.selectSignal(selectCurrentUser)()?.id
 
   ngOnInit(): void {
-    if (this.userID)
-      this.cvService.getCVs(this.userID).then(data => {
-        if (data) {
-          console.log(data)
-          this.cvInfo = data;
-          this.cv.set(this.cvInfo[0] || this.cv())
-        }
-      }).catch(error => console.log(error))
 
-      this.cv.update(c => ({...c, userId: this.userID || ''}))
+    this.actions$.pipe(
+      ofType(saveNewCVInfoSuccess),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({ cvInfo }) => {
+      this.selectedVersion.set(cvInfo.version); // cv computed updates automatically
+    });
+
+    if (this.cvInfoList().length != 0)
+      this.cv.set(this.cvInfoList()[this.selectedVersion()])
+    else
+      this.cv.update(c => ({ ...c, userId: this.userID || '' }))
   }
 
   // Optional: pre-fill from job description skills
@@ -109,15 +116,11 @@ export class CvBuilderComponent implements OnInit {
   proficiencyLevels = PROFICIENCY_LEVELS;
 
   saveNow() {
-    if (this.cvInfo.length == 0 && this.userID) {
+    if (this.cvInfoList().length == 0 && this.userID) {
       this.saveNew();
       return;
     }
-    this.cvInfo[this.selectedVersion()-1] = this.cv()
-    this.cvService.saveCV(this.cvInfo[this.selectedVersion()-1]).then(res => {
-      console.log(res)
-      this.toast.show('CV saved!');
-    }).catch(er => this.toast.show(er, 'error'))
+    this.store.dispatch(updateCVInfo({ cvInfo: this.cv() }));
   }
 
   openSaveAsDialog() {
@@ -135,17 +138,7 @@ export class CvBuilderComponent implements OnInit {
       return;
     }
     // Get the current CV to save as new version
-    this.cvService.saveAsCV(this.cv()).then(res => {
-      console.log(res);
-      this.cvInfo.push(res);
-      this.selectedVersion.set(res.version);
-      this.cv.set(res);
-      this.toast.show('New CV saved!');
-      this.closeSaveAsDialog();
-    }).catch(er => {
-      console.log(er);
-      this.toast.show(er, 'error');
-    });
+    this.store.dispatch(saveNewCVInfo({ cvInfo: this.cv() }))
   }
 
   saveNew() {
@@ -168,12 +161,12 @@ export class CvBuilderComponent implements OnInit {
     const num = typeof v === 'string' ? parseInt(v, 10) : v;
     if (Number.isNaN(num)) return;
     this.selectedVersion.set(num);
-    const found = this.cvInfo.find(c => c.version == this.selectedVersion());
+    const found = this.cvInfoList().find(c => c.version == this.selectedVersion());
     if (found) this.cv.set(found);
   }
 
-  updateTitle(field:string, value: string){
-    this.cv.update(c => ({...c, [field]: value}))
+  updateTitle(field: string, value: string) {
+    this.cv.update(c => ({ ...c, [field]: value }))
   }
   updatePersonal(field: string, value: string) {
     this.cv.update(c => ({ ...c, cvData: { ...c.cvData, personalInfo: { ...c.cvData.personalInfo, [field]: value } } }));

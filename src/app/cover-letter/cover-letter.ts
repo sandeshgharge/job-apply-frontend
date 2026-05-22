@@ -1,13 +1,16 @@
-import { Component, signal, inject, Input, effect } from '@angular/core';
+import { Component, signal, inject, Input, effect, OnInit, DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
 import { Store } from '@ngrx/store';
-import { selectCurrentUserName } from '../utils/store/auth/auth.selectors';
+import { selectCurrentUser, selectCurrentUserName } from '../utils/store/auth/auth.selectors';
 import { JobDetails } from '../utils/entities/job-details';
 import { JobsService } from '../utils/services/jobs.service';
 import { AsyncPipe } from '@angular/common';
-import { CoverLetterSection } from '../utils/entities/cover-letter';
-import { selectProfileInfo } from '../utils/store/profile/profile.selector';
+import { CoverLetterInfo, CoverLetterSection, defaultcl } from '../utils/entities/cover-letter';
+import { selectCoverLetterInfoList, selectProfileInfo } from '../utils/store/profile/profile.selector';
+import { Actions, ofType } from '@ngrx/effects';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, updateCoverLetterInfo } from '../utils/store/profile/profile.actions';
 
 @Component({
   selector: 'app-cover-letter',
@@ -15,17 +18,18 @@ import { selectProfileInfo } from '../utils/store/profile/profile.selector';
   templateUrl: './cover-letter.html',
   styleUrl: './cover-letter.scss'
 })
-export class CoverLetterComponent {
+export class CoverLetterComponent implements OnInit {
   private toast = inject(ToastService);
   private jobsService = inject(JobsService);
   private store = inject(Store);
-
-  // ── Common prompt — applied globally to every section call ─────
-  commonPrompt = signal('');
-
+  private actions$ = inject(Actions);
+  private destroyRef = inject(DestroyRef);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
   jobDetails = this.jobsService.jobDetails$;
+  clInfoList = this.store.selectSignal(selectCoverLetterInfoList);
+  selectedVersion = signal(0);
+  userID = this.store.selectSignal(selectCurrentUser)()?.id;
 
   meta = signal({
     applicantName: '',
@@ -52,7 +56,7 @@ export class CoverLetterComponent {
       const tempInfo = this.profileInfo();
       if (tempInfo)
         this.meta.update(m => (
-          { 
+          {
             ...m,
             applicantName: tempInfo.firstName + ' ' +tempInfo.lastName,
             applicantLocation: tempInfo.location
@@ -60,16 +64,63 @@ export class CoverLetterComponent {
     })
   }
 
-  sections = signal<CoverLetterSection[]>([
-    { id: '1', title: 'Introduction', content: '', sectionPrompt: '', loading: false },
-    { id: '2', title: 'Why this company?', content: '', sectionPrompt: '', loading: false },
-    { id: '3', title: 'Why me?', content: '', sectionPrompt: '', loading: false },
-    { id: '4', title: 'Closing', content: '', sectionPrompt: '', loading: false }
-  ]);
+  ngOnInit(): void {
+    this.actions$.pipe(
+      ofType(saveNewCoverLetterInfoSuccess),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({ coverLetterInfo }) => {
+      this.selectedVersion.set(parseInt(coverLetterInfo.version, 10));
+    });
+
+    if (this.clInfoList().length != 0) {
+      this.coverLetterInfo.set(this.clInfoList()[this.selectedVersion()]);
+    } else {
+      this.coverLetterInfo.update(c => ({ ...c, userId: this.userID || '' }));
+    }
+  }
+
+  coverLetterInfo = signal<CoverLetterInfo>(defaultcl());
 
   generatingFull = signal(false);
   previewMode = signal(false);
   copySuccess = signal(false);
+
+  // ── Versioning ────────────────────────────────────────────────
+  coverLetterTitle = signal('Cover Letter');
+  showSaveAsDialog = signal(false);
+
+
+  
+  saveNow() {
+    if (this.clInfoList().length === 0 && this.userID) {
+      this.saveNew();
+      return;
+    }
+    this.store.dispatch(updateCoverLetterInfo({ coverLetterInfo: this.coverLetterInfo() }));
+  }
+
+  openSaveAsDialog() {
+    this.showSaveAsDialog.set(true);
+  }
+
+  closeSaveAsDialog() {
+    this.showSaveAsDialog.set(false);
+  }
+
+  confirmSaveAs() {
+    const title = this.coverLetterTitle();
+    if (!title) {
+      this.toast.show('Title is required', 'error');
+      return;
+    }
+    this.closeSaveAsDialog();
+    console.log(this.coverLetterInfo())
+    this.store.dispatch(saveNewCoverLetterInfo({ coverLetterInfo: this.coverLetterInfo() }));
+  }
+
+  saveNew() {
+    this.openSaveAsDialog();
+  }
 
   // ── Meta ───────────────────────────────────────────────────────
   updateField(field: keyof JobDetails, value: string) {
@@ -77,21 +128,49 @@ export class CoverLetterComponent {
   }
 
   // ── Sections ───────────────────────────────────────────────────
-  addSection() {
-    this.sections.update(s => [
-      ...s,
-      { id: Date.now().toString(), title: 'New Section', content: '', sectionPrompt: '', loading: false }
-    ]);
+addSection() {
+    this.coverLetterInfo.update(info => ({
+      ...info,
+      clData: {
+        ...info.clData,
+        sectionPrompts: [
+          ...info.clData.sectionPrompts,
+          { id: Date.now().toString(), title: 'New Section', content: '', sectionPrompt: '', loading: false }
+        ]
+      }
+    }));
   }
 
   removeSection(id: string) {
-    this.sections.update(s => s.filter(sec => sec.id !== id));
+    this.coverLetterInfo.update(info => ({
+      ...info,
+      clData: {
+        ...info.clData,
+        sectionPrompts: info.clData.sectionPrompts.filter(sec => sec.id !== id)
+      }
+    }));
   }
 
   updateSection(id: string, field: keyof CoverLetterSection, value: string) {
-    this.sections.update(s =>
-      s.map(sec => sec.id === id ? { ...sec, [field]: value } : sec)
-    );
+    this.coverLetterInfo.update(info => ({
+      ...info,
+      clData: {
+        ...info.clData,
+        sectionPrompts: info.clData.sectionPrompts.map(sec =>
+          sec.id === id ? { ...sec, [field]: value } : sec
+        )
+      }
+    }));
+  }
+
+  updateCommonPrompt(val: string) {
+    this.coverLetterInfo.update(info => ({
+      ...info,
+      clData: {
+        ...info.clData,
+        commonPrompt: val
+      }
+    }));
   }
 
   formatDisplayDate(d: string): string {
@@ -107,7 +186,7 @@ export class CoverLetterComponent {
   // Section: targeted instruction for that specific paragraph.
   private buildSectionPrompt(section: CoverLetterSection): string {
     const m = this.meta();
-    const common = this.commonPrompt().trim();
+    const common = this.coverLetterInfo().clData.commonPrompt.trim();
     const specific = section.sectionPrompt.trim();
 
     const context =
@@ -128,14 +207,20 @@ export class CoverLetterComponent {
     return parts.join('\n\n');
   }
 
-  // ── Generate single section ────────────────────────────────────
+  // ── Generate single section ─────────────────────────────────────
   async generateSection(sectionId: string) {
-    const section = this.sections().find(s => s.id === sectionId);
+    const section = this.coverLetterInfo().clData.sectionPrompts.find(s => s.id === sectionId);
     if (!section) return;
 
-    this.sections.update(s =>
-      s.map(sec => sec.id === sectionId ? { ...sec, loading: true } : sec)
-    );
+    this.coverLetterInfo.update(info => ({
+      ...info,
+      clData: {
+        ...info.clData,
+        sectionPrompts: info.clData.sectionPrompts.map(sec =>
+          sec.id === sectionId ? { ...sec, loading: true } : sec
+        )
+      }
+    }));
 
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -154,14 +239,26 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
       const data = await res.json();
       const text = data.content?.find((c: any) => c.type === 'text')?.text ?? '';
 
-      this.sections.update(s =>
-        s.map(sec => sec.id === sectionId ? { ...sec, content: text, loading: false } : sec)
-      );
+      this.coverLetterInfo.update(info => ({
+        ...info,
+        clData: {
+          ...info.clData,
+          sectionPrompts: info.clData.sectionPrompts.map(sec =>
+            sec.id === sectionId ? { ...sec, content: text, loading: false } : sec
+          )
+        }
+      }));
       this.toast.show(`"${section.title}" generated!`);
     } catch {
-      this.sections.update(s =>
-        s.map(sec => sec.id === sectionId ? { ...sec, loading: false } : sec)
-      );
+      this.coverLetterInfo.update(info => ({
+        ...info,
+        clData: {
+          ...info.clData,
+          sectionPrompts: info.clData.sectionPrompts.map(sec =>
+            sec.id === sectionId ? { ...sec, loading: false } : sec
+          )
+        }
+      }));
       this.toast.show('Generation failed. Try again.', 'error');
     }
   }
@@ -170,8 +267,8 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
   async generateFullLetter() {
     this.generatingFull.set(true);
     const m = this.meta();
-    const common = this.commonPrompt().trim();
-    const titles = this.sections().map(s => s.title).join(', ');
+    const common = this.coverLetterInfo().clData.commonPrompt.trim();
+    const titles = this.coverLetterInfo().clData.sectionPrompts.map(s => s.title).join(', ');
 
     const prompt = [
       common ? `Global guidance:\n${common}\n` : '',
@@ -201,14 +298,18 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
         raw.replace(/```json|```/g, '').trim()
       );
 
-      this.sections.update(secs =>
-        secs.map(sec => {
-          const match = parsed.find(p =>
-            p.title.toLowerCase().includes(sec.title.toLowerCase().split(' ')[0])
-          );
-          return match ? { ...sec, content: match.content } : sec;
-        })
-      );
+      this.coverLetterInfo.update(info => ({
+        ...info,
+        clData: {
+          ...info.clData,
+          sectionPrompts: info.clData.sectionPrompts.map(sec => {
+            const match = parsed.find(p =>
+              p.title.toLowerCase().includes(sec.title.toLowerCase().split(' ')[0])
+            );
+            return match ? { ...sec, content: match.content } : sec;
+          })
+        }
+      }));
 
       this.previewMode.set(true);
       this.toast.show('Cover letter generated!');
@@ -222,7 +323,7 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
   // ── Preview ────────────────────────────────────────────────────
   get previewText(): string {
     const m = this.meta();
-    const body = this.sections().map(s => s.content).filter(Boolean).join('\n\n');
+    const body = this.coverLetterInfo().clData.sectionPrompts.map(s => s.content).filter(Boolean).join('\n\n');
     return [
       m.applicantName,
       m.applicantLocation,
@@ -246,5 +347,24 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
     this.copySuccess.set(true);
     this.toast.show('Copied to clipboard!');
     setTimeout(() => this.copySuccess.set(false), 2000);
+  }
+
+  // ── Versioning Methods ────────────────────────────────────────
+  onVersionChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const version = select.value;
+    const num = parseInt(version, 10);
+    if (Number.isNaN(num)) return;
+    this.selectedVersion.set(num);
+    const selected = this.clInfoList().find(v => v.version === version);
+    if (selected) {
+      this.coverLetterInfo.set(selected);
+    }
+  }
+
+  updateTitle(event: any) {
+    const value = typeof event === 'string' ? event : event.target.value;
+    this.coverLetterTitle.set(value);
+    this.coverLetterInfo.update(c => ({ ...c, title: value }));
   }
 }

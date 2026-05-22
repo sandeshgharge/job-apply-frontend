@@ -16,7 +16,7 @@
         {{ editMode() ? '✓ Done Editing' : '✎ Edit Mode' }}
       </button>
       <select class="cv-version-select" (change)="onVersionChange($event)">
-        @for (v of cvInfo; track v.version) {
+        @for (v of cvInfoList(); track v.version) {
           <option [value]="v.version">{{ v.title }}</option>
         }
       </select>

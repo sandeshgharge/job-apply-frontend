@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { BackendApiService } from './backend-service/backend-api-services';
 import { CoverLetterInfo } from '../entities/cover-letter';
+import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class CLService {
@@ -11,49 +12,28 @@ export class CLService {
   /**
    * Save a cover letter
    */
-  async saveCoverLetter(coverLetterData: CoverLetterInfo): Promise<any> {
-    return this.backendApi.post('/cover-letters', coverLetterData);
+  saveCoverLetter(clInfo: CoverLetterInfo) {
+    return this.backendApi.put('cover-letter/' + clInfo.id, clInfo);
   }
 
   /**
    * Save cover letter as (create a copy)
    */
-  async saveAsCoverLetter(coverLetterData: CoverLetterInfo): Promise<any> {
-    return this.backendApi.post('/cover-letters/copy', coverLetterData);
-  }
-
-  /**
-   * Update a cover letter
-   */
-  async updateCoverLetter(id: string, coverLetterData: CoverLetterInfo): Promise<any> {
-    return this.backendApi.put(`/cover-letters/${id}`, coverLetterData);
-  }
-
-  /**
-   * Get a cover letter by ID
-   */
-  async getCoverLetter(id: string): Promise<any> {
-    return this.backendApi.get(`/cover-letters/${id}`);
+  saveAsCoverLetter(clInfo: CoverLetterInfo): Observable<CoverLetterInfo> {
+    return this.backendApi.post('cover-letter', clInfo);
   }
 
   /**
    * Get all cover letters
    */
-  async getCoverLetters(): Promise<any> {
-    return this.backendApi.get('/cover-letters');
+  getCoverLetters(uID: string): Observable<CoverLetterInfo[]> {
+    return this.backendApi.get('cover-letter/user/' + uID);
   }
 
   /**
    * Delete a cover letter
    */
   async deleteCoverLetter(id: string): Promise<any> {
-    return this.backendApi.delete(`/cover-letters/${id}`);
-  }
-
-  /**
-   * Search cover letters
-   */
-  async searchCoverLetters(query: any): Promise<any> {
-    return this.backendApi.post('/cover-letters/search', query);
+    return this.backendApi.delete(`cover-letter/${id}`);
   }
 }

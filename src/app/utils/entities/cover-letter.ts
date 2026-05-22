@@ -16,6 +16,22 @@ export interface CoverLetterInfo {
   id: string;
   title: string;
   userId: string
-  cldata: CoverLetterPrompts;
+  clData: CoverLetterPrompts;
   version: string;
 }
+
+export const defaultcl = (): CoverLetterInfo => ({
+    id: '1',
+    title: 'Cover Letter - Version 1',
+    userId: '',
+    version: '1',
+    clData: {
+      commonPrompt: '',
+      sectionPrompts: [
+        { id: '1', title: 'Introduction', content: '', sectionPrompt: '', loading: false },
+        { id: '2', title: 'Why this company?', content: '', sectionPrompt: '', loading: false },
+        { id: '3', title: 'Why me?', content: '', sectionPrompt: '', loading: false },
+        { id: '4', title: 'Closing', content: '', sectionPrompt: '', loading: false }
+      ]
+    }
+  });

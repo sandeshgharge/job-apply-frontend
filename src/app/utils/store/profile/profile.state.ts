@@ -4,8 +4,8 @@ import { ProfileInfo } from "../../entities/user";
 
 export interface ProfileInfoState {
     profileInfo: ProfileInfo | null;
-    cvInfo: CVInfo [] | null;
-    coverLetterInfo: CoverLetterInfo [] | null;
+    cvInfoList: CVInfo [];
+    coverLetterInfoList: CoverLetterInfo [];
     loading: boolean;
     error: string | null;
 }

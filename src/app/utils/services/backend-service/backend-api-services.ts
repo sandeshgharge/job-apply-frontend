@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth.service';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, from, Observable, switchMap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 
@@ -34,32 +34,42 @@ export class BackendApiService {
   /**
    * GET request with automatic auth header
    */
-  async get<T>(url: string): Promise<T> {
-    const headers = await this.getAuthHeaders();
-    return firstValueFrom(this.http.get<T>(`${this.baseUrl}${url}`, { headers }));
+  get<T>(url: string): Observable<any> {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap(headers =>
+        this.http.get<T>(`${this.baseUrl}${url}`, { headers })
+      )
+    );
   }
 
   /**
    * POST request with automatic auth header
    */
-  async post<T>(url: string, body: any): Promise<T> {
-    const headers = await this.getAuthHeaders();
-    return firstValueFrom(this.http.post<T>(`${this.baseUrl}${url}`, body, { headers }));
+  post<T>(url: string, body: any) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap(headers =>
+        this.http.post<T>(`${this.baseUrl}${url}`, body, { headers })
+      )
+    );
   }
 
   /**
    * PUT request with automatic auth header
    */
-  async put<T>(url: string, body: any): Promise<T> {
-    const headers = await this.getAuthHeaders();
-    return firstValueFrom(this.http.put<T>(`${this.baseUrl}${url}`, body, { headers }));
+  put<T>(url: string, body: any) {
+
+    return from(this.getAuthHeaders()).pipe(
+      switchMap(headers =>
+        this.http.put<T>(`${this.baseUrl}${url}`, body, { headers })
+      )
+    );
   }
 
   /**
    * DELETE request with automatic auth header
    */
-  async delete<T>(url: string): Promise<T> {
+  async delete<T>(url: string) {
     const headers = await this.getAuthHeaders();
-    return firstValueFrom(this.http.delete<T>(`${this.baseUrl}${url}`, { headers }));
+    return this.http.delete<T>(`${this.baseUrl}${url}`, { headers });
   }
 }
