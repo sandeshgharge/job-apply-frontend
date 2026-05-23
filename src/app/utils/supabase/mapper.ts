@@ -12,7 +12,8 @@ export function mapProfileDtoToProfile(
     email: dto.email,
     location: dto.location,
     apiUrl: dto.agent_api_url,
-    apiKey: dto.agent_api_key
+    apiKey: dto.agent_api_key,
+    model: dto.model_name
   };
 }
 
@@ -26,6 +27,7 @@ export function mapProfileToProfileDto(
     location: profile.location,
     email: profile.email,
     agent_api_url: profile.apiUrl,
-    agent_api_key: profile.apiKey
+    agent_api_key: profile.apiKey,
+    model_name: profile.model
   };
 }

@@ -12,7 +12,7 @@ export class CLService {
   /**
    * Save a cover letter
    */
-  saveCoverLetter(clInfo: CoverLetterInfo) {
+  saveCoverLetter(clInfo: CoverLetterInfo): Observable<CoverLetterInfo> {
     return this.backendApi.put('cover-letter/' + clInfo.id, clInfo);
   }
 

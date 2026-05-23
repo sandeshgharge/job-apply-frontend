@@ -26,5 +26,9 @@
     <label for="apiKey">Agent API Key</label>
     <input type="text" id="apiKey" name="apiKey" [ngModel]="profile().apiKey" (input)="onFieldChange('apiKey', $event.target.value)" placeholder="Enter API key" />
   </div>
+  <div class="form-group">
+    <label for="apiKey">Model Name</label>
+    <input type="text" id="model" name="model" [ngModel]="profile().model" (input)="onFieldChange('model', $event.target.value)" placeholder="Enter MOdel Name" />
+  </div>
   <button class="save-button" type="button" (click)="saveChanges()">Save Changes</button>
 </div>

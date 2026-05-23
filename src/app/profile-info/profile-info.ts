@@ -35,7 +35,8 @@ export class ProfileInfoComponent {
     location: '',
     email: '',
     apiUrl: '',
-    apiKey: ''
+    apiKey: '',
+    model: ''
   });
 
   isDirty = signal(false);

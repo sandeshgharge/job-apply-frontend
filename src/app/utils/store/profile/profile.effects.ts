@@ -1,5 +1,5 @@
 import { Actions, createEffect, ofType } from "@ngrx/effects";
-import { loadCoverLetterInfo, loadCoverLetterInfoSuccess, loadCVInfo, loadCVInfoSuccess, loadProfileInfo, loadProfileInfoFailure, loadProfileInfoSuccess, saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, saveNewCVInfo, saveNewCVInfoSuccess, updateCoverLetterInfo, updateCVInfo, updateCVInfoSuccess, updateProfileInfo } from "./profile.actions";
+import { loadCoverLetterInfo, loadCoverLetterInfoSuccess, loadCVInfo, loadCVInfoSuccess, loadProfileInfo, loadProfileInfoFailure, loadProfileInfoSuccess, saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, saveNewCVInfo, saveNewCVInfoSuccess, updateCoverLetterInfo, updateCoverLetterInfoSuccess, updateCVInfo, updateCVInfoSuccess, updateProfileInfo } from "./profile.actions";
 import { catchError, from, map, mergeMap, of, switchMap, tap } from "rxjs";
 import { inject, Injectable } from "@angular/core";
 import { ProfileService } from "../../services/profile.service";
@@ -24,7 +24,6 @@ export class ProfileEffects {
                         if (response.error) {
                             return loadProfileInfoFailure({ error: response.error.message ?? "Profile load failed" })
                         }
-                        console.log('Profile loaded successfully:', response);
                         return loadProfileInfoSuccess({ profileInfo: mapProfileDtoToProfile(response.data) });
                     }),
                     catchError((error: any) =>
@@ -43,7 +42,6 @@ export class ProfileEffects {
                     this.profileService.updateProfile(mapProfileToProfileDto(profileInfo))
                 ).pipe(
                     map(response => {
-                        console.log('Profile updated successfully:', response);
                         return loadProfileInfoSuccess({ profileInfo: profileInfo })
                     }),
                     catchError((error: any) =>
@@ -133,7 +131,10 @@ export class ProfileEffects {
             switchMap(({ coverLetterInfo }) => {
                 if (coverLetterInfo.id) {
                     return this.clService.saveCoverLetter(coverLetterInfo).pipe(
-                        tap(() => this.toast.show("Cover Letter Updated!")),
+                        map(res => {
+                            updateCoverLetterInfoSuccess({ coverLetterInfo: res })
+                            this.toast.show("Cover Letter Updated!")
+                        }),
                         catchError((error: any) => {
                             this.toast.show(error?.message ?? 'Cover Letter update failed', 'error');
                             return of(void 0);
