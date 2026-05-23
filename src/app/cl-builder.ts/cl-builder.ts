@@ -11,12 +11,15 @@ import { selectCoverLetterInfoList, selectProfileInfo } from '../utils/store/pro
 import { Actions, ofType } from '@ngrx/effects';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, updateCoverLetterInfo } from '../utils/store/profile/profile.actions';
+import { BackendApiService } from '../utils/services/backend-service/backend-api-services';
+import { LocalAiService } from '../utils/services/local-ai-service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-cover-letter',
   imports: [FormsModule, AsyncPipe],
-  templateUrl: './cover-letter.html',
-  styleUrl: './cover-letter.scss'
+  templateUrl: './cl-builder.html',
+  styleUrl: './cl-builder.scss'
 })
 export class CoverLetterComponent implements OnInit {
   private toast = inject(ToastService);
@@ -24,6 +27,7 @@ export class CoverLetterComponent implements OnInit {
   private store = inject(Store);
   private actions$ = inject(Actions);
   private destroyRef = inject(DestroyRef);
+  private aiService = inject(LocalAiService);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
   jobDetails = this.jobsService.jobDetails$;
@@ -38,7 +42,8 @@ export class CoverLetterComponent implements OnInit {
     companyLocation: '',
     role: '',
     date: new Date().toISOString().split('T')[0],
-    hiringManager: ''
+    hiringManager: '',
+    jobDescription: ''
   });
 
   constructor() {
@@ -48,7 +53,8 @@ export class CoverLetterComponent implements OnInit {
         companyName: j?.companyName || '',
         companyLocation: j?.companyLocation || '',
         role: j?.role || '',
-        hiringManager: j?.contactName || 'Hiring Manager'
+        hiringManager: j?.contactName || 'Hiring Manager',
+        jobDescription: j?.jobDescription || ''
       }))
     });
 
@@ -58,7 +64,7 @@ export class CoverLetterComponent implements OnInit {
         this.meta.update(m => (
           {
             ...m,
-            applicantName: tempInfo.firstName + ' ' +tempInfo.lastName,
+            applicantName: tempInfo.firstName + ' ' + tempInfo.lastName,
             applicantLocation: tempInfo.location
           }))
     })
@@ -74,9 +80,9 @@ export class CoverLetterComponent implements OnInit {
 
     if (this.clInfoList().length != 0) {
       this.coverLetterInfo.set(this.clInfoList()[this.selectedVersion()]);
-    } else {
-      this.coverLetterInfo.update(c => ({ ...c, userId: this.userID || '' }));
     }
+    this.coverLetterInfo.update(c => ({ ...c, userId: this.userID || '' }));
+
   }
 
   coverLetterInfo = signal<CoverLetterInfo>(defaultcl());
@@ -90,7 +96,7 @@ export class CoverLetterComponent implements OnInit {
   showSaveAsDialog = signal(false);
 
 
-  
+
   saveNow() {
     if (this.clInfoList().length === 0 && this.userID) {
       this.saveNew();
@@ -128,14 +134,14 @@ export class CoverLetterComponent implements OnInit {
   }
 
   // ── Sections ───────────────────────────────────────────────────
-addSection() {
+  addSection() {
     this.coverLetterInfo.update(info => ({
       ...info,
       clData: {
         ...info.clData,
         sectionPrompts: [
           ...info.clData.sectionPrompts,
-          { id: Date.now().toString(), title: 'New Section', content: '', sectionPrompt: '', loading: false }
+          { id: (info.clData.sectionPrompts.length + 1).toString(), title: 'New Section', content: '', sectionPrompt: '', loading: false }
         ]
       }
     }));
@@ -187,20 +193,19 @@ addSection() {
   private buildSectionPrompt(section: CoverLetterSection): string {
     const m = this.meta();
     const common = this.coverLetterInfo().clData.commonPrompt.trim();
-    const specific = section.sectionPrompt.trim();
+    let specific = common;
 
-    const context =
-      `Applicant: ${m.applicantName || '[Name]'}, ${m.applicantLocation || '[Location]'}. ` +
-      `Applying for: ${m.role || '[Role]'} at ${m.companyName || '[Company]'}, ` +
-      `${m.companyLocation || '[Location]'}. Hiring manager: ${m.hiringManager || 'Hiring Team'}.`;
+    if (m?.jobDescription) {
+      specific = specific.replace('[job_description]', m.jobDescription);
+    }
 
-    const parts: string[] = [`Section to write: "${section.title}"`, `Context: ${context}`];
+    const parts: string[] = [`${specific}`];
+    if (section.sectionPrompt) {
+      parts.push('Input:');
+      parts.push(`${section.sectionPrompt}`);
+    }
 
-    if (common) parts.push(`Global guidance (tone, background, skills):\n${common}`);
-    if (specific) parts.push(`Specific instruction for this section:\n${specific}`);
-    if (section.content) parts.push(`Existing draft to improve:\n"${section.content}"`);
-
-    if (!common && !specific) {
+    if (!specific) {
       parts.push('Write 3–4 sentences. Warm but professional. Suitable for the German job market.');
     }
 
@@ -223,21 +228,46 @@ addSection() {
     }));
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 600,
-          system: `You are an expert career coach for German job applications (Bewerbungen).
-Write professional cover letter paragraphs in English.
-Return only the paragraph text — no preamble, no labels, no markdown.`,
-          messages: [{ role: 'user', content: this.buildSectionPrompt(section) }]
-        })
-      });
+      const pInfo = this.profileInfo();
+      if (!pInfo) {
+        this.toast.show('Profile information not available. Cannot generate section.', 'error');
+        this.coverLetterInfo.update(info => ({
+          ...info,
+          clData: {
+            ...info.clData,
+            sectionPrompts: info.clData.sectionPrompts.map(sec =>
+              sec.id === sectionId ? { ...sec, loading: false } : sec
+            )
+          }
+        }));
+        return;
+      }
 
-      const data = await res.json();
-      const text = data.content?.find((c: any) => c.type === 'text')?.text ?? '';
+      const apiUrl = pInfo.apiUrl;
+      const apiKey = pInfo.apiKey;
+      const modelName = pInfo.model;
+
+      if (!apiUrl || !apiKey || !modelName) {
+        this.toast.show('AI API URL, API Key, or Model Name not configured in profile.', 'error');
+        this.coverLetterInfo.update(info => ({
+          ...info,
+          clData: {
+            ...info.clData,
+            sectionPrompts: info.clData.sectionPrompts.map(sec =>
+              sec.id === sectionId ? { ...sec, loading: false } : sec
+            )
+          }
+        }));
+        return;
+      }
+
+      const userMessage = this.buildSectionPrompt(section);
+      console.log("FInal prompt: ", userMessage)
+
+      const data = await firstValueFrom (this.aiService.generate(userMessage))
+      console.log(data.output)
+
+      const text = typeof data.output === 'string' ? data.output : data.output.toString();
 
       this.coverLetterInfo.update(info => ({
         ...info,
@@ -281,18 +311,41 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
     ].filter(Boolean).join('\n');
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1200,
-          system: `You are an expert career coach. Generate cover letter sections as a JSON array only. No markdown, no preamble.`,
-          messages: [{ role: 'user', content: prompt }]
-        })
+      const pInfo = this.profileInfo();
+      if (!pInfo) {
+        this.toast.show('Profile information not available. Cannot generate full letter.', 'error');
+        return;
+      }
+
+      const apiUrl = pInfo.apiUrl;
+      const apiKey = pInfo.apiKey;
+      const modelName = pInfo.model;
+
+      if (!apiUrl || !apiKey || !modelName) {
+        this.toast.show('AI API URL, API Key, or Model Name not configured in profile.', 'error');
+        return;
+      }
+
+      const systemPrompt = `You are an expert career coach. Generate cover letter sections as a JSON array only. No markdown, no preamble.`;
+      const userMessage = [
+        common ? `Global guidance:\n${common}\n` : '',
+        `Write all cover letter sections for:`,
+        `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation || '[Location]'}.`,
+        `Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation || '[Location]'}.`,
+        `Hiring manager: ${m.hiringManager || 'Hiring Team]'}.`,
+        `Sections: ${titles}.`,
+        `Return ONLY a JSON array: [{"title":"...","content":"..."}]. 3–4 sentences each.`
+      ].filter(Boolean).join('\n');
+
+      const promptBody = JSON.stringify({
+        model: modelName,
+        max_tokens: 1200,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMessage }]
       });
 
-      const data = await res.json();
+      const data = await firstValueFrom(this.aiService.generate(promptBody))
+
       const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
       const parsed: { title: string; content: string }[] = JSON.parse(
         raw.replace(/```json|```/g, '').trim()
@@ -359,6 +412,7 @@ Return only the paragraph text — no preamble, no labels, no markdown.`,
     const selected = this.clInfoList().find(v => v.version === version);
     if (selected) {
       this.coverLetterInfo.set(selected);
+      this.coverLetterTitle.set(selected.title);
     }
   }
 

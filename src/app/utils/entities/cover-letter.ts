@@ -21,10 +21,10 @@ export interface CoverLetterInfo {
 }
 
 export const defaultcl = (): CoverLetterInfo => ({
-    id: '1',
-    title: 'Cover Letter - Version 1',
+    id: '',
+    title: '',
     userId: '',
-    version: '1',
+    version: '',
     clData: {
       commonPrompt: '',
       sectionPrompts: [

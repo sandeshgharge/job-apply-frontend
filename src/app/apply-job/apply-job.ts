@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CvBuilderComponent } from '../cv-builder/cv-builder';
 import { ToastService } from '../utils/services/toast.service';
 import { JobsService } from '../utils/services/jobs.service';
-import { CoverLetterComponent } from "../cover-letter/cover-letter";
+import { CoverLetterComponent } from "../cl-builder.ts/cl-builder";
 import { JobDetails, SkillGroup } from '../utils/entities/job-details';
 import { Store } from '@ngrx/store';
 
@@ -31,7 +31,6 @@ export class ApplyJobComponent {
   private jobsService = inject(JobsService);
   private store = inject(Store);
 
-  step = signal(1);
   loading = signal(false);
 
   activeTab = signal<TabId>('Fetch Job');
@@ -93,7 +92,19 @@ export class ApplyJobComponent {
     this.jobsService.extractJobDetails(this.jobDescription())
       .subscribe({
         next: details => {
-          this.jobsService.setJobDetails(details);
+          console.log(details)
+          const now = new Date();
+          const appliedDate = [
+            String(now.getDate()).padStart(2, '0'),
+            String(now.getMonth() + 1).padStart(2, '0'),
+            String(now.getFullYear())
+          ].join('-');
+
+          this.jobsService.setJobDetails({
+            ...details,
+            jobDescription: this.jobDescription(),
+            appliedDate
+          });
           this.toast.show('Data extracted for cover letter!');
 
         },
@@ -103,13 +114,7 @@ export class ApplyJobComponent {
       }).add(() => {
         this.parseLoading.set(false);
       });
-    this.goToStep(2);
   }
-
-  goToStep(val: number) {
-    this.step.set(val);
-  }
-
   applyJob() {
   }
 

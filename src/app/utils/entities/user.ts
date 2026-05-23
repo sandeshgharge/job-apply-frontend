@@ -12,4 +12,5 @@ export interface ProfileInfo {
   email: string;
   apiUrl: string;
   apiKey: string;
+  model: string;
 }
