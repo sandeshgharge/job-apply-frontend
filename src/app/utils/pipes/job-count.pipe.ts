@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { JobDetails, JobStatus } from '../entities/job-details';
+import { JobDetails, JobStatus } from '@app/utils/entities/job-details';
 
 @Pipe({ name: 'jobCount', standalone: true })
 export class JobCountPipe implements PipeTransform {

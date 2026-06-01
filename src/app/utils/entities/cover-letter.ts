@@ -20,6 +20,20 @@ export interface CoverLetterInfo {
   version: string;
 }
 
+export interface CoverLetterDocInfo {
+
+  applicantName: string;
+  applicantLocation: string;
+  applicantEmail: string;
+  companyName: string;
+  companyLocation: string;
+  contactName?: string;
+  date: string;
+  role: string;
+  paragraphs : string[];
+  signUrl : string;
+}
+
 export const defaultcl = (): CoverLetterInfo => ({
     id: '',
     title: '',
@@ -35,3 +49,4 @@ export const defaultcl = (): CoverLetterInfo => ({
       ]
     }
   });
+

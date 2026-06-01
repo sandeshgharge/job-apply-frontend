@@ -217,6 +217,14 @@
   &:hover:not(:disabled) { background: #047857; }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
+
+.btn-mark-applied {
+  padding: 10px 24px; background: #059669; color: white; border: none;
+  border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  &:hover:not(:disabled) { background: #047857; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
 .btn-generate {
   padding: 9px 18px; background: #4f46e5; color: white; border: none;
   border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer;

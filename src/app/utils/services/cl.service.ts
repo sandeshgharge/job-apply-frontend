@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BackendApiService } from './backend-service/backend-api-services';
-import { CoverLetterInfo } from '../entities/cover-letter';
+import { CoverLetterInfo } from '@app/utils/entities/cover-letter';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -19,7 +19,7 @@ export class CLService {
   /**
    * Save cover letter as (create a copy)
    */
-  saveAsCoverLetter(clInfo: CoverLetterInfo): Observable<CoverLetterInfo> {
+  saveAsCoverLetter(clInfo: CoverLetterInfo): Observable<any> {
     return this.backendApi.post('cover-letter', clInfo);
   }
 

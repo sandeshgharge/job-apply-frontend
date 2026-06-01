@@ -1,9 +1,9 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { User } from '../entities/user';
+import { User } from '@app/utils/entities/user';
 import { Store } from '@ngrx/store';
-import { selectCurrentUser } from '../store/auth/auth.selectors';
+import { selectCurrentUser } from '@app/utils/store/auth/auth.selectors';
 import { from, of, switchMap, throwError } from 'rxjs';
-import { supabase } from '../supabase/client';
+import { supabase } from '@app/utils/supabase/client';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

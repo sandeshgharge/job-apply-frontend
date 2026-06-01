@@ -1,12 +1,12 @@
 import { Injectable, signal, inject, effect } from '@angular/core';
 import { StorageService } from './storage.service';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { JobDetails } from '../entities/job-details';
+import { JobDetails } from '@app/utils/entities/job-details';
 
 import { BackendApiService } from './backend-service/backend-api-services';
 
 const DEMO_JOBS: JobDetails[] = [
-  { id: '1', companyName: 'SAP SE', role: 'Frontend Developer', companyLocation: 'Walldorf, DE', appliedDate: '2025-04-01', status: '1st Interview', salary: '75,000 €', contactName: 'Maria Schmidt', jobUrl: '', jobDescription: '' },
+  { id: '1', companyName: 'SAP SE', role: 'Frontend Developer', companyLocation: 'Walldorf, DE', appliedDate: '2025-04-01', status: '1st Interview', salary: '75,000 €', contactName: 'Maria Schmidt', jobUrl: 'www.google.com', jobDescription: '' },
   { id: '2', companyName: 'Siemens AG', role: 'Angular Engineer', companyLocation: 'München, DE', appliedDate: '2025-04-05', status: 'Applied', salary: '70,000 €', jobUrl: '', jobDescription: '' },
   { id: '3', companyName: 'Bosch GmbH', role: 'Software Engineer', companyLocation: 'Stuttgart, DE', appliedDate: '2025-03-22', status: 'Rejected', contactName: 'Hans Weber', jobUrl: '', jobDescription: '' },
   { id: '4', companyName: 'BASF SE', role: 'Full Stack Developer', companyLocation: 'Ludwigshafen, DE', appliedDate: '2025-04-10', status: 'Applied', salary: '72,000 €', jobUrl: '', jobDescription: '' }
@@ -83,6 +83,18 @@ export class JobsService {
 
   deleteJob(id: string): void {
     this.jobs.update(jobs => jobs.filter(j => j.id !== id));
+  }
+
+  fetchPreview(type: 'cv' | 'cl', data: any): Observable<string> {
+    const endpoint = type === 'cv' ? 'cv' : 'cover-letter';
+    return this.backendApi.post<string>(endpoint + '/preview', data);
+  }
+
+  downloadPDF(type: 'cv' | 'cl', data: any): Observable<Blob> {
+    const endpoint = type === 'cv' ? 'download-cv' : 'download-cl';
+    return this.backendApi.post<Blob>(endpoint, data
+      //, { responseType: 'blob' }
+    );
   }
 
   getStats() {

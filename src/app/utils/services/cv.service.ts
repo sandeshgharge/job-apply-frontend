@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { CvData, CVInfo } from '../entities/cv';
+import { CvData, CVInfo } from '@app/utils/entities/cv';
 import { BackendApiService } from './backend-service/backend-api-services';
 import { Observable } from 'rxjs';
 

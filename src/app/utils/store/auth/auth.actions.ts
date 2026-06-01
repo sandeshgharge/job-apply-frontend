@@ -1,5 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { User } from '../../entities/user';
+import { User } from '@app/utils/entities/user';
 
 export const login = createAction(
   '[Auth] Login',

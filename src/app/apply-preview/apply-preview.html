@@ -1,0 +1,77 @@
+<div class="preview-container">
+  <div class="preview-header">
+    <h2>Application Documents</h2>
+    <p class="subtitle">Review and download your generated CV and Cover Letter before applying.</p>
+  </div>
+
+  <div class="previews">
+    <!-- CV Panel -->
+    <div class="preview-panel">
+      <div class="preview-header">
+        <h3>Curriculum Vitae (CV)</h3>
+        <div class="action-buttons">
+          <button type="button" class="btn-preview" (click)="fetchPreview('cv')" [disabled]="loading$()">
+            Preview
+          </button>
+          <button type="button" class="btn-download" (click)="downloadPDF('cv')" [disabled]="loading$()">
+            Download
+          </button>
+        </div>
+      </div>
+      <div class="preview-content">
+        @if (cvPreviewUrl$()) {
+          <iframe [src]="cvPreviewUrl$()!" class="pdf-preview" title="CV Preview"></iframe>
+        } @else {
+          <div class="empty-state">
+            @if (loading$()) {
+              <div class="spinner"></div>
+              <p>Generating preview...</p>
+            } @else {
+              <p>No preview loaded. Click "Preview" to view your CV.</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Cover Letter Panel -->
+    <div class="preview-panel">
+      <div class="preview-header">
+        <h3>Cover Letter</h3>
+        <div class="action-buttons">
+          <button type="button" class="btn-preview" (click)="fetchPreview('cl')" [disabled]="loading$()">
+            Preview
+          </button>
+          <button type="button" class="btn-download" (click)="downloadPDF('cl')" [disabled]="loading$()">
+            Download
+          </button>
+        </div>
+      </div>
+      <div class="preview-content">
+        @if (clPreviewUrl$()) {
+          <iframe [src]="clPreviewUrl$()!" class="pdf-preview" title="Cover Letter Preview"></iframe>
+        } @else {
+          <div class="empty-state">
+            @if (loading$()) {
+              <div class="spinner"></div>
+              <p>Generating preview...</p>
+            } @else {
+              <p>No preview loaded. Click "Preview" to view your Cover Letter.</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-footer">
+    <button type="button" class="btn-back" (click)="navigateBack()">
+      Back
+    </button>
+    <div class="footer-actions">
+      <button type="button" class="btn-mark-applied" (click)="markAsApplied()">
+        Marked as Applied
+      </button>
+    </div>
+  </div>
+</div>

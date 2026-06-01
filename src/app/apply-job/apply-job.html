@@ -72,7 +72,7 @@
   <!-- ══════════════════════════════════════════════════ -->
   @if (activeTab() === 'Cover Letter') {
     <div class="step-panel">
-      <app-cover-letter/>
+      <app-cover-letter #coverLetter/>
 
       <div class="step-footer apply-footer">
         <button class="btn-back" (click)="setTab('Fetch Job')">← Back</button>
@@ -90,16 +90,34 @@
   <!-- ══════════════════════════════════════════════════ -->
   @if (activeTab() === 'CV') {
     <div class="step-panel">
-      <app-cv-builder [prefillSkills]="skillGroups()" />
+      <app-cv-builder #cvBuilder [prefillSkills]="skillGroups()" />
       <div class="step-footer apply-footer">
         <button class="btn-back" (click)="setTab('Cover Letter')">← Back</button>
         <div class="footer-right">
-          <button class="btn-apply" (click)="applyJob()" [disabled]="applyLoading()">
-            @if (applyLoading()) { <span class="spinner"></span> Submitting… }
-            @else { ✓ Mark as Applied }
+          <button class="btn-next" (click)="setTab('PDF Preview')">
+            Next: Preview →
           </button>
         </div>
       </div>
     </div>
   }
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- STEP 4 — Apply Summary                            -->
+  <!-- ══════════════════════════════════════════════════ -->
+  @if (activeTab() === 'PDF Preview') {
+    <div class="step-panel">
+      <app-pdf-preview [cvData]="cvPreviewData()" [coverLetterData]="coverLetterPreviewData()"
+        (back)="setTab('CV')"></app-pdf-preview>
+      <div class="step-footer apply-footer">
+        <button class="btn-back" (click)="setTab('CV')">← Back</button>
+        <div class="footer-right">
+          <button class="btn-mark-applied" (click)="markAsApplied()">
+            ✅ Mark as Applied
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
 </div>

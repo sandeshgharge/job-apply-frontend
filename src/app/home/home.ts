@@ -1,14 +1,12 @@
 import { Component, signal, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthService } from '../utils/services/auth.service';
-import { DashboardComponent } from '../dashboard/dashboard';
-import { ApplyJobComponent } from '../apply-job/apply-job';
-import { JobTrackerComponent } from '../job-tracker/job-tracker';
-import { ToastComponent } from '../toast/toast';
+import { DashboardComponent } from '@app/dashboard/dashboard';
+import { ApplyJobComponent } from '@app/apply-job/apply-job';
+import { JobTrackerComponent } from '@app/job-tracker/job-tracker';
+import { ToastComponent } from '@app/toast/toast';
 import { Store } from '@ngrx/store';
-import { logout } from '../utils/store/auth/auth.actions';
-import { ProfileInfoComponent } from "../profile-info/profile-info";
-import { selectCurrentUser } from '../utils/store/auth/auth.selectors';
+import { logout } from '@app/utils/store/auth/auth.actions';
+import { ProfileInfoComponent } from "@app/profile-info/profile-info";
+import { selectCurrentUser } from '@app/utils/store/auth/auth.selectors';
 
 type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 
