@@ -45,10 +45,10 @@ export class BackendApiService {
   /**
    * POST request with automatic auth header
    */
-  post<T>(url: string, body: any) {
+  post<T>(url: string, body: any, options ?: any): Observable<any> {
     return from(this.getAuthHeaders()).pipe(
       switchMap(headers =>
-        this.http.post<T>(`${this.baseUrl}${url}`, body, { headers })
+        this.http.post<T>(`${this.baseUrl}${url}`, body, { headers, ...options })
       )
     );
   }

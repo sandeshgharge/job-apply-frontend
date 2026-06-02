@@ -87,7 +87,17 @@ export class CoverLetterComponent implements OnInit {
         }));
       }
     });
+
+    effect(() => {
+      const list = this.clInfoList();
+      if (list.length !== 0 && !this.hasLoadedInitialData) {
+        this.hasLoadedInitialData = true;
+        this.coverLetterInfo.set(list[0] || defaultcl());
+      }
+    });
   }
+
+  hasLoadedInitialData = false;
 
   ngOnInit(): void {
     console.log("cl_builder");
@@ -95,14 +105,8 @@ export class CoverLetterComponent implements OnInit {
       ofType(saveNewCoverLetterInfoSuccess),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(({ coverLetterInfo }) => {
-      this.selectedVersion.set(parseInt(coverLetterInfo.version, 10));
+      this.selectedVersion.set(coverLetterInfo.version);
     });
-
-    if (this.clInfoList().length != 0) {
-
-        this.coverLetterInfo.set(this.clInfoList()[this.selectedVersion()]);
-
-    }
   }
 
   generatingFull = signal(false);
@@ -424,9 +428,7 @@ export class CoverLetterComponent implements OnInit {
   onVersionChange(event: Event) {
     const select = event.target as HTMLSelectElement;
     const version = select.value;
-    const num = parseInt(version, 10);
-    if (Number.isNaN(num)) return;
-    this.selectedVersion.set(num);
+    this.selectedVersion.set(version);
     const selected = this.clInfoList().find(v => v.version === version);
     if (selected) {
       this.coverLetterInfo.set(selected);

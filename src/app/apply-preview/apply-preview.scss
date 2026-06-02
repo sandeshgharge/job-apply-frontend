@@ -1,5 +1,6 @@
 .preview-container {
-  max-width: 800px;
+  max-width: 1400px;
+  width: 95%;
   margin: 0 auto;
   padding: 20px;
 
@@ -70,11 +71,12 @@
 
   .previews {
     display: grid;
-    gap: 30px;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
     margin-bottom: 30px;
 
-    @media (min-width: 768px) {
-      grid-template-columns: 1fr 1fr;
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -126,61 +128,26 @@
     }
 
     .preview-content {
-      padding: 20px;
+      padding: 16px 20px 20px;
 
       .pdf-preview {
-        width: 100%;
-        height: 600px;
-        border: 1px solid #e5e7eb;
+        display: block;
+        width: calc(100% - 2px);
+        height: 800px;
+        border: none;
         border-radius: 8px;
+        box-shadow: 0 0 0 1px #e5e7eb, 0 2px 8px rgba(0, 0, 0, 0.08);
+        background: #fff;
 
         @media (max-width: 768px) {
-          height: 400px;
+          height: 500px;
         }
       }
     }
   }
 
-  .preview-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 20px;
-    border-top: 1px solid #e5e7eb;
 
-    .btn-back {
-      background-color: transparent;
-      color: #6b7280;
-      border: 1px solid #d1d5db;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
 
-      &:hover {
-        background-color: #f3f4f6;
-        border-color: #9ca3af;
-      }
-    }
-
-    .footer-actions {
-      .btn-mark-applied {
-        background-color: #10b981;
-        color: white;
-        border: none;
-        padding: 10px 24px;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.2s;
-
-        &:hover {
-          background-color: #059669;
-        }
-      }
-    }
-  }
 }
 
 @keyframes spin {
