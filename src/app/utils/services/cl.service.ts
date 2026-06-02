@@ -9,11 +9,11 @@ export class CLService {
 
   // --- Draft State ---
   draftCoverLetter = signal<CoverLetterInfo>(defaultcl());
-  selectedVersion = signal<number>(0);
+  selectedVersion = signal<string>('0');
 
   clearDraft() {
     this.draftCoverLetter.set(defaultcl());
-    this.selectedVersion.set(0);
+    this.selectedVersion.set('0');
   }
 
   // Cover Letter Operations

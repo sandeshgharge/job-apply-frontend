@@ -93,9 +93,9 @@ export class JobsService {
   }
 
   downloadPDF(type: 'cv' | 'cl', data: any): Observable<Blob> {
-    const endpoint = type === 'cv' ? 'download-cv' : 'download-cl';
-    return this.backendApi.post<Blob>(endpoint, data
-      //, { responseType: 'blob' }
+    const endpoint = type === 'cv' ? 'cv' : 'cover-letter';
+    return this.backendApi.post<Blob>(endpoint + '/pdf', data
+      , { responseType: 'blob' }
     );
   }
 
