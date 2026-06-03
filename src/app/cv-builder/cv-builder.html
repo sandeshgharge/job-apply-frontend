@@ -130,8 +130,10 @@
                   </div>
                   @for (r of exp.responsibilities; track r.id; let ri = $index) {
                     <div class="resp-row" draggable="true"
-                      (dragstart)="onItemDragStart('resp_'+exp.id, ri, $event)"
-                      (dragover)="onItemDragOver($event)" (drop)="onItemDrop('resp_'+exp.id, ri)">
+                      (dragstart)="onRespDragStart(exp.id, ri, $event)"
+                      (dragover)="onRespDragOver($event)"
+                      (drop)="onRespDrop(exp.id, ri, $event)"
+                      (dragend)="onRespDragEnd($event)">
                       <span class="drag-handle sm">⠿</span>
                       @if (editMode()) { <input type="checkbox" [checked]="r.include" (change)="updateResponsibility(exp.id,r.id,'include',!r.include)" /> }
                       <input type="text" class="resp-input" [ngModel]="r.text" (ngModelChange)="updateResponsibility(exp.id,r.id,'text',$event)" placeholder="Describe a key responsibility or achievement…" />

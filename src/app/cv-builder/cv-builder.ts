@@ -361,6 +361,43 @@ export class CvBuilderComponent implements OnInit {
   }
   onItemDragOver(e: DragEvent) { e.preventDefault(); }
 
+  // ── Drag & Drop (responsibilities inside an experience entry) ──
+  respDragContext = signal<{ expId: string; fromIdx: number } | null>(null);
+
+  onRespDragStart(expId: string, fromIdx: number, e: DragEvent) {
+    // Stop propagation so the parent experience item-card drag doesn't fire
+    e.stopPropagation();
+    this.respDragContext.set({ expId, fromIdx });
+    e.dataTransfer!.effectAllowed = 'move';
+  }
+  onRespDragOver(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  onRespDrop(expId: string, toIdx: number, e: DragEvent) {
+    e.stopPropagation();
+    const ctx = this.respDragContext();
+    if (!ctx || ctx.expId !== expId || ctx.fromIdx === toIdx) { this.respDragContext.set(null); return; }
+    this.cv.update(c => ({
+      ...c,
+      cvData: {
+        ...c.cvData,
+        experience: c.cvData.experience.map(exp => {
+          if (exp.id !== expId) return exp;
+          const arr = [...exp.responsibilities];
+          const [moved] = arr.splice(ctx.fromIdx, 1);
+          arr.splice(toIdx, 0, moved);
+          return { ...exp, responsibilities: arr };
+        })
+      }
+    }));
+    this.respDragContext.set(null);
+  }
+  onRespDragEnd(e: DragEvent) {
+    e.stopPropagation();
+    this.respDragContext.set(null);
+  }
+
   exportJson() {
     const blob = new Blob([JSON.stringify(this.cv().cvData, null, 2)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
