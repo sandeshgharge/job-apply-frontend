@@ -100,7 +100,7 @@
   <!-- STEP 4 — Apply Summary                            -->
   <!-- ══════════════════════════════════════════════════ -->
   <div class="step-panel" [class.d-none]="activeTab() !== 'PDF Preview'">
-      <app-pdf-preview [cvData]="cvPreviewData()"></app-pdf-preview>
+      <app-pdf-preview />
       <div class="step-footer apply-footer">
         <button class="btn-back" (click)="setTab('CV')">← Back</button>
         <div class="footer-right">

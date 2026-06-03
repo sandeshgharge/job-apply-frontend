@@ -7,6 +7,7 @@ import { CoverLetterDocInfo } from '@app/utils/entities/cover-letter';
 import { CLService } from '@app/utils/services/cl.service';
 import { Store } from '@ngrx/store';
 import { selectProfileInfo } from '@app/utils/store/profile/profile.selector';
+import { CvService } from '@app/utils/services/cv.service';
 
 @Component({
   selector: 'app-pdf-preview',
@@ -14,12 +15,13 @@ import { selectProfileInfo } from '@app/utils/store/profile/profile.selector';
   styleUrl: './apply-preview.scss'
 })
 export class ApplyPreviewComponent {
-  @Input() cvData: any = null;
+  
 
   private jobsService = inject(JobsService);
   private toast = inject(ToastService);
   private sanitizer = inject(DomSanitizer);
   private clService = inject(CLService);
+  private cvService = inject(CvService);
 
   private cvPreviewUrl = signal<SafeResourceUrl | null>(null);
   private clPreviewUrl = signal<SafeResourceUrl | null>(null);
@@ -30,6 +32,7 @@ export class ApplyPreviewComponent {
   private store = inject(Store);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
+  cvInfo = this.cvService.draftCV();
 
   coverLetterData: CoverLetterDocInfo = {
     applicantName: this.profileInfo()?.firstName + ' ' + this.profileInfo()?.lastName || '',
@@ -43,6 +46,8 @@ export class ApplyPreviewComponent {
     paragraphs: [],
     signUrl: ''
   };
+
+  
 
   constructor() {
     this.jobsService.jobDetails$.subscribe((j) => {
@@ -71,8 +76,8 @@ export class ApplyPreviewComponent {
     if (this.loading()) return;
 
     this.loading.set(true);
-    console.log(`Fetching ${type} preview with data:`, type === 'cv' ? this.cvData : this.coverLetterData);
-    const data = type === 'cv' ? this.cvData : this.coverLetterData;
+    console.log(`Fetching ${type} preview with data:`, type === 'cv' ? this.cvInfo.cvData : this.coverLetterData);
+    const data = type === 'cv' ? this.cvInfo.cvData : this.coverLetterData;
 
     try {
       const html = await firstValueFrom(this.jobsService.fetchPreview(type, data));

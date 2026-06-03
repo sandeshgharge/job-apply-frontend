@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed, Input, OnInit, DestroyRef } from '@angular/core';
+import { Component, signal, inject, computed, Input, OnInit, DestroyRef, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
@@ -29,11 +29,24 @@ export class CvBuilderComponent implements OnInit {
   private store = inject(Store)
   private actions$ = inject(Actions);
   private destroyRef = inject(DestroyRef);
+  private cvService = inject(CvService);
 
   cvInfoList = this.store.selectSignal(selectCVInfoList);
-  selectedVersion = signal(0);
-  cv = signal<CVInfo>(defaultCV());
+  selectedVersion = this.cvService.selectedVersion;
+  cv = this.cvService.draftCV;
   userID = this.store.selectSignal(selectCurrentUser)()?.id
+
+  hasLoadedInitialData = false;
+
+  constructor() {
+    effect(() => {
+      const list = this.cvInfoList();
+      if (list.length !== 0 && !this.hasLoadedInitialData) {
+        this.hasLoadedInitialData = true;
+        this.cv.set(list[this.selectedVersion()] || defaultCV());
+      }
+    });
+  }
 
   ngOnInit(): void {
 
@@ -44,9 +57,9 @@ export class CvBuilderComponent implements OnInit {
       this.selectedVersion.set(cvInfo.version); // cv computed updates automatically
     });
 
-    if (this.cvInfoList().length != 0)
-      this.cv.set(this.cvInfoList()[this.selectedVersion()])
-    else
+    if (this.cvInfoList().length != 0 && !this.hasLoadedInitialData)
+      this.cv.set(this.cvInfoList().find(c => c.version === this.selectedVersion()) || defaultCV());
+    else if (!this.hasLoadedInitialData)
       this.cv.update(c => ({ ...c, userId: this.userID || '' }))
   }
 

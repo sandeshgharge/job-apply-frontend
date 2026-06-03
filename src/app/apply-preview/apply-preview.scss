@@ -71,13 +71,9 @@
 
   .previews {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 24px;
     margin-bottom: 30px;
-
-    @media (max-width: 900px) {
-      grid-template-columns: 1fr;
-    }
   }
 
   .preview-panel {
@@ -138,10 +134,6 @@
         border-radius: 8px;
         box-shadow: 0 0 0 1px #e5e7eb, 0 2px 8px rgba(0, 0, 0, 0.08);
         background: #fff;
-
-        @media (max-width: 768px) {
-          height: 500px;
-        }
       }
     }
   }
