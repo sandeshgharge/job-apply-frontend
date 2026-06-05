@@ -8,15 +8,14 @@ export const selectCoverLetterInfoList = createSelector(
     (state: CoverLetterState) => state.coverLetterInfoList
 );
 
-export const selectDefaultCoverLetterIndex = createSelector(
+export const selectedCoverLetterVersion = createSelector(
     selectCoverLetterState,
-    (state: CoverLetterState) => state.defaultIndex
+    (state: CoverLetterState) => state.selectedVersion
 );
 
-export const selectDefaultCoverLetter = createSelector(
-    selectCoverLetterInfoList,
-    selectDefaultCoverLetterIndex,
-    (list, index) => list?.[index] ?? null
+export const selectCurrentCoverLetter = createSelector(
+    selectCoverLetterState,
+    (state: CoverLetterState) => state.coverLetterInfoList.find(cl => cl.version === state.selectedVersion) || null
 );
 
 export const selectCoverLetterLoading = createSelector(

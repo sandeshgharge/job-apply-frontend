@@ -49,7 +49,7 @@ export const saveNewCVInfoFailure = createAction(
     props<{ error: string }>()
 );
 
-export const setDefaultCVIndex = createAction(
-    '[CV] Set Default CV Index',
-    props<{ index: number }>()
+export const selectCVVersion = createAction(
+    '[CV] Select CV Version',
+    props<{ version: number }>()
 );

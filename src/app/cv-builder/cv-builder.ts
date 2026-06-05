@@ -3,13 +3,11 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
 import { CvCertification, CvCustomSection, CvEducation, CvExperience, CVInfo, CvProject, CvSection, CvSkills, defaultCV } from '../utils/entities/cv';
-import { CvService } from '../utils/services/cv.service';
 import { Store } from '@ngrx/store';
-import { selectCurrentUser } from '../utils/store/auth/auth.selectors';
-import { selectCVInfoList } from '../utils/store/cv/cv.selectors';
-import { saveNewCVInfo, saveNewCVInfoSuccess, updateCVInfo } from '../utils/store/cv/cv.actions';
-import { Actions, ofType } from '@ngrx/effects';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { selectUserID } from '../utils/store/auth/auth.selectors';
+import { selectCurrentCV, selectCVInfoList } from '../utils/store/cv/cv.selectors';
+import { saveNewCVInfo, saveNewCVInfoSuccess, selectCVVersion, updateCVInfo } from '../utils/store/cv/cv.actions';
+import { CvService } from '@app/utils/services/cv.service';
 
 
 
@@ -26,41 +24,29 @@ const PROFICIENCY_LEVELS = ['Beginner', 'Elementary', 'Intermediate', 'Upper-Int
 export class CvBuilderComponent implements OnInit {
 
   private toast = inject(ToastService);
-  private store = inject(Store)
-  private actions$ = inject(Actions);
-  private destroyRef = inject(DestroyRef);
+  private store = inject(Store);
   private cvService = inject(CvService);
 
-  cvInfoList = this.store.selectSignal(selectCVInfoList);
-  selectedVersion = this.cvService.selectedVersion;
   cv = this.cvService.draftCV;
-  userID = this.store.selectSignal(selectCurrentUser)()?.id
+  cvInfoList = this.store.selectSignal(selectCVInfoList);
+  
+  userID = this.store.selectSignal(selectUserID);
 
   hasLoadedInitialData = false;
 
   constructor() {
+    // Reactively load data when store is populated (e.g. after refresh)
+    const currentCV = this.store.selectSignal(selectCurrentCV);
     effect(() => {
-      const list = this.cvInfoList();
-      if (list.length !== 0 && !this.hasLoadedInitialData) {
+      const current = currentCV();
+      if (current && !this.hasLoadedInitialData) {
         this.hasLoadedInitialData = true;
-        this.cv.set(list[this.selectedVersion()] || defaultCV());
+        this.cv.set(current);
       }
     });
   }
 
   ngOnInit(): void {
-
-    this.actions$.pipe(
-      ofType(saveNewCVInfoSuccess),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(({ cvInfo }) => {
-      this.selectedVersion.set(cvInfo.version); // cv computed updates automatically
-    });
-
-    if (this.cvInfoList().length != 0 && !this.hasLoadedInitialData)
-      this.cv.set(this.cvInfoList().find(c => c.version === this.selectedVersion()) || defaultCV());
-    else if (!this.hasLoadedInitialData)
-      this.cv.update(c => ({ ...c, userId: this.userID || '' }))
   }
 
   // Optional: pre-fill from job description skills
@@ -129,7 +115,7 @@ export class CvBuilderComponent implements OnInit {
   proficiencyLevels = PROFICIENCY_LEVELS;
 
   saveNow() {
-    if (this.cvInfoList().length == 0 && this.userID) {
+    if (this.cvInfoList().length == 0 && this.userID()) {
       this.saveNew();
       return;
     }
@@ -160,7 +146,7 @@ export class CvBuilderComponent implements OnInit {
 
   clearCv() {
     if (!confirm('Clear all CV data? This cannot be undone.')) return;
-    this.cv.set(defaultCV())
+    this.cvService.clearDraft();
     this.toast.show('CV cleared.', 'info');
   }
 
@@ -173,8 +159,8 @@ export class CvBuilderComponent implements OnInit {
     }
     const num = typeof v === 'string' ? parseInt(v, 10) : v;
     if (Number.isNaN(num)) return;
-    this.selectedVersion.set(num);
-    const found = this.cvInfoList().find(c => c.version == this.selectedVersion());
+    this.store.dispatch(selectCVVersion({ version: num }));
+    const found = this.cvInfoList().find(c => c.version === num);
     if (found) this.cv.set(found);
   }
 

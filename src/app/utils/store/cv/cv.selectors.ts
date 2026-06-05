@@ -8,14 +8,14 @@ export const selectCVInfoList = createSelector(
     (state: CVState) => state.cvInfoList
 );
 
-export const selectDefaultCVIndex = createSelector(
+export const selectedCVVersion = createSelector(
     selectCVState,
-    (state: CVState) => state.defaultIndex
+    (state: CVState) => state.selectedVersion
 );
 
-export const selectDefaultCV = createSelector(
+export const selectCurrentCV = createSelector(
     selectCVState,
-    (state: CVState) => state.cvInfoList[state.defaultIndex] ?? null
+    (state: CVState) => state.cvInfoList.find(cv => cv.version === state.selectedVersion) || null
 );
 
 export const selectCVLoading = createSelector(
