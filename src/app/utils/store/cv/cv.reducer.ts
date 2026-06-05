@@ -6,7 +6,7 @@ import {
     loadCVInfoSuccess,
     saveNewCVInfoFailure,
     saveNewCVInfoSuccess,
-    setDefaultCVIndex,
+    selectCVVersion,
     updateCVInfo,
     updateCVInfoFailure,
     updateCVInfoSuccess
@@ -14,7 +14,7 @@ import {
 
 export const initialCVState: CVState = {
     cvInfoList: [],
-    defaultIndex: 0,
+    selectedVersion: 0,
     loading: false,
     error: null
 };
@@ -31,6 +31,7 @@ export const cvReducer = createReducer(
     on(loadCVInfoSuccess, (state, { cvInfoList }) => ({
         ...state,
         cvInfoList,
+        selectedVersion: cvInfoList.length > 0 ? cvInfoList[0].version : 0,
         loading: false
     })),
 
@@ -59,7 +60,8 @@ export const cvReducer = createReducer(
 
     on(saveNewCVInfoSuccess, (state, { cvInfo }) => ({
         ...state,
-        cvInfoList: [...state.cvInfoList, cvInfo]
+        cvInfoList: [...state.cvInfoList, cvInfo],
+        selectedVersion: cvInfo.version
     })),
 
     on(saveNewCVInfoFailure, (state, { error }) => ({
@@ -67,8 +69,8 @@ export const cvReducer = createReducer(
         error
     })),
 
-    on(setDefaultCVIndex, (state, { index }) => ({
+    on(selectCVVersion, (state, { version }) => ({
         ...state,
-        defaultIndex: index
+        selectedVersion: version
     })),
 );

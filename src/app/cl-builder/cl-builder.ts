@@ -1,21 +1,18 @@
-import { Component, signal, inject, Input, effect, OnInit, DestroyRef } from '@angular/core';
+import { Component, signal, inject, Input, effect, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
 import { Store } from '@ngrx/store';
-import { selectCurrentUser, selectCurrentUserName } from '../utils/store/auth/auth.selectors';
+import { selectUserID } from '../utils/store/auth/auth.selectors';
 import { JobDetails } from '../utils/entities/job-details';
 import { JobsService } from '../utils/services/jobs.service';
 import { AsyncPipe } from '@angular/common';
 import { CoverLetterInfo, CoverLetterSection, defaultcl, CoverLetterDocInfo } from '../utils/entities/cover-letter';
-import { selectCoverLetterInfoList } from '../utils/store/cover-letter/cover-letter.selectors';
+import { selectCoverLetterInfoList, selectCurrentCoverLetter } from '../utils/store/cover-letter/cover-letter.selectors';
 import { selectProfileInfo } from '../utils/store/profile/profile.selector';
-import { Actions, ofType } from '@ngrx/effects';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
-import { BackendApiService } from '../utils/services/backend-service/backend-api-services';
+import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, selectCoverLetterVersion, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
 import { LocalAiService } from '../utils/services/local-ai-service';
 import { firstValueFrom } from 'rxjs';
-import { CLService } from '../utils/services/cl.service';
+import { CLService } from '@app/utils/services/cl.service';
 
 @Component({
   selector: 'app-cover-letter',
@@ -27,17 +24,15 @@ export class CoverLetterComponent implements OnInit {
   private toast = inject(ToastService);
   private jobsService = inject(JobsService);
   private store = inject(Store);
-  private actions$ = inject(Actions);
-  private destroyRef = inject(DestroyRef);
   private aiService = inject(LocalAiService);
   private clService = inject(CLService);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
   jobDetails = this.jobsService.jobDetails$;
   clInfoList = this.store.selectSignal(selectCoverLetterInfoList);
-  selectedVersion = this.clService.selectedVersion;
   coverLetterInfo = this.clService.draftCoverLetter;
-  userID = this.store.selectSignal(selectCurrentUser)()?.id;
+
+  userID = this.store.selectSignal(selectUserID);
 
   meta = signal<CoverLetterDocInfo>({
     applicantName: '',
@@ -88,11 +83,13 @@ export class CoverLetterComponent implements OnInit {
       }
     });
 
+    // Reactively load data when store is populated (e.g. after refresh)
+    const currentCL = this.store.selectSignal(selectCurrentCoverLetter);
     effect(() => {
-      const list = this.clInfoList();
-      if (list.length !== 0 && !this.hasLoadedInitialData) {
+      const current = currentCL();
+      if (current && !this.hasLoadedInitialData) {
         this.hasLoadedInitialData = true;
-        this.coverLetterInfo.set(list[0] || defaultcl());
+        this.coverLetterInfo.set(current);
       }
     });
   }
@@ -100,13 +97,6 @@ export class CoverLetterComponent implements OnInit {
   hasLoadedInitialData = false;
 
   ngOnInit(): void {
-    console.log("cl_builder");
-    this.actions$.pipe(
-      ofType(saveNewCoverLetterInfoSuccess),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(({ coverLetterInfo }) => {
-      this.selectedVersion.set(coverLetterInfo.version);
-    });
   }
 
   generatingFull = signal(false);
@@ -120,7 +110,7 @@ export class CoverLetterComponent implements OnInit {
 
 
   saveNow() {
-    if (this.clInfoList().length === 0 && this.userID) {
+    if (this.clInfoList().length === 0 && this.userID()) {
       this.saveNew();
       return;
     }
@@ -428,12 +418,18 @@ export class CoverLetterComponent implements OnInit {
   onVersionChange(event: Event) {
     const select = event.target as HTMLSelectElement;
     const version = select.value;
-    this.selectedVersion.set(version);
+    this.store.dispatch(selectCoverLetterVersion({ version }));
     const selected = this.clInfoList().find(v => v.version === version);
     if (selected) {
       this.coverLetterInfo.set(selected);
       this.coverLetterTitle.set(selected.title);
     }
+  }
+
+  clearCoverLetter() {
+    if (!confirm('Clear all Cover Letter data? This cannot be undone.')) return;
+    this.clService.clearDraft();
+    this.toast.show('Cover Letter cleared.', 'info');
   }
 
   updateTitle(event: any) {

@@ -22,7 +22,6 @@ export class ApplyPreviewComponent {
   private sanitizer = inject(DomSanitizer);
   private clService = inject(CLService);
   private cvService = inject(CvService);
-
   private cvPreviewUrl = signal<SafeResourceUrl | null>(null);
   private clPreviewUrl = signal<SafeResourceUrl | null>(null);
 
@@ -32,7 +31,7 @@ export class ApplyPreviewComponent {
   private store = inject(Store);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
-  cvInfo = this.cvService.draftCV();
+  cvInfo = this.cvService.draftCV;
 
   coverLetterData: CoverLetterDocInfo = {
     applicantName: this.profileInfo()?.firstName + ' ' + this.profileInfo()?.lastName || '',
@@ -76,8 +75,8 @@ export class ApplyPreviewComponent {
     if (this.loading()) return;
 
     this.loading.set(true);
-    console.log(`Fetching ${type} preview with data:`, type === 'cv' ? this.cvInfo.cvData : this.coverLetterData);
-    const data = type === 'cv' ? this.cvInfo.cvData : this.coverLetterData;
+    console.log(`Fetching ${type} preview with data:`, type === 'cv' ? this.cvInfo().cvData : this.coverLetterData);
+    const data = type === 'cv' ? this.cvInfo().cvData : this.coverLetterData;
 
     try {
       const html = await firstValueFrom(this.jobsService.fetchPreview(type, data));

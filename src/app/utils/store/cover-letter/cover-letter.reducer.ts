@@ -6,7 +6,7 @@ import {
     loadCoverLetterInfoSuccess,
     saveNewCoverLetterInfoFailure,
     saveNewCoverLetterInfoSuccess,
-    setDefaultCoverLetterIndex,
+    selectCoverLetterVersion,
     updateCoverLetterInfo,
     updateCoverLetterInfoFailure,
     updateCoverLetterInfoSuccess
@@ -14,7 +14,7 @@ import {
 
 export const initialCoverLetterState: CoverLetterState = {
     coverLetterInfoList: [],
-    defaultIndex: 0,
+    selectedVersion: '',
     loading: false,
     error: null
 };
@@ -31,6 +31,7 @@ export const coverLetterReducer = createReducer(
     on(loadCoverLetterInfoSuccess, (state, { coverLetterInfoList }) => ({
         ...state,
         coverLetterInfoList,
+        selectedVersion: coverLetterInfoList.length > 0 ? coverLetterInfoList[0].version : '',
         loading: false
     })),
 
@@ -61,7 +62,8 @@ export const coverLetterReducer = createReducer(
 
     on(saveNewCoverLetterInfoSuccess, (state, { coverLetterInfo }) => ({
         ...state,
-        coverLetterInfoList: [...state.coverLetterInfoList, coverLetterInfo]
+        coverLetterInfoList: [...state.coverLetterInfoList, coverLetterInfo],
+        selectedVersion: coverLetterInfo.version
     })),
 
     on(saveNewCoverLetterInfoFailure, (state, { error }) => ({
@@ -69,8 +71,8 @@ export const coverLetterReducer = createReducer(
         error
     })),
 
-    on(setDefaultCoverLetterIndex, (state, { index }) => ({
+    on(selectCoverLetterVersion, (state, { version }) => ({
         ...state,
-        defaultIndex: index
+        selectedVersion: version
     })),
 );

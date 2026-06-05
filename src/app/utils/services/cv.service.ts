@@ -9,11 +9,13 @@ export class CvService {
 
   // --- Draft State ---
   draftCV = signal<CVInfo>(defaultCV());
-  selectedVersion = signal<number>(0);
 
   clearDraft() {
     this.draftCV.set(defaultCV());
-    this.selectedVersion.set(0);
+  }
+
+  updateDraft(cvInfo: CVInfo) {
+    this.draftCV.set(cvInfo);
   }
 
   // CV Operations

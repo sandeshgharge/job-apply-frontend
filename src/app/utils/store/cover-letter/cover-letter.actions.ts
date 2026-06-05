@@ -49,7 +49,7 @@ export const saveNewCoverLetterInfoFailure = createAction(
     props<{ error: string }>()
 );
 
-export const setDefaultCoverLetterIndex = createAction(
-    '[Cover Letter] Set Default Cover Letter Index',
-    props<{ index: number }>()
+export const selectCoverLetterVersion = createAction(
+    '[Cover Letter] Select Cover Letter Version',
+    props<{ version: string }>()
 );
