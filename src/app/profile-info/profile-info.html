@@ -1,34 +1,129 @@
-<div class="profile-card">
-  <div class="card-header">
-    <h2>Profile Information</h2>
+<div class="profile-page">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h2>Profile Information</h2>
+      <p class="subtitle">Your personal details · used across applications</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-save" (click)="saveChanges()" [disabled]="!isDirty()">
+        💾 Save Changes
+      </button>
+    </div>
   </div>
-  <div class="form-group">
-    <label for="firstName">First Name</label>
-    <input type="text" id="firstName" name="firstName" [ngModel]="profile().firstName" (input)="onFieldChange('firstName', $event.target.value)" placeholder="Enter first name" />
+
+  <!-- ── Profile Image & Identity ────────────────────────────── -->
+  <div class="panel identity-panel">
+    <div class="identity-layout">
+
+      <!-- Profile Image Upload -->
+      <div class="image-upload-zone" (click)="profileImageInput.click()">
+        @if (profile().profileImageUrl) {
+          <img [src]="profile().profileImageUrl" alt="Profile photo" class="upload-preview" />
+          <div class="upload-overlay">
+            <span>Change Photo</span>
+          </div>
+        } @else {
+          <div class="upload-placeholder">
+            <span class="upload-icon">📷</span>
+            <span class="upload-label">Upload Photo</span>
+          </div>
+        }
+        <input #profileImageInput type="file" accept="image/*"
+          (change)="onImageSelected('profileImageUrl', $event)" hidden />
+      </div>
+
+      <!-- Name & Basic Info -->
+      <div class="identity-fields">
+        <h3 class="panel-title">Personal Details</h3>
+        <div class="fields-grid">
+          <div class="field">
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" name="firstName"
+              [ngModel]="profile().firstName"
+              (input)="onFieldChange('firstName', $event.target.value)"
+              placeholder="e.g. Maria" />
+          </div>
+          <div class="field">
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" name="lastName"
+              [ngModel]="profile().lastName"
+              (input)="onFieldChange('lastName', $event.target.value)"
+              placeholder="e.g. Müller" />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email"
+              [ngModel]="profile().email"
+              (input)="onFieldChange('email', $event.target.value)"
+              placeholder="e.g. maria@example.com" />
+          </div>
+          <div class="field">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location"
+              [ngModel]="profile().location"
+              (input)="onFieldChange('location', $event.target.value)"
+              placeholder="e.g. Berlin, Germany" />
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
-  <div class="form-group">
-    <label for="lastName">Last Name</label>
-    <input type="text" id="lastName" name="lastName" [ngModel]="profile().lastName" (input)="onFieldChange('lastName', $event.target.value)" placeholder="Enter last name" />
+
+  <!-- ── Signature ───────────────────────────────────────────── -->
+  <div class="panel">
+    <h3 class="panel-title">Signature</h3>
+    <p class="panel-hint">
+      Upload an image of your handwritten signature. Used in cover letters and formal documents.
+    </p>
+    <div class="signature-upload-zone" (click)="signatureImageInput.click()">
+      @if (profile().signatureImageUrl) {
+        <img [src]="profile().signatureImageUrl" alt="Signature" class="signature-preview" />
+        <div class="signature-overlay">
+          <span>Change Signature</span>
+        </div>
+      } @else {
+        <div class="upload-placeholder signature-placeholder">
+          <span class="upload-icon">✍️</span>
+          <span class="upload-label">Upload Signature Image</span>
+        </div>
+      }
+      <input #signatureImageInput type="file" accept="image/*"
+        (change)="onImageSelected('signatureImageUrl', $event)" hidden />
+    </div>
   </div>
-  <div class="form-group">
-    <label for="email">Email Id</label>
-    <input type="email" id="email" name="email" [ngModel]="profile().email" (input)="onFieldChange('email', $event.target.value)" placeholder="Enter email address" />
+
+  <!-- ── AI Configuration ────────────────────────────────────── -->
+  <div class="panel ai-panel">
+    <h3 class="panel-title">AI Configuration</h3>
+    <p class="panel-hint">
+      Configure your AI agent endpoint for cover letter generation, CV assistance, and more.
+    </p>
+    <div class="fields-grid">
+      <div class="field field-full">
+        <label for="apiUrl">Agent API URL</label>
+        <input type="url" id="apiUrl" name="apiUrl"
+          [ngModel]="profile().apiUrl"
+          (input)="onFieldChange('apiUrl', $event.target.value)"
+          placeholder="https://api.example.com/v1" />
+      </div>
+      <div class="field">
+        <label for="apiKey">Agent API Key</label>
+        <input type="text" id="apiKey" name="apiKey"
+          [ngModel]="profile().apiKey"
+          (input)="onFieldChange('apiKey', $event.target.value)"
+          placeholder="sk-..." />
+      </div>
+      <div class="field">
+        <label for="model">Model Name</label>
+        <input type="text" id="model" name="model"
+          [ngModel]="profile().model"
+          (input)="onFieldChange('model', $event.target.value)"
+          placeholder="e.g. claude-3-opus" />
+      </div>
+    </div>
   </div>
-  <div class="form-group">
-    <label for="location">Location</label>
-    <input type="text" id="location" name="location" [ngModel]="profile().location" (input)="onFieldChange('location', $event.target.value)" placeholder="Enter location" />
-  </div>
-  <div class="form-group">
-    <label for="apiUrl">Agent API URL</label>
-    <input type="url" id="apiUrl" name="apiUrl" [ngModel]="profile().apiUrl" (input)="onFieldChange('apiUrl', $event.target.value)" placeholder="https://api.example.com" />
-  </div>
-  <div class="form-group">
-    <label for="apiKey">Agent API Key</label>
-    <input type="text" id="apiKey" name="apiKey" [ngModel]="profile().apiKey" (input)="onFieldChange('apiKey', $event.target.value)" placeholder="Enter API key" />
-  </div>
-  <div class="form-group">
-    <label for="apiKey">Model Name</label>
-    <input type="text" id="model" name="model" [ngModel]="profile().model" (input)="onFieldChange('model', $event.target.value)" placeholder="Enter MOdel Name" />
-  </div>
-  <button class="save-button" type="button" (click)="saveChanges()">Save Changes</button>
+
 </div>

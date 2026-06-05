@@ -7,5 +7,7 @@ export interface ProfileDTO {
     agent_api_key: string;
     agent_api_url: string;
     created_at?: string;
-    model_name: string
+    model_name: string;
+    profile_image_url?: string;
+    signature_image_url?: string;
 }

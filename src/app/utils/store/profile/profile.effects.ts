@@ -3,13 +3,16 @@ import { loadProfileInfo, loadProfileInfoFailure, loadProfileInfoSuccess, update
 import { catchError, from, map, of, switchMap } from "rxjs";
 import { inject, Injectable } from "@angular/core";
 import { ProfileService } from "../../services/profile.service";
+import { FileService } from "../../services/file.service";
 import { mapProfileDtoToProfile, mapProfileToProfileDto } from "../../supabase/mapper";
+import { ProfileInfo } from "../../entities/user";
 
 
 @Injectable()
 export class ProfileEffects {
     private actions$ = inject(Actions);
     private profileService = inject(ProfileService);
+    private fileService = inject(FileService);
 
     loadProfileInfo$ = createEffect(() =>
         this.actions$.pipe(
@@ -34,12 +37,10 @@ export class ProfileEffects {
         this.actions$.pipe(
             ofType(updateProfileInfo),
             switchMap(({ profileInfo }) =>
-                from(
-                    this.profileService.updateProfile(mapProfileToProfileDto(profileInfo))
-                ).pipe(
-                    map(response => {
-                        return loadProfileInfoSuccess({ profileInfo: profileInfo })
-                    }),
+                from(this.profileService.uploadImagesAndSave(profileInfo)).pipe(
+                    map(updatedProfile =>
+                        loadProfileInfoSuccess({ profileInfo: updatedProfile })
+                    ),
                     catchError((error: any) =>
                         of(loadProfileInfoFailure({ error: error?.message ?? "Profile update failed" }))
                     )

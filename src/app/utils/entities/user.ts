@@ -8,9 +8,11 @@ export interface ProfileInfo {
   id: string;
   firstName: string;
   lastName: string;
-  location:string;
+  location: string;
   email: string;
   apiUrl: string;
   apiKey: string;
   model: string;
+  profileImageUrl?: string;
+  signatureImageUrl?: string;
 }
