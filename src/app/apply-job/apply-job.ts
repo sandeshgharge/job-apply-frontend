@@ -37,6 +37,7 @@ export class ApplyJobComponent {
   // ViewChild references to access child component data
   @ViewChild('cvBuilder') cvBuilder!: CvBuilderComponent;
   @ViewChild('coverLetter') coverLetterComponent!: CoverLetterComponent;
+  @ViewChild(ApplyPreviewComponent) applyPreviewComponent!: ApplyPreviewComponent;
 
   loading = signal(false);
 
@@ -85,9 +86,19 @@ export class ApplyJobComponent {
   }
 
   // Mark application as applied
-  markAsApplied() {
-    this.jobsService.updateField('status', 'Applied');
-    this.toast.show('Application marked as applied!');
+  async markAsApplied() {
+    this.applyLoading.set(true);
+    try {
+      if (this.applyPreviewComponent) {
+        await this.applyPreviewComponent.applyAndSave();
+      } else {
+        // Fallback
+        this.jobsService.updateField('status', 'Applied');
+        this.toast.show('Application marked as applied locally.');
+      }
+    } finally {
+      this.applyLoading.set(false);
+    }
   }
 
 

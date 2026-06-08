@@ -22,7 +22,6 @@ export class ProfileInfoComponent {
   constructor() {
     effect(() => {
       const tempProfile = this.profileFromStore();
-      console.log("Profile", tempProfile)
       if (tempProfile) {
         this.profile.set(tempProfile)
       }
@@ -55,9 +54,9 @@ export class ProfileInfoComponent {
     lastName: '',
     location: '',
     email: '',
-    apiUrl: '',
-    apiKey: '',
-    model: '',
+    agentApiUrl: '',
+    agentApiKey: '',
+    modelName: '',
     profileImageUrl: '',
     signatureImageUrl: ''
   });

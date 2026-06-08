@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { supabase } from '@app/utils/supabase/client';
+import { AuthService } from '@app/utils/services/auth.service';
+import { BackendApiService } from '@app/utils/services/backend-service/backend-api-services';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-auth-callback',
@@ -10,26 +12,24 @@ import { supabase } from '@app/utils/supabase/client';
 })
 export class AuthCallback {
 
-  constructor(
-    private router: Router
-  ) {}
+  private router = inject(Router);
+  private backendApi = inject(BackendApiService);
+  private authService = inject(AuthService);
 
   async ngOnInit() {
 
     const {
       data: { session }
-    } = await supabase.auth.getSession();
+    } = await this.authService.getSession();
 
     if (!session) {
       this.router.navigate(['/login']);
       return;
     }
 
-    const { data: profile } = await supabase
-      .from('user_details')
-      .select()
-      .eq('id', session.user.id)
-      .single();
+    const profile = await firstValueFrom(
+      this.backendApi.get<any>(`profile/${session.user.id}`)
+    );
 
       console.log('User profile:', profile);
 

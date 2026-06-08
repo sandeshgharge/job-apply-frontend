@@ -10,9 +10,9 @@ export interface ProfileInfo {
   lastName: string;
   location: string;
   email: string;
-  apiUrl: string;
-  apiKey: string;
-  model: string;
+  agentApiUrl: string;
+  agentApiKey: string;
+  modelName: string;
   profileImageUrl?: string;
   signatureImageUrl?: string;
 }

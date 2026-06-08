@@ -6,7 +6,7 @@ import { selectUserID } from '../utils/store/auth/auth.selectors';
 import { JobDetails } from '../utils/entities/job-details';
 import { JobsService } from '../utils/services/jobs.service';
 import { AsyncPipe } from '@angular/common';
-import { CoverLetterInfo, CoverLetterSection, defaultcl, CoverLetterDocInfo } from '../utils/entities/cover-letter';
+import { CoverLetterSection, CoverLetterDocInfo } from '../utils/entities/cover-letter';
 import { selectCoverLetterInfoList, selectCurrentCoverLetter } from '../utils/store/cover-letter/cover-letter.selectors';
 import { selectProfileInfo } from '../utils/store/profile/profile.selector';
 import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, selectCoverLetterVersion, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
@@ -255,9 +255,9 @@ export class CoverLetterComponent implements OnInit {
         return;
       }
 
-      const apiUrl = pInfo.apiUrl;
-      const apiKey = pInfo.apiKey;
-      const modelName = pInfo.model;
+      const apiUrl = pInfo.agentApiUrl;
+      const apiKey = pInfo.agentApiKey;
+      const modelName = pInfo.modelName;
 
       if (!apiUrl || !apiKey || !modelName) {
         this.toast.show('AI API URL, API Key, or Model Name not configured in profile.', 'error');
@@ -329,9 +329,9 @@ export class CoverLetterComponent implements OnInit {
         return;
       }
 
-      const apiUrl = pInfo.apiUrl;
-      const apiKey = pInfo.apiKey;
-      const modelName = pInfo.model;
+      const apiUrl = pInfo.agentApiUrl;
+      const apiKey = pInfo.agentApiKey;
+      const modelName = pInfo.modelName;
 
       if (!apiUrl || !apiKey || !modelName) {
         this.toast.show('AI API URL, API Key, or Model Name not configured in profile.', 'error');
