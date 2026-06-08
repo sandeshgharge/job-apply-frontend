@@ -5,6 +5,10 @@ import { JobDetails } from '@app/utils/entities/job-details';
 
 import { BackendApiService } from './backend-service/backend-api-services';
 import { CoverLetterDocInfo } from '../entities/cover-letter';
+import { FileService } from './file.service';
+import { firstValueFrom } from 'rxjs';
+import { selectUserID } from '../store/auth/auth.selectors';
+import { Store } from '@ngrx/store';
 
 const DEMO_JOBS: JobDetails[] = [
   { id: '1', companyName: 'SAP SE', role: 'Frontend Developer', companyLocation: 'Walldorf, DE', appliedDate: '2025-04-01', status: '1st Interview', salary: '75,000 €', contactName: 'Maria Schmidt', jobUrl: 'www.google.com', jobDescription: '' },
@@ -17,8 +21,12 @@ const DEMO_JOBS: JobDetails[] = [
 export class JobsService {
   private storage = inject(StorageService);
   private backendApi = inject(BackendApiService);
+  private store = inject(Store);
+
+  private fileService = inject(FileService);
 
   jobs = signal<JobDetails[]>(this.storage.get<JobDetails[]>('jad_jobs', DEMO_JOBS));
+  userid = this.store.selectSignal(selectUserID);
 
   private jobDetails = new BehaviorSubject<JobDetails | null>(null);
   jobDetails$ = this.jobDetails.asObservable();
@@ -34,7 +42,9 @@ export class JobsService {
       salary: '',
       contactName: '',
       jobUrl: '',
-      jobDescription: ''
+      jobDescription: '',
+      coverLetterPdfUrl: '',
+      cvPdfUrl: ''
     });
   }
   setJobDetails(details: JobDetails) {
@@ -108,5 +118,92 @@ export class JobsService {
       offers: all.filter(j => j.status === 'Offer').length,
       rejected: all.filter(j => j.status === 'Rejected').length
     };
+  }
+
+  async applyAndSaveJob(cvHtml: string, clHtml: string): Promise<void> {
+    const jobDetails = this.jobDetails.value;
+    if (!jobDetails) throw new Error('No job details found.');
+
+    // Use existing ID or generate a new UUID
+    const jobId = jobDetails.id || crypto.randomUUID();
+
+    let cvPdfUrl = jobDetails.cvPdfUrl || '';
+    let clPdfUrl = jobDetails.coverLetterPdfUrl || '';
+
+    // Upload CV PDF if HTML is provided
+    if (cvHtml) {
+      const cvBlob = await firstValueFrom(this.downloadPDF('cv', { html: cvHtml }));
+      const cvDataUrl = await this.blobToDataUrl(cvBlob);
+      const fileName = `${this.userid()}/${jobId}/cv_${Date.now()}.pdf`;
+      const uploadedUrl = await this.fileService.uploadPDF('application-documents', fileName, cvDataUrl);
+      if (!uploadedUrl) throw new Error('CV PDF upload failed');
+      cvPdfUrl = uploadedUrl;
+    }
+
+    // Upload Cover Letter PDF if HTML is provided
+    if (clHtml) {
+      const clBlob = await firstValueFrom(this.downloadPDF('cl', { html: clHtml }));
+      const clDataUrl = await this.blobToDataUrl(clBlob);
+      const fileName = `${this.userid()}/${jobId}/cover_letter_${Date.now()}.pdf`;
+      const uploadedUrl = await this.fileService.uploadPDF('application-documents', fileName, clDataUrl);
+      if (!uploadedUrl) throw new Error('Cover Letter PDF upload failed');
+      clPdfUrl = uploadedUrl;
+    }
+
+    // Prepare job record for database
+    const jobToSave = {
+      id: jobId,
+      user_id: this.userid(),
+      company_name: jobDetails.companyName,
+      role: jobDetails.role,
+      company_location: jobDetails.companyLocation,
+      applied_date: jobDetails.appliedDate,
+      status: 'Applied',
+      salary: jobDetails.salary,
+      contact_name: jobDetails.contactName,
+      job_url: jobDetails.jobUrl,
+      notes: jobDetails.notes,
+      job_description: jobDetails.jobDescription,
+      cover_letter_pdf_url: clPdfUrl,
+      cv_pdf_url: cvPdfUrl,
+    };
+
+    await firstValueFrom(
+      this.backendApi.post<any>('jobs/upsert', jobToSave)
+    );
+
+    // Update the local active job details
+    this.jobDetails.next({
+      ...jobDetails,
+      id: jobId,
+      status: 'Applied',
+      cvPdfUrl,
+      coverLetterPdfUrl: clPdfUrl
+    });
+
+    // Update local jobs list
+    this.jobs.update(jobs => {
+      const existingIndex = jobs.findIndex(j => j.id === jobId);
+      const updatedJob = { ...this.jobDetails.value! };
+      if (existingIndex >= 0) {
+        const newJobs = [...jobs];
+        newJobs[existingIndex] = updatedJob;
+        return newJobs;
+      } else {
+        return [updatedJob, ...jobs];
+      }
+    });
+  }
+
+  /**
+   * Converts a Blob to a base64 data URL for use with FileService upload.
+   */
+  private blobToDataUrl(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 }

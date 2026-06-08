@@ -4,7 +4,6 @@ import { catchError, from, map, of, switchMap } from "rxjs";
 import { inject, Injectable } from "@angular/core";
 import { ProfileService } from "../../services/profile.service";
 import { FileService } from "../../services/file.service";
-import { mapProfileDtoToProfile, mapProfileToProfileDto } from "../../supabase/mapper";
 import { ProfileInfo } from "../../entities/user";
 
 
@@ -21,9 +20,10 @@ export class ProfileEffects {
                 from(this.profileService.getProfile()).pipe(
                     map(response => {
                         if (response.error) {
+                            console.log('Error loading profile:', response.error);
                             return loadProfileInfoFailure({ error: response.error.message ?? "Profile load failed" })
                         }
-                        return loadProfileInfoSuccess({ profileInfo: mapProfileDtoToProfile(response.data) });
+                        return loadProfileInfoSuccess({ profileInfo: response as ProfileInfo });
                     }),
                     catchError((error: any) =>
                         of(loadProfileInfoFailure({ error: error?.message ?? "Profile load failed" }))

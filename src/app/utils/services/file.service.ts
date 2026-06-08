@@ -1,22 +1,26 @@
 import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngrx/store';
-import { supabase } from '../supabase/client';
 import { selectCurrentUser } from '../store/auth/auth.selectors';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
+import { BackendApiService } from './backend-service/backend-api-services';
+import { environment } from 'src/environments/environment';
 
 /**
- * Service for uploading and managing files in Supabase Storage.
+ * Service for uploading and managing files via the backend API.
  *
- * Uses the 'profile-assets' bucket to store profile images and signatures.
+ * Uses the backend storage endpoints to store profile images and signatures.
  * Files are stored under a user-specific path: `{userId}/{folder}/{filename}`
  */
 @Injectable({ providedIn: 'root' })
 export class FileService {
+  private backendApi = inject(BackendApiService);
+  private http = inject(HttpClient);
   private store = inject(Store);
   private userId = this.store.selectSignal(selectCurrentUser);
 
   /**
-   * Uploads a base64 data URL to Supabase Storage.
+   * Uploads a base64 data URL via the backend storage endpoint.
    *
    * @param dataUrl  - The base64 data URL (e.g. from FileReader.readAsDataURL)
    * @param folder   - Sub-folder within the user's directory (e.g. 'profile-image', 'signature')
@@ -39,45 +43,30 @@ export class FileService {
     // Build the storage path: userId/folder/fileName, omitting folder if not provided
     const filePath = [userId, folder, fileName].filter(Boolean).join('/');
 
-    // Upload with upsert so re-uploads overwrite the existing file
-    const { error } = await supabase.storage
-      .from(bucket)
-      .upload(filePath, blob, {
-        upsert: true,
-        contentType: blob.type,
-      });
+    // Build FormData for upload
+    const formData = new FormData();
+    formData.append('file', blob, fileName);
+    formData.append('bucket', bucket);
+    formData.append('file_path', filePath);
 
-    if (error) {
+    try {
+      const response = await firstValueFrom(
+        this.backendApi.post<{ public_url: string }>('storage/upload', formData)
+      );
+      console.log(`[FileService] Upload response for ${filePath}:`, response);
+      return response?.public_url ?? null;
+    } catch (error: any) {
       console.error(`[FileService] Upload failed for ${filePath}:`, error.message);
       return null;
     }
+  }
 
-    // Get the public URL
-    const { data } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(filePath);
-
-    return data?.publicUrl ?? null;
+  async uploadPDF(bucket: string, name: string, dataUrl: string): Promise<string | null> {
+    return this.uploadBase64Image(dataUrl, name, bucket);
   }
 
   /**
-   * Uploads a profile image and returns its public URL.
-   */
-  async uploadProfileImage(bucket: string, dataUrl: string): Promise<string | null> {
-    const ext = this.getExtensionFromDataUrl(dataUrl);
-    return this.uploadBase64Image(dataUrl, 'profile-image', bucket);
-  }
-
-  /**
-   * Uploads a signature image and returns its public URL.
-   */
-  async uploadSignatureImage(bucket: string, dataUrl: string): Promise<string | null> {
-    const ext = this.getExtensionFromDataUrl(dataUrl);
-    return this.uploadBase64Image(dataUrl, 'signature', bucket);
-  }
-
-  /**
-   * Removes a file from Supabase Storage by its public URL.
+   * Removes a file from storage via the backend API by its public URL.
    */
   async removeByUrl(bucket: string, publicUrl: string): Promise<boolean> {
     // Extract the path after the bucket name
@@ -86,15 +75,18 @@ export class FileService {
     if (idx === -1) return false;
 
     const filePath = publicUrl.substring(idx + bucketSegment.length);
-    const { error } = await supabase.storage
-      .from(bucket)
-      .remove([filePath]);
 
-    if (error) {
+    try {
+      await firstValueFrom(
+        this.http.delete<any>(`${environment.backendAiApiURL}storage/remove`, {
+          body: { bucket, file_path: filePath }
+        })
+      );
+      return true;
+    } catch (error: any) {
       console.error('[FileService] Remove failed:', error.message);
       return false;
     }
-    return true;
   }
 
   // ── Private Helpers ──────────────────────────────────────────

@@ -25,5 +25,6 @@ export interface JobDetails {
   jobUrl?: string;
   notes?: string;
   jobDescription: string;
-  skillGroups?: SkillGroup[]; 
+  coverLetterPdfUrl?: string;
+  cvPdfUrl?: string;
 }

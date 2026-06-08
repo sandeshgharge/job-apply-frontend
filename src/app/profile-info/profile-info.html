@@ -103,24 +103,24 @@
     </p>
     <div class="fields-grid">
       <div class="field field-full">
-        <label for="apiUrl">Agent API URL</label>
-        <input type="url" id="apiUrl" name="apiUrl"
-          [ngModel]="profile().apiUrl"
-          (input)="onFieldChange('apiUrl', $event.target.value)"
+        <label for="agentApiUrl">Agent API URL</label>
+        <input type="url" id="agentApiUrl" name="agentApiUrl"
+          [ngModel]="profile().agentApiUrl"
+          (input)="onFieldChange('agentApiUrl', $event.target.value)"
           placeholder="https://api.example.com/v1" />
       </div>
       <div class="field">
-        <label for="apiKey">Agent API Key</label>
-        <input type="text" id="apiKey" name="apiKey"
-          [ngModel]="profile().apiKey"
-          (input)="onFieldChange('apiKey', $event.target.value)"
+        <label for="agentApiKey">Agent API Key</label>
+        <input type="text" id="agentApiKey" name="agentApiKey"
+          [ngModel]="profile().agentApiKey"
+          (input)="onFieldChange('agentApiKey', $event.target.value)"
           placeholder="sk-..." />
       </div>
       <div class="field">
-        <label for="model">Model Name</label>
-        <input type="text" id="model" name="model"
-          [ngModel]="profile().model"
-          (input)="onFieldChange('model', $event.target.value)"
+        <label for="modelName">Model Name</label>
+        <input type="text" id="modelName" name="modelName"
+          [ngModel]="profile().modelName"
+          (input)="onFieldChange('modelName', $event.target.value)"
           placeholder="e.g. claude-3-opus" />
       </div>
     </div>

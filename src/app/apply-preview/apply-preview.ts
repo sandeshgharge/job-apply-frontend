@@ -131,8 +131,24 @@ export class ApplyPreviewComponent {
     }
   }
 
-  markAsApplied() {
-    this.jobsService.updateField('status', 'Applied');
-    this.toast.show('Application marked as applied!');
+  async applyAndSave() {
+    this.loading.set(true);
+    try {
+      // Ensure we have the HTML before saving
+      if (!this.cvHtml()) {
+        await this.fetchPreview('cv');
+      }
+      if (!this.clHtml()) {
+        await this.fetchPreview('cl');
+      }
+
+      await this.jobsService.applyAndSaveJob(this.cvHtml(), this.clHtml());
+      this.toast.show('Application successfully saved to database!');
+    } catch (error: any) {
+      console.error('Failed to save application:', error);
+      this.toast.show(error?.message || 'Failed to save application. Please try again.', 'error');
+    } finally {
+      this.loading.set(false);
+    }
   }
 }

@@ -16,10 +16,9 @@ export class BackendApiService {
    */
   private async getAuthHeaders(): Promise<{ [header: string]: string }> {
     try {
-      const session = await this.authService.getSession();
-      if (session?.data.session?.access_token) {
+      if (sessionStorage.getItem('access_token')) {
         return {
-          'Authorization': `Bearer ${session.data.session.access_token}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
           'Content-Type': 'application/json'
         };
       }

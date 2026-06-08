@@ -1,19 +1,16 @@
 import { inject, Injectable } from "@angular/core";
-import { supabase } from "../supabase/client";
 import { Store } from "@ngrx/store";
-import { HttpClient } from "@angular/common/http";
 import { selectUserID } from "../store/auth/auth.selectors";
-import { catchError, from, map } from "rxjs";
-import { mapProfileDtoToProfile, mapProfileToProfileDto } from "../supabase/mapper";
 import { ProfileInfo } from "../entities/user";
-import { ProfileDTO } from "../supabase/dto";
 import { FileService } from "./file.service";
+import { BackendApiService } from "./backend-service/backend-api-services";
 import { environment } from "src/environments/environment";
+import { firstValueFrom } from "rxjs";
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
 
-    constructor(private http: HttpClient) { }
+    private backendApi = inject(BackendApiService);
     private store = inject(Store);
 
     userId = this.store.selectSignal(selectUserID);
@@ -21,20 +18,15 @@ export class ProfileService {
     fileService = inject(FileService);
 
     getProfile() {
-        return supabase
-            .from('user_details')
-            .select()
-            .eq('id', this.userId())
-            .single()
+        return firstValueFrom(
+            this.backendApi.get<any>(`profile/${this.userId()}`)
+        );
     }
 
-    updateProfile(profileInfo: ProfileDTO) {
-        return supabase
-            .from('user_details')
-            .update({
-                ...profileInfo
-            })
-            .eq('id', this.userId())
+    updateProfile(profileInfo: ProfileInfo) {
+        return firstValueFrom(
+            this.backendApi.put<any>(`profile/${this.userId()}`, profileInfo)
+        );
     }
 
     /**
@@ -46,19 +38,19 @@ export class ProfileService {
 
         // Upload profile image if it's a fresh base64 data URL
         if (updated.profileImageUrl && updated.profileImageUrl.startsWith('data:')) {
-            const publicUrl = await this.fileService.uploadProfileImage(this.bucket, updated.profileImageUrl);
+            const publicUrl = await this.fileService.uploadBase64Image(this.bucket, 'profile-image', updated.profileImageUrl);
             updated = { ...updated, profileImageUrl: publicUrl ?? '' };
         }
 
         // Upload signature image if it's a fresh base64 data URL
         if (updated.signatureImageUrl && updated.signatureImageUrl.startsWith('data:')) {
-            const publicUrl = await this.fileService.uploadSignatureImage(this.bucket, updated.signatureImageUrl);
+            const publicUrl = await this.fileService.uploadBase64Image(this.bucket, 'signature', updated.signatureImageUrl);
             updated = { ...updated, signatureImageUrl: publicUrl ?? '' };
         }
 
         // Persist the profile with public URLs to the DB
-        const response = await this.updateProfile(mapProfileToProfileDto(updated));
-        if (response.error) {
+        const response = await this.updateProfile(updated);
+        if (response?.error) {
             throw new Error(response.error.message ?? 'Profile update failed');
         }
 
@@ -66,15 +58,13 @@ export class ProfileService {
     }
 
     getImageUrl(fileName: string, expiresIn = 3600): Promise<any> {
-    return supabase.storage
-        .from(this.bucket)
-        .createSignedUrl(`${this.userId()}/${fileName}`, expiresIn)
-        .then(({ data, error }) => {
-          if (error) {
-            console.error(`[FileService] Failed to get signed URL for ${fileName}:`, error.message);
+        return firstValueFrom(
+            this.backendApi.get<any>(`profile/${this.userId()}/image-url?fileName=${encodeURIComponent(fileName)}&bucket=${encodeURIComponent(this.bucket)}&expiresIn=${expiresIn}`)
+        ).then((data: any) => {
+            return data?.signedUrl ?? null;
+        }).catch((error: any) => {
+            console.error(`[ProfileService] Failed to get signed URL for ${fileName}:`, error.message);
             return null;
-          }
-          return data?.signedUrl ?? null;
         });
-  }
+    }
 }

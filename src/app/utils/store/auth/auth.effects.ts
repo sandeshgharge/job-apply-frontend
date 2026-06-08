@@ -23,11 +23,12 @@ export class AuthEffects {
                 return this.authService.login(email, password).pipe(
 
                     switchMap(response => {
-                        const name = email.split('@')[0].replace(/[._]/g, ' ');
-                        const id = response.data.user?.id || '';
+                        const userEmail = response.user?.email || email;
+                        const name = userEmail.split('@')[0].replace(/[._]/g, ' ');
+                        const id = response.user?.id || '';
                         return of(loginSuccess({
-                            user: { email, name, id },
-                            token: response.data.session?.access_token || ''
+                            user: { email: userEmail, name, id },
+                            token: response.access_token || ''
                         }));
                     }),
                     catchError(error =>
@@ -43,6 +44,8 @@ export class AuthEffects {
             ofType(loginSuccess),
             tap(({ user, token }) => {
                 // Here you can perform side effects like navigation or showing a success message
+                sessionStorage.setItem('user', JSON.stringify(user));
+                sessionStorage.setItem('access_token', token);
                 this.router.navigate(['/home']);                
             })
 
@@ -85,22 +88,23 @@ export class AuthEffects {
         this.actions$.pipe(
             ofType(autoLogin),
             switchMap(() => {
-                console.log("Attempting auto-login...");
-                return from(this.authService.getSession()).pipe(
-                    map(({ data: { session } }) => {
-                        if (session) {
-                            const user = { email: session.user.email || '', name: session.user.email?.split('@')[0].replace(/[._]/g, ' ') || '', id: session.user.id };
-                            return loginSuccess({ user, token: session.access_token });
-                        } else {
-                            console.log("No session found for auto-login");
-                            return logout(); // No session, ensure we're logged out
-                        }
-                    }),
-                    catchError(error => {
-                        console.error("Auto-login failed with error:", error);
+                console.log("Attempting auto-login from sessionStorage...");
+                try {
+                    const userStr = sessionStorage.getItem('user');
+                    const token = sessionStorage.getItem('access_token');
+                    
+                    if (userStr && token) {
+                        const user = JSON.parse(userStr);
+                        console.log("Auto-login successful from sessionStorage");
+                        return of(loginSuccess({ user, token }));
+                    } else {
+                        console.log("No session found in sessionStorage for auto-login");
                         return of(logout());
-                    })
-                );
+                    }
+                } catch (error) {
+                    console.error("Auto-login failed with error:", error);
+                    return of(logout());
+                }
             })
         )
     );
