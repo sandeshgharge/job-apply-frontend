@@ -1,0 +1,24 @@
+@if (isAnyLoading()) {
+  <div class="status-bar" id="app-status-bar">
+    <div class="status-progress">
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+
+    <div class="status-content">
+      <div class="status-indicator">
+        <span class="pulse-dot"></span>
+      </div>
+
+      <div class="status-items">
+        @for (item of statusItems(); track item.label) {
+          <div class="status-item">
+            <span class="status-item-icon">{{ item.icon }}</span>
+            <span class="status-item-label">{{ item.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

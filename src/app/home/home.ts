@@ -6,13 +6,14 @@ import { ToastComponent } from '@app/toast/toast';
 import { Store } from '@ngrx/store';
 import { logout } from '@app/utils/store/auth/auth.actions';
 import { ProfileInfoComponent } from "@app/profile-info/profile-info";
+import { StatusBarComponent } from '@app/status-bar/status-bar';
 import { selectCurrentUser } from '@app/utils/store/auth/auth.selectors';
 
 type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 
 @Component({
   selector: 'app-home',
-  imports: [DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent, ProfileInfoComponent],
+  imports: [DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent, ProfileInfoComponent, StatusBarComponent],
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })

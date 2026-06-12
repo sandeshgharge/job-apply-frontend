@@ -1,0 +1,135 @@
+// ─── Status Bar ───────────────────────────────────────────
+// Fixed bottom bar that appears when any data is loading.
+// Matches the app's light theme (Segoe UI, #1a56db accent)
+// and mirrors the toast component's animation style.
+
+.status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+  animation: statusSlideUp 0.25s ease;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+// ─── Indeterminate progress track ─────────────────────────
+.status-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+}
+
+.progress-track {
+  width: 100%;
+  height: 100%;
+  background: #e0e7ff;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, #1a56db, #3b82f6, #1a56db);
+  border-radius: 2px;
+  animation: indeterminate 1.4s ease-in-out infinite;
+}
+
+// ─── Content layout ───────────────────────────────────────
+.status-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 1.5rem;
+  min-height: 32px;
+}
+
+// ─── Pulsing dot indicator ────────────────────────────────
+.status-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1a56db;
+  animation: pulse 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+// ─── Individual items ─────────────────────────────────────
+.status-items {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: #4b5563;
+  font-weight: 500;
+  animation: itemFadeIn 0.3s ease;
+}
+
+.status-item-icon {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.status-item-label {
+  letter-spacing: -0.01em;
+}
+
+// ─── Animations ───────────────────────────────────────────
+@keyframes statusSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes itemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

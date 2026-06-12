@@ -46,8 +46,14 @@ export class FileService {
     formData.append('file_path', filePath);
 
     try {
+      const token = sessionStorage.getItem('access_token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
       const response = await firstValueFrom(
-        this.backendApi.post<{ public_url: string }>('storage/upload', formData, 'multipart/form-data')
+        this.http.post<{ public_url: string }>(
+          `${environment.backendAiApiURL}storage/upload`,
+          formData,
+          { headers }
+        )
       );
       console.log(`[FileService] Upload response for ${filePath}:`, response);
       return response?.public_url ?? null;

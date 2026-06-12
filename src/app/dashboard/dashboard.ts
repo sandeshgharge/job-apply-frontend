@@ -1,6 +1,5 @@
 import { Component, inject, computed } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
-import { AuthService } from '../utils/services/auth.service';
 import { JobsService } from '../utils/services/jobs.service';
 import { JobStatus } from '../utils/entities/job-details';
 import { Store } from '@ngrx/store';

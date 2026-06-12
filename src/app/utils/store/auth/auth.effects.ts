@@ -31,9 +31,9 @@ export class AuthEffects {
                             token: response.access_token || ''
                         }));
                     }),
-                    catchError(error =>
-                        of(loginFailure({ error }))
-                    )
+                    catchError(error => {
+                        return of(loginFailure({ error: error?.message || "Login failed" }));
+                    })
                 );
             })
         )

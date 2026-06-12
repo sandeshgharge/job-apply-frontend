@@ -13,12 +13,12 @@ export class BackendApiService {
   /**
    * Get the authorization header with Bearer token
    */
-  private async getAuthHeaders(): Promise<{ [header: string]: string }> {
+  private async getAuthHeaders(contentType: string = 'application/json'): Promise<{ [header: string]: string }> {
     try {
       if (sessionStorage.getItem('access_token')) {
         return {
           'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json'
+          'Content-Type': contentType
         };
       }
       // Return default headers if no token
@@ -43,11 +43,11 @@ export class BackendApiService {
   /**
    * POST request with automatic auth header
    */
-  post<T>(url: string, body: any, options ?: any, contentType?: string): Observable<any> {
+  post<T>(url: string, body: any, options ?: any): Observable<any> {
     return from(this.getAuthHeaders()).pipe(
-      switchMap(headers =>
-        this.http.post<T>(`${this.baseUrl}${url}`, body, { ...headers, ...options, 'Content-Type': contentType ?? 'application/json' })
-      )
+      switchMap(headers =>{
+        return this.http.post<T>(`${this.baseUrl}${url}`, body, { headers, ...options})
+      })
     );
   }
 
