@@ -8,7 +8,6 @@ import { environment } from '../../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class BackendApiService {
   private http = inject(HttpClient);
-  private authService = inject(AuthService);
   private readonly baseUrl = environment.backendAiApiURL;
 
   /**
@@ -44,10 +43,10 @@ export class BackendApiService {
   /**
    * POST request with automatic auth header
    */
-  post<T>(url: string, body: any, options ?: any): Observable<any> {
+  post<T>(url: string, body: any, options ?: any, contentType?: string): Observable<any> {
     return from(this.getAuthHeaders()).pipe(
       switchMap(headers =>
-        this.http.post<T>(`${this.baseUrl}${url}`, body, { headers, ...options })
+        this.http.post<T>(`${this.baseUrl}${url}`, body, { ...headers, ...options, 'Content-Type': contentType ?? 'application/json' })
       )
     );
   }

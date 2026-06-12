@@ -5,13 +5,14 @@ import { inject, Injectable } from "@angular/core";
 import { ProfileService } from "../../services/profile.service";
 import { FileService } from "../../services/file.service";
 import { ProfileInfo } from "../../entities/user";
+import { ToastService } from "@app/utils/services/toast.service";
 
 
 @Injectable()
 export class ProfileEffects {
     private actions$ = inject(Actions);
     private profileService = inject(ProfileService);
-    private fileService = inject(FileService);
+    private toastService = inject(ToastService);
 
     loadProfileInfo$ = createEffect(() =>
         this.actions$.pipe(
@@ -20,7 +21,7 @@ export class ProfileEffects {
                 from(this.profileService.getProfile()).pipe(
                     map(response => {
                         if (response.error) {
-                            console.log('Error loading profile:', response.error);
+                            this.toastService.show('Failed to load profile information : ' + response.error.message, 'error');
                             return loadProfileInfoFailure({ error: response.error.message ?? "Profile load failed" })
                         }
                         return loadProfileInfoSuccess({ profileInfo: response as ProfileInfo });
@@ -38,8 +39,10 @@ export class ProfileEffects {
             ofType(updateProfileInfo),
             switchMap(({ profileInfo }) =>
                 from(this.profileService.uploadImagesAndSave(profileInfo)).pipe(
-                    map(updatedProfile =>
-                        loadProfileInfoSuccess({ profileInfo: updatedProfile })
+                    map(updatedProfile => {
+                        this.toastService.show('Profile information updated!');
+                        return loadProfileInfoSuccess({ profileInfo: updatedProfile })
+                    }
                     ),
                     catchError((error: any) =>
                         of(loadProfileInfoFailure({ error: error?.message ?? "Profile update failed" }))

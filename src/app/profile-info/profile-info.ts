@@ -100,7 +100,7 @@ export class ProfileInfoComponent {
       return
     this.store.dispatch(updateProfileInfo({ profileInfo: this.profile() }));
     this.isDirty.set(false);
-    this.toast.show('Profile information saved');
+    
   }
 
 }

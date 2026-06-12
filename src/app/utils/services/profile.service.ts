@@ -38,13 +38,13 @@ export class ProfileService {
 
         // Upload profile image if it's a fresh base64 data URL
         if (updated.profileImageUrl && updated.profileImageUrl.startsWith('data:')) {
-            const publicUrl = await this.fileService.uploadBase64Image(this.bucket, 'profile-image', updated.profileImageUrl);
+            const publicUrl = await this.fileService.uploadBase64Image(updated.profileImageUrl, 'profile-image', this.bucket);
             updated = { ...updated, profileImageUrl: publicUrl ?? '' };
         }
 
         // Upload signature image if it's a fresh base64 data URL
         if (updated.signatureImageUrl && updated.signatureImageUrl.startsWith('data:')) {
-            const publicUrl = await this.fileService.uploadBase64Image(this.bucket, 'signature', updated.signatureImageUrl);
+            const publicUrl = await this.fileService.uploadBase64Image(updated.signatureImageUrl, 'signature', this.bucket);
             updated = { ...updated, signatureImageUrl: publicUrl ?? '' };
         }
 

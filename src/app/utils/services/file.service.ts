@@ -16,8 +16,6 @@ import { environment } from 'src/environments/environment';
 export class FileService {
   private backendApi = inject(BackendApiService);
   private http = inject(HttpClient);
-  private store = inject(Store);
-  private userId = this.store.selectSignal(selectCurrentUser);
 
   /**
    * Uploads a base64 data URL via the backend storage endpoint.
@@ -33,15 +31,13 @@ export class FileService {
     bucket: string,
     folder?: string,
   ): Promise<string | null> {
-    const userId = this.userId()?.id;
-    if (!userId) return null;
 
     // Convert base64 data URL to a Blob
     const blob = this.dataUrlToBlob(dataUrl);
     if (!blob) return null;
 
     // Build the storage path: userId/folder/fileName, omitting folder if not provided
-    const filePath = [userId, folder, fileName].filter(Boolean).join('/');
+    const filePath = [folder, fileName].filter(Boolean).join('/');
 
     // Build FormData for upload
     const formData = new FormData();
@@ -51,7 +47,7 @@ export class FileService {
 
     try {
       const response = await firstValueFrom(
-        this.backendApi.post<{ public_url: string }>('storage/upload', formData)
+        this.backendApi.post<{ public_url: string }>('storage/upload', formData, 'multipart/form-data')
       );
       console.log(`[FileService] Upload response for ${filePath}:`, response);
       return response?.public_url ?? null;
