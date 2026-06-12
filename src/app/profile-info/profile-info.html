@@ -19,8 +19,8 @@
 
       <!-- Profile Image Upload -->
       <div class="image-upload-zone" (click)="profileImageInput.click()">
-        @if (profile().profileImageUrl) {
-          <img [src]="profile().profileImageUrl" alt="Profile photo" class="upload-preview" />
+        @if (profileImageUrl()) {
+          <img [src]="profileImageUrl()" alt="Profile photo" class="upload-preview" />
           <div class="upload-overlay">
             <span>Change Photo</span>
           </div>
@@ -79,8 +79,8 @@
       Upload an image of your handwritten signature. Used in cover letters and formal documents.
     </p>
     <div class="signature-upload-zone" (click)="signatureImageInput.click()">
-      @if (profile().signatureImageUrl) {
-        <img [src]="profile().signatureImageUrl" alt="Signature" class="signature-preview" />
+      @if (signatureImageUrl()) {
+        <img [src]="signatureImageUrl()" alt="Signature" class="signature-preview" />
         <div class="signature-overlay">
           <span>Change Signature</span>
         </div>

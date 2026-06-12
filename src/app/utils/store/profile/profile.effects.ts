@@ -3,7 +3,6 @@ import { loadProfileInfo, loadProfileInfoFailure, loadProfileInfoSuccess, update
 import { catchError, from, map, of, switchMap } from "rxjs";
 import { inject, Injectable } from "@angular/core";
 import { ProfileService } from "../../services/profile.service";
-import { FileService } from "../../services/file.service";
 import { ProfileInfo } from "../../entities/user";
 import { ToastService } from "@app/utils/services/toast.service";
 

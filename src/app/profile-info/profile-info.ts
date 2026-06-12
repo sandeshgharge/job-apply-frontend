@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
 import { ProfileInfo } from '../utils/entities/user';
@@ -13,11 +13,14 @@ import { ProfileService } from '@app/utils/services/profile.service';
   templateUrl: './profile-info.html',
   styleUrl: './profile-info.scss',
 })
-export class ProfileInfoComponent {
+export class ProfileInfoComponent implements OnInit {
 
   private toast = inject(ToastService);
   private profileService = inject(ProfileService);
   private store = inject(Store);
+
+  profileImageUrl = signal<string>('');
+  signatureImageUrl = signal<string>('');
 
   constructor() {
     effect(() => {
@@ -25,26 +28,20 @@ export class ProfileInfoComponent {
       if (tempProfile) {
         this.profile.set(tempProfile)
       }
-
-      this.profileService.getImageUrl('profile-image').then(url => {
-        if (url) {
-          this.profile.update(p => ({ ...p, profileImageUrl: url }));
-        }
-        return null;
-      }
-      ).catch(error => {        console.error('Failed to get profile image URL:', error);
-      });
-
-      this.profileService.getImageUrl('signature').then(url => {
-        if (url) {
-          this.profile.update(p => ({ ...p, signatureImageUrl: url }));
-        }
-        return null;
-      }
-      ).catch(error => {
-        console.error('Failed to get signature image URL:', error);
-      });
     })
+  }
+
+  ngOnInit(): void {
+    this.profileService.getImageUrl('profile-image').then(url => {
+      if (url) {
+        this.profileImageUrl.set(url);
+      }
+    });
+    this.profileService.getImageUrl('signature').then(url => {
+      if (url) {
+        this.signatureImageUrl.set(url);
+      }
+    });
   }
 
   profileFromStore = this.store.selectSignal(selectProfileInfo);
@@ -62,6 +59,7 @@ export class ProfileInfoComponent {
   });
 
   isDirty = signal(false);
+  imageChanged = signal(false);
 
   onFieldChange(field: keyof ProfileInfo, value: string): void {
     this.profile.update(p => ({ ...p, [field]: value }));
@@ -89,8 +87,14 @@ export class ProfileInfoComponent {
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      this.profile.update(p => ({ ...p, [field]: dataUrl }));
+      //this.profile.update(p => ({ ...p, [field]: dataUrl }));
+      if (field === 'profileImageUrl') {
+        this.profileImageUrl.set(dataUrl);
+      } else {
+        this.signatureImageUrl.set(dataUrl);
+      }
       this.isDirty.set(true);
+      this.imageChanged.set(true);
     };
     reader.readAsDataURL(file);
   }
@@ -98,9 +102,19 @@ export class ProfileInfoComponent {
   saveChanges(): void {
     if (!this.isDirty())
       return
+
+    if(this.imageChanged()) {
+      this.profile.update(p => ({
+        ...p,
+        profileImageUrl: this.profileImageUrl(),
+        signatureImageUrl: this.signatureImageUrl()
+      }));
+    }
+
     this.store.dispatch(updateProfileInfo({ profileInfo: this.profile() }));
     this.isDirty.set(false);
-    
+    this.imageChanged.set(false);
+
   }
 
 }
