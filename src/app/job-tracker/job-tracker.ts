@@ -1,9 +1,10 @@
 import { Component, signal, inject, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { JobsService } from '../utils/services/jobs.service';
 import { JobCountPipe } from '../utils/pipes/job-count.pipe';
-import { ToastService } from '../utils/services/toast.service';
 import { JobDetails, JobStatus } from '../utils/entities/job-details';
+import { Store } from '@ngrx/store';
+import { selectAllJobs, selectJobsLoading } from '../utils/store/jobs/jobs.selectors';
+import { addJob, updateJob, deleteJob } from '../utils/store/jobs/jobs.actions';
 
 @Component({
   selector: 'app-job-tracker',
@@ -12,10 +13,10 @@ import { JobDetails, JobStatus } from '../utils/entities/job-details';
   styleUrl: './job-tracker.scss'
 })
 export class JobTrackerComponent {
-  private jobsService = inject(JobsService);
-  private toast = inject(ToastService);
+  private store = inject(Store);
 
-  jobs = computed(() => this.jobsService.jobs());
+  jobs = this.store.selectSignal(selectAllJobs);
+  jobsLoading = this.store.selectSignal(selectJobsLoading);
   statuses: JobStatus[] = ['Applied', '1st Interview', '2nd Interview', '3rd Interview', 'Offer', 'Rejected', 'Withdrawn'];
 
   filterStatus = signal<JobStatus | 'All'>('All');
@@ -55,19 +56,16 @@ export class JobTrackerComponent {
   saveJob() {
     const editing = this.editingJob();
     if (editing) {
-      this.jobsService.updateJob(editing.id ?? '', this.form());
-      this.toast.show('Application updated!');
+      this.store.dispatch(updateJob({ id: editing.id ?? '', changes: this.form() }));
     } else {
-      this.jobsService.addJob(this.form());
-      this.toast.show('Application added!');
+      this.store.dispatch(addJob({ job: this.form() }));
     }
     this.showModal.set(false);
   }
 
-  deleteJob(id: string) {
+  deleteJobById(id: string) {
     if (confirm('Delete this application?')) {
-      this.jobsService.deleteJob(id);
-      this.toast.show('Application deleted.', 'info');
+      this.store.dispatch(deleteJob({ id }));
     }
   }
 
@@ -75,8 +73,7 @@ export class JobTrackerComponent {
   updateFormField(field: keyof Omit<JobDetails,'id'>, value: string) { this.form.update(f => ({ ...f, [field]: value })); }
 
   quickStatusChange(id: string, status: JobStatus) {
-    this.jobsService.updateJob(id, { status });
-    this.toast.show(`Status updated to "${status}"`);
+    this.store.dispatch(updateJob({ id, changes: { status } }));
   }
 
   toggleSort(field: 'appliedDate' | 'companyName' | 'status') {

@@ -4,6 +4,7 @@ import { selectAuthLoading } from '@app/utils/store/auth/auth.selectors';
 import { selectProfileLoading } from '@app/utils/store/profile/profile.selector';
 import { selectCVLoading } from '@app/utils/store/cv/cv.selectors';
 import { selectCoverLetterLoading } from '@app/utils/store/cover-letter/cover-letter.selectors';
+import { selectJobsLoading } from '@app/utils/store/jobs/jobs.selectors';
 
 interface StatusItem {
   label: string;
@@ -25,13 +26,15 @@ export class StatusBarComponent {
   private profileLoading = this.store.selectSignal(selectProfileLoading);
   private cvLoading = this.store.selectSignal(selectCVLoading);
   private coverLetterLoading = this.store.selectSignal(selectCoverLetterLoading);
+  private jobsLoading = this.store.selectSignal(selectJobsLoading);
 
   // Whether any loading is active
   isAnyLoading = computed(() =>
     this.authLoading() ||
     this.profileLoading() ||
     this.cvLoading() ||
-    this.coverLetterLoading()
+    this.coverLetterLoading() ||
+    this.jobsLoading()
   );
 
   // Individual status items for display
@@ -49,6 +52,9 @@ export class StatusBarComponent {
     }
     if (this.coverLetterLoading()) {
       items.push({ label: 'Syncing Cover Letter', icon: '✉️', active: true });
+    }
+    if (this.jobsLoading()) {
+      items.push({ label: 'Loading Jobs', icon: '💼', active: true });
     }
 
     return items;

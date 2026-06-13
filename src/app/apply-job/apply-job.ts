@@ -134,6 +134,7 @@ export class ApplyJobComponent {
       error: err => {
         console.error('Error fetching job description:', err);
         this.toast.show('Failed to load job description', 'error');
+        this.fetchLoading.set(false);
       },
       complete: () => {
         this.fetchLoading.set(false);
