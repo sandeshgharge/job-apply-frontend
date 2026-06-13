@@ -15,6 +15,7 @@ export interface SkillGroup {
 
 export interface JobDetails {
   id?: string;
+  userId?: string;
   companyName: string;
   role: string;
   companyLocation: string;

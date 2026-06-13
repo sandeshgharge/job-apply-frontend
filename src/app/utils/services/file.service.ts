@@ -14,7 +14,6 @@ import { environment } from 'src/environments/environment';
  */
 @Injectable({ providedIn: 'root' })
 export class FileService {
-  private backendApi = inject(BackendApiService);
   private http = inject(HttpClient);
 
   /**

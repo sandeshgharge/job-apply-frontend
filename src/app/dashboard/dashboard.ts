@@ -1,9 +1,15 @@
 import { Component, inject, computed } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
-import { JobsService } from '../utils/services/jobs.service';
 import { JobStatus } from '../utils/entities/job-details';
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../utils/store/auth/auth.selectors';
+import {
+  selectAllJobs,
+  selectJobsStats,
+  selectUpcomingInterviews,
+  selectRecentActivity,
+  selectJobsLoading
+} from '../utils/store/jobs/jobs.selectors';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,23 +18,16 @@ import { selectCurrentUser } from '../utils/store/auth/auth.selectors';
   styleUrl: './dashboard.scss'
 })
 export class DashboardComponent {
-  private jobsService = inject(JobsService);
   private store = inject(Store);
 
-  stats = computed(() => this.jobsService.getStats());
-  jobs = computed(() => this.jobsService.jobs());
+  stats = this.store.selectSignal(selectJobsStats);
+  jobs = this.store.selectSignal(selectAllJobs);
+  jobsLoading = this.store.selectSignal(selectJobsLoading);
 
   user=this.store.selectSignal(selectCurrentUser)();
 
-  upcomingInterviews = computed(() =>
-    this.jobsService.jobs().filter(j => j.status?.includes('Interview')).slice(0, 5)
-  );
-
-  recentActivity = computed(() =>
-    [...this.jobsService.jobs()]
-      .sort((a, b) => new Date(b.appliedDate ?? '').getTime() - new Date(a.appliedDate ?? '').getTime())
-      .slice(0, 5)
-  );
+  upcomingInterviews = this.store.selectSignal(selectUpcomingInterviews);
+  recentActivity = this.store.selectSignal(selectRecentActivity);
 
   statusColor(status: JobStatus | undefined): string {
     const map: Record<JobStatus, string> = {
@@ -43,7 +42,7 @@ export class DashboardComponent {
   }
 
   pipelineData = computed(() => {
-    const s = this.jobsService.getStats();
+    const s = this.stats();
     return [
       { label: 'Applied', count: s.total, color: '#3b82f6' },
       { label: 'Interviews', count: s.interviews, color: '#f59e0b' },

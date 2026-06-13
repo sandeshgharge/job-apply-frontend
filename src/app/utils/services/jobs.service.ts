@@ -4,28 +4,24 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { JobDetails } from '@app/utils/entities/job-details';
 
 import { BackendApiService } from './backend-service/backend-api-services';
-import { CoverLetterDocInfo } from '../entities/cover-letter';
 import { FileService } from './file.service';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { selectUserID } from '../store/auth/auth.selectors';
 import { Store } from '@ngrx/store';
-
-const DEMO_JOBS: JobDetails[] = [
-  { id: '1', companyName: 'SAP SE', role: 'Frontend Developer', companyLocation: 'Walldorf, DE', appliedDate: '2025-04-01', status: '1st Interview', salary: '75,000 €', contactName: 'Maria Schmidt', jobUrl: 'www.google.com', jobDescription: '' },
-  { id: '2', companyName: 'Siemens AG', role: 'Angular Engineer', companyLocation: 'München, DE', appliedDate: '2025-04-05', status: 'Applied', salary: '70,000 €', jobUrl: '', jobDescription: '' },
-  { id: '3', companyName: 'Bosch GmbH', role: 'Software Engineer', companyLocation: 'Stuttgart, DE', appliedDate: '2025-03-22', status: 'Rejected', contactName: 'Hans Weber', jobUrl: '', jobDescription: '' },
-  { id: '4', companyName: 'BASF SE', role: 'Full Stack Developer', companyLocation: 'Ludwigshafen, DE', appliedDate: '2025-04-10', status: 'Applied', salary: '72,000 €', jobUrl: '', jobDescription: '' }
-];
+import { ToastService } from './toast.service';
+import { CoverLetterDocInfo } from '../entities/cover-letter';
+import { CvData } from '../entities/cv';
+import { selectAllJobs } from '../store/jobs/jobs.selectors';
+import { addJob } from '../store/jobs/jobs.actions';
 
 @Injectable({ providedIn: 'root' })
 export class JobsService {
   private storage = inject(StorageService);
   private backendApi = inject(BackendApiService);
   private store = inject(Store);
+  private toastService = inject(ToastService);
 
-  private fileService = inject(FileService);
-
-  jobs = signal<JobDetails[]>(this.storage.get<JobDetails[]>('jad_jobs', DEMO_JOBS));
+  jobs = this.store.selectSignal(selectAllJobs);
   userid = this.store.selectSignal(selectUserID);
 
   private jobDetails = new BehaviorSubject<JobDetails | null>(null);
@@ -34,6 +30,7 @@ export class JobsService {
   setDefaultJobDetails() {
     this.jobDetails.next({
       id: '',
+      userId: this.userid(),
       companyName: '',
       role: '',
       companyLocation: '',
@@ -64,7 +61,6 @@ export class JobsService {
   }
 
   constructor() {
-    effect(() => { this.storage.set('jad_jobs', this.jobs()); });
     this.setDefaultJobDetails();
   }
 
@@ -82,18 +78,43 @@ export class JobsService {
     return this.backendApi.post<JobDetails>('extract-job-data', { job_description: jobDescription });
   }
 
-  addJob(job: Omit<JobDetails, 'id'>): JobDetails {
-    const newJob = { ...job, id: Date.now().toString() };
-    this.jobs.update(jobs => [newJob, ...jobs]);
-    return newJob;
+  // ── Backend CRUD methods (used by NgRx effects) ──────────────
+
+  /**
+   * Fetch all jobs for the current user from the backend.
+   * TODO: Update URL when backend is ready.
+   */
+  fetchJobs(): Observable<JobDetails[]> {
+    return this.backendApi.get<JobDetails[]>(`jobs/user/${this.userid()}`);
   }
 
-  updateJob(id: string, updates: Partial<JobDetails>): void {
-    this.jobs.update(jobs => jobs.map(j => j.id === id ? { ...j, ...updates } : j));
+  /**
+   * Create a new job on the backend.
+   * TODO: Update URL when backend is ready.
+   */
+  createJob(job: JobDetails): Observable<JobDetails> {
+    return this.backendApi.post<JobDetails>('jobs/upsert', {
+      ...job,
+      userId: this.userid()
+    });
   }
 
-  deleteJob(id: string): void {
-    this.jobs.update(jobs => jobs.filter(j => j.id !== id));
+  /**
+   * Update an existing job on the backend.
+   * TODO: Update URL when backend is ready.
+   */
+  updateJob(id: string, changes: Partial<JobDetails>): Observable<JobDetails> {
+    return this.backendApi.put<JobDetails>(`jobs/${id}`, changes).pipe(
+      map((response: any) => ({ ...changes, id } as JobDetails))
+    );
+  }
+
+  /**
+   * Delete a job on the backend.
+   * TODO: Update URL when backend is ready.
+   */
+  deleteJob(id: string) {
+    return this.backendApi.delete<void>(`jobs/${id}`);
   }
 
   fetchPreview(type: 'cv' | 'cl', data: any): Observable<any> {
@@ -120,79 +141,28 @@ export class JobsService {
     };
   }
 
-  async applyAndSaveJob(cvHtml: string, clHtml: string): Promise<void> {
+  applyAndSaveJob(cvData: CvData, coverLetterData: CoverLetterDocInfo): Observable<any> {
     const jobDetails = this.jobDetails.value;
     if (!jobDetails) throw new Error('No job details found.');
 
-    // Use existing ID or generate a new UUID
-    const jobId = jobDetails.id || crypto.randomUUID();
-
-    let cvPdfUrl = jobDetails.cvPdfUrl || '';
-    let clPdfUrl = jobDetails.coverLetterPdfUrl || '';
-
-    // Upload CV PDF if HTML is provided
-    if (cvHtml) {
-      const cvBlob = await firstValueFrom(this.downloadPDF('cv', { html: cvHtml }));
-      const cvDataUrl = await this.blobToDataUrl(cvBlob);
-      const fileName = `${this.userid()}/${jobId}/cv_${Date.now()}.pdf`;
-      const uploadedUrl = await this.fileService.uploadPDF('application-documents', fileName, cvDataUrl);
-      if (!uploadedUrl) throw new Error('CV PDF upload failed');
-      cvPdfUrl = uploadedUrl;
+    let hasMissingFields = false;
+    if (!jobDetails.companyName?.trim()) {
+      this.toastService.show('Company name is required.', 'error');
+      hasMissingFields = true;
+    }
+    if (!jobDetails.companyLocation?.trim()) {
+      this.toastService.show('Company location is required.', 'error');
+      hasMissingFields = true;
+    }
+    if (!jobDetails.role?.trim()) {
+      this.toastService.show('Role is required.', 'error');
+      hasMissingFields = true;
+    }
+    if (hasMissingFields) {
+      throw new Error('Missing required fields. Please fill in all required information before applying.');
     }
 
-    // Upload Cover Letter PDF if HTML is provided
-    if (clHtml) {
-      const clBlob = await firstValueFrom(this.downloadPDF('cl', { html: clHtml }));
-      const clDataUrl = await this.blobToDataUrl(clBlob);
-      const fileName = `${this.userid()}/${jobId}/cover_letter_${Date.now()}.pdf`;
-      const uploadedUrl = await this.fileService.uploadPDF('application-documents', fileName, clDataUrl);
-      if (!uploadedUrl) throw new Error('Cover Letter PDF upload failed');
-      clPdfUrl = uploadedUrl;
-    }
-
-    // Prepare job record for database
-    const jobToSave = {
-      id: jobId,
-      user_id: this.userid(),
-      company_name: jobDetails.companyName,
-      role: jobDetails.role,
-      company_location: jobDetails.companyLocation,
-      applied_date: jobDetails.appliedDate,
-      status: 'Applied',
-      salary: jobDetails.salary,
-      contact_name: jobDetails.contactName,
-      job_url: jobDetails.jobUrl,
-      notes: jobDetails.notes,
-      job_description: jobDetails.jobDescription,
-      cover_letter_pdf_url: clPdfUrl,
-      cv_pdf_url: cvPdfUrl,
-    };
-
-    await firstValueFrom(
-      this.backendApi.post<any>('jobs/upsert', jobToSave)
-    );
-
-    // Update the local active job details
-    this.jobDetails.next({
-      ...jobDetails,
-      id: jobId,
-      status: 'Applied',
-      cvPdfUrl,
-      coverLetterPdfUrl: clPdfUrl
-    });
-
-    // Update local jobs list
-    this.jobs.update(jobs => {
-      const existingIndex = jobs.findIndex(j => j.id === jobId);
-      const updatedJob = { ...this.jobDetails.value! };
-      if (existingIndex >= 0) {
-        const newJobs = [...jobs];
-        newJobs[existingIndex] = updatedJob;
-        return newJobs;
-      } else {
-        return [updatedJob, ...jobs];
-      }
-    });
+    return this.backendApi.post<any>('jobs', { jd: { ...jobDetails, user_id: this.userid()}, cv_data: cvData, cover_letter_data: coverLetterData } );
   }
 
   /**

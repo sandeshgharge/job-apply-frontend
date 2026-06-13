@@ -134,15 +134,8 @@ export class ApplyPreviewComponent {
   async applyAndSave() {
     this.loading.set(true);
     try {
-      // Ensure we have the HTML before saving
-      if (!this.cvHtml()) {
-        await this.fetchPreview('cv');
-      }
-      if (!this.clHtml()) {
-        await this.fetchPreview('cl');
-      }
 
-      await this.jobsService.applyAndSaveJob(this.cvHtml(), this.clHtml());
+      await this.jobsService.applyAndSaveJob(this.cvInfo().cvData, this.coverLetterData);
       this.toast.show('Application successfully saved to database!');
     } catch (error: any) {
       console.error('Failed to save application:', error);

@@ -5,7 +5,6 @@
 - NgRx for state management (Store, Effects, Actions, Selectors)
 - SCSS with component-scoped styles — NO Angular Material, NO Tailwind
 - Angular Signals preferred over RxJS Observables where possible
-- jsPDF for PDF generation
 
 ## Folder Structure
 src/app/
