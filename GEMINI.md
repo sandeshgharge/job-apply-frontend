@@ -7,10 +7,6 @@ JobApply is a personal job application assistant built with Angular 21, designed
 - **State Management:**
     - **NgRx:** Used primarily for Authentication state (Store, Effects, Actions, Selectors).
     - **Angular Signals:** Used for feature state (Jobs, CV, Toast notifications).
-- **Backend/Persistence:**
-    - **Supabase:** Used for user authentication.
-    - **localStorage:** Used for job data and CV persistence via `StorageService`.
-- **AI Integration:** Uses Anthropic's Claude API (proxied through a backend) for intelligent tasks.
 - **Styling:** Component-scoped SCSS with CSS custom properties for theming.
 
 ## Architecture & Conventions

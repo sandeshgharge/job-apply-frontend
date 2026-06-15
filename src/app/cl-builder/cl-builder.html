@@ -12,6 +12,9 @@
           <option [value]="v.version">{{ v.title }}</option>
         }
       </select>
+      @if (clInfoList().length > 0) {
+        <button class="btn-edit-title" (click)="openRenameTitleDialog()" title="Rename selected version">✎</button>
+      }
       <button class="btn-action" (click)="saveNow()">💾 Save</button>
       <button class="btn-action" (click)="openSaveAsDialog()">💾 SaveAs</button>
       <button class="btn-outline" (click)="previewMode.set(!previewMode())">
@@ -180,17 +183,18 @@
       </div>
     </div>
   }
-  @if (showSaveAsDialog()) {
-    <div class="modal-overlay" (click)="closeSaveAsDialog()">
+  <!-- Save As / Rename Title Dialog -->
+  @if (titleDialogMode()) {
+    <div class="modal-overlay" (click)="closeTitleDialog()">
       <div class="modal-dialog" (click)="$event.stopPropagation()">
-        <h3>Save Cover Letter As</h3>
-        <p class="modal-hint">Enter a title for the new cover letter version</p>
+        <h3>{{ titleDialogMode() === 'saveAs' ? 'Save Cover Letter As' : 'Rename Cover Letter' }}</h3>
+        <p class="modal-hint">{{ titleDialogMode() === 'saveAs' ? 'Enter a title for the new cover letter version' : 'Enter a new title for this cover letter version' }}</p>
         <div class="modal-input-group">
-          <input type="text" class="modal-input" [ngModel]="coverLetterTitle()" (ngModelChange)="updateTitle($event)" placeholder="e.g. Cover Letter - Senior Developer" autofocus />
+          <input type="text" class="modal-input" [(ngModel)]="dialogTitle" placeholder="e.g. Cover Letter - Senior Developer" autofocus />
         </div>
         <div class="modal-actions">
-          <button class="btn-secondary" (click)="closeSaveAsDialog()">Cancel</button>
-          <button class="btn-primary" (click)="confirmSaveAs()">Save As</button>
+          <button class="btn-secondary" (click)="closeTitleDialog()">Cancel</button>
+          <button class="btn-primary" (click)="confirmTitleDialog()">{{ titleDialogMode() === 'saveAs' ? 'Save As' : 'Rename' }}</button>
         </div>
       </div>
     </div>

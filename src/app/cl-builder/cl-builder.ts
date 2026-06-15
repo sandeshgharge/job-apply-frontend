@@ -105,7 +105,10 @@ export class CoverLetterComponent implements OnInit {
 
   // ── Versioning ────────────────────────────────────────────────
   coverLetterTitle = signal('Cover Letter');
-  showSaveAsDialog = signal(false);
+
+  // Save As / Rename dialog (unified)
+  titleDialogMode = signal<'saveAs' | 'rename' | null>(null);
+  dialogTitle = '';
 
 
 
@@ -118,22 +121,37 @@ export class CoverLetterComponent implements OnInit {
   }
 
   openSaveAsDialog() {
-    this.showSaveAsDialog.set(true);
+    this.dialogTitle = this.coverLetterInfo().title;
+    this.titleDialogMode.set('saveAs');
   }
 
-  closeSaveAsDialog() {
-    this.showSaveAsDialog.set(false);
+  openRenameTitleDialog() {
+    this.dialogTitle = this.coverLetterInfo().title;
+    this.titleDialogMode.set('rename');
   }
 
-  confirmSaveAs() {
-    const title = this.coverLetterTitle();
+  closeTitleDialog() {
+    this.titleDialogMode.set(null);
+  }
+
+  confirmTitleDialog() {
+    const title = this.dialogTitle.trim();
     if (!title) {
       this.toast.show('Title is required', 'error');
       return;
     }
-    this.closeSaveAsDialog();
-    console.log(this.coverLetterInfo())
-    this.store.dispatch(saveNewCoverLetterInfo({ coverLetterInfo: this.coverLetterInfo() }));
+
+    this.coverLetterTitle.set(title);
+    this.coverLetterInfo.update(c => ({ ...c, title }));
+
+    if (this.titleDialogMode() === 'saveAs') {
+      this.store.dispatch(saveNewCoverLetterInfo({ coverLetterInfo: this.coverLetterInfo() }));
+    } else {
+      this.store.dispatch(updateCoverLetterInfo({ coverLetterInfo: this.coverLetterInfo() }));
+      this.toast.show('Title updated!');
+    }
+
+    this.closeTitleDialog();
   }
 
   saveNew() {
@@ -276,7 +294,7 @@ export class CoverLetterComponent implements OnInit {
       const userMessage = this.buildSectionPrompt(section);
       console.log("FInal prompt: ", userMessage)
 
-      const data = await firstValueFrom (this.aiService.generate(userMessage))
+      const data: any = await firstValueFrom(this.aiService.generate(userMessage))
       console.log(data.output)
 
       const text = typeof data.output === 'string' ? data.output : data.output.toString();
@@ -333,11 +351,6 @@ export class CoverLetterComponent implements OnInit {
       const apiKey = pInfo.agentApiKey;
       const modelName = pInfo.modelName;
 
-      if (!apiUrl || !apiKey || !modelName) {
-        this.toast.show('AI API URL, API Key, or Model Name not configured in profile.', 'error');
-        return;
-      }
-
       const systemPrompt = `You are an expert career coach. Generate cover letter sections as a JSON array only. No markdown, no preamble.`;
       const userMessage = [
         common ? `Global guidance:\n${common}\n` : '',
@@ -356,7 +369,7 @@ export class CoverLetterComponent implements OnInit {
         messages: [{ role: 'user', content: userMessage }]
       });
 
-      const data = await firstValueFrom(this.aiService.generate(promptBody))
+      const data: any = await firstValueFrom(this.aiService.generate(promptBody))
 
       const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
       const parsed: { title: string; content: string }[] = JSON.parse(
