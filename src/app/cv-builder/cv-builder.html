@@ -20,6 +20,9 @@
           <option [value]="v.version">{{ v.title }}</option>
         }
       </select>
+      @if (cvInfoList().length > 0) {
+        <button class="btn-edit-title" (click)="openRenameTitleDialog()" title="Rename selected version">✎</button>
+      }
       <button class="btn-action" (click)="saveNow()">💾 Save</button>
       <button class="btn-action" (click)="openSaveAsDialog()">💾 SaveAs</button>
       <!--<button class="btn-action" (click)="exportJson()">↓ Export</button>-->
@@ -426,18 +429,18 @@
     Last saved: {{ '' | date:'dd MMM yyyy, HH:mm' }} · v{{ cv().version }} · title: {{ cv().title }}
   </div>
 
-  <!-- Save As Dialog -->
-  @if (showSaveAsDialog()) {
-    <div class="modal-overlay" (click)="closeSaveAsDialog()">
+  <!-- Save As / Rename Title Dialog -->
+  @if (titleDialogMode()) {
+    <div class="modal-overlay" (click)="closeTitleDialog()">
       <div class="modal-dialog" (click)="$event.stopPropagation()">
-        <h3>Save CV As</h3>
-        <p class="modal-hint">Enter a title for the new CV version</p>
+        <h3>{{ titleDialogMode() === 'saveAs' ? 'Save CV As' : 'Rename CV' }}</h3>
+        <p class="modal-hint">{{ titleDialogMode() === 'saveAs' ? 'Enter a title for the new CV version' : 'Enter a new title for this CV version' }}</p>
         <div class="modal-input-group">
-          <input type="text" class="modal-input" [ngModel]="cv().title" (ngModelChange)="updateTitle('title', $event)" placeholder="e.g. CV - Senior Developer" autofocus />
+          <input type="text" class="modal-input" [(ngModel)]="dialogTitle" placeholder="e.g. CV - Senior Developer" autofocus />
         </div>
         <div class="modal-actions">
-          <button class="btn-secondary" (click)="closeSaveAsDialog()">Cancel</button>
-          <button class="btn-primary" (click)="confirmSaveAs()">Save As</button>
+          <button class="btn-secondary" (click)="closeTitleDialog()">Cancel</button>
+          <button class="btn-primary" (click)="confirmTitleDialog()">{{ titleDialogMode() === 'saveAs' ? 'Save As' : 'Rename' }}</button>
         </div>
       </div>
     </div>

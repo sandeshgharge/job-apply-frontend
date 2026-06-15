@@ -22,7 +22,6 @@ A personal job application assistant built for the job market where cover letter
 - **Styling** — Component-scoped SCSS, CSS custom properties for theming
 - **AI** — Anthropic Claude API (`claude-sonnet-4-20250514`)
 - **PDF** — jsPDF
-- **Persistence** — localStorage via `StorageService`
 
 ---
 

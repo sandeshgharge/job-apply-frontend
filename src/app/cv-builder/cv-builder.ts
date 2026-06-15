@@ -78,8 +78,9 @@ export class CvBuilderComponent implements OnInit {
   // Global edit mode — shows checkboxes and edit controls
   editMode = signal(false);
 
-  // Save As dialog
-  showSaveAsDialog = signal(false);
+  // Save As / Rename dialog (unified)
+  titleDialogMode = signal<'saveAs' | 'rename' | null>(null);
+  dialogTitle = '';
   saveAsTitle = '';
 
   // Drag state
@@ -123,21 +124,36 @@ export class CvBuilderComponent implements OnInit {
   }
 
   openSaveAsDialog() {
-    this.showSaveAsDialog.set(true);
+    this.dialogTitle = this.cv().title;
+    this.titleDialogMode.set('saveAs');
   }
 
-  closeSaveAsDialog() {
-    this.showSaveAsDialog.set(false);
+  openRenameTitleDialog() {
+    this.dialogTitle = this.cv().title;
+    this.titleDialogMode.set('rename');
   }
 
-  confirmSaveAs() {
-    const title = this.cv().title;
+  closeTitleDialog() {
+    this.titleDialogMode.set(null);
+  }
+
+  confirmTitleDialog() {
+    const title = this.dialogTitle.trim();
     if (!title) {
       this.toast.show('Title is required', 'error');
       return;
     }
-    // Get the current CV to save as new version
-    this.store.dispatch(saveNewCVInfo({ cvInfo: this.cv() }))
+
+    this.cv.update(c => ({ ...c, title }));
+
+    if (this.titleDialogMode() === 'saveAs') {
+      this.store.dispatch(saveNewCVInfo({ cvInfo: this.cv() }));
+    } else {
+      this.store.dispatch(updateCVInfo({ cvInfo: this.cv() }));
+      this.toast.show('Title updated!');
+    }
+
+    this.closeTitleDialog();
   }
 
   saveNew() {
