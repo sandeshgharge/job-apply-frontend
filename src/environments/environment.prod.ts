@@ -1,7 +1,6 @@
 export const environment = {
   production: true,
-  // Add your production environment variables here
-  // Example:
-  // apiUrl: 'https://api.production.com',
-  // appName: 'Job Apply App'
+  backendAiApiURL: 'https://job-apply-backend-ai.onrender.com',
+  PROFILE_ASSETS_BUCKET: 'profile-assets',
+  JOB_APPLICATION_BUCKET: 'apply-docs'
 };

@@ -292,7 +292,6 @@ export class CoverLetterComponent implements OnInit {
       }
 
       const userMessage = this.buildSectionPrompt(section);
-      console.log("FInal prompt: ", userMessage)
 
       const data: any = await firstValueFrom(this.aiService.generate(userMessage))
       console.log(data.output)
