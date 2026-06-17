@@ -113,6 +113,15 @@ export class CvBuilderComponent implements OnInit {
     { id: 'custom', label: 'Custom Sections', icon: '＋', include: false, collapsed: true },
   ]);
 
+  // Computed sections with dynamic include flags based on data availability
+  visibleSections = computed(() => {
+    const sections = this.sections();
+    return sections.map(sec => ({
+      ...sec,
+      include: this.sectionHasData(sec.id)
+    }));
+  });
+
   proficiencyLevels = PROFICIENCY_LEVELS;
 
   saveNow() {

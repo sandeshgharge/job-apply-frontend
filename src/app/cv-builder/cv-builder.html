@@ -38,7 +38,7 @@
 
   <!-- ── Sections ─────────────────────────────────────────────── -->
   <div class="sections-list">
-    @for (sec of sections(); track sec.id) {
+    @for (sec of visibleSections(); track sec.id) {
       <div class="section-wrapper"
         [class.drag-over]="dragOverId() === sec.id"
         [class.section-excluded]="!sec.include"
