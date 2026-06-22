@@ -28,11 +28,12 @@ export class AuthEffects {
                         const id = response.user?.id || '';
                         return of(loginSuccess({
                             user: { email: userEmail, name, id },
-                            token: response.access_token || ''
+                            token: response.access_token || '',
+                            redirect: true
                         }));
                     }),
                     catchError(error => {
-                        return of(loginFailure({ error: error?.message || "Login failed" }));
+                        return of(loginFailure({ error: error?.detail || "Login failed" }));
                     })
                 );
             })
@@ -42,11 +43,13 @@ export class AuthEffects {
     loginSuccess$ = createEffect(() =>
         this.actions$.pipe(
             ofType(loginSuccess),
-            tap(({ user, token }) => {
+            tap(({ user, token, redirect }) => {
                 // Here you can perform side effects like navigation or showing a success message
                 sessionStorage.setItem('user', JSON.stringify(user));
                 sessionStorage.setItem('access_token', token);
-                this.router.navigate(['/home']);                
+                if (redirect !== false) {
+                    this.router.navigate(['/home']);
+                }
             })
 
         ), { dispatch: false }
@@ -96,7 +99,7 @@ export class AuthEffects {
                     if (userStr && token) {
                         const user = JSON.parse(userStr);
                         console.log("Auto-login successful from sessionStorage");
-                        return of(loginSuccess({ user, token }));
+                        return of(loginSuccess({ user, token, redirect: false }));
                     } else {
                         console.log("No session found in sessionStorage for auto-login");
                         return of(logout());
@@ -119,7 +122,7 @@ export class AuthEffects {
                 }),
                 catchError(error => {
                     console.error("Password change failed with error:", error);
-                    this.router.navigate(['/login']);
+                    //this.router.navigate(['/login']);
                     return of(loginFailure({ error }));
                 })
             ))

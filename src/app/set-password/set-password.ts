@@ -1,9 +1,9 @@
 import { Component, signal, inject, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { ToastService } from '@app/utils/services/toast.service';
 import { changePassword } from '@app/utils/store/auth/auth.actions';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import { Router } from '@angular/router';
 
 export interface PasswordForm {
   newPassword:     string;
@@ -24,8 +24,8 @@ export interface PasswordStrength {
 })
 export class SetPassword {
   private store = inject(Store);
-  private toast = inject(ToastService);
   public translate = inject(TranslationService);
+  private router = inject(Router);
 
   form = signal<PasswordForm>({
     newPassword:     '',
@@ -128,5 +128,9 @@ export class SetPassword {
   // Show error only after first submit attempt
   showError(field: string): string | null {
     return this.submitted() ? (this.errors()[field] ?? null) : null;
+  }
+
+  cancel() {
+    this.router.navigate(['/home'], { queryParams: { tab: 'profile' } });
   }
 }

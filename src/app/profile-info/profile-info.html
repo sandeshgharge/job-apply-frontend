@@ -7,6 +7,9 @@
       <p class="subtitle">{{ translate.t().profile.subtitle }}</p>
     </div>
     <div class="header-actions">
+      <button class="btn-change-password" (click)="openSetPassword()">
+        🔑 {{ translate.t().setPassword.title }}
+      </button>
       <button class="btn-save" (click)="saveChanges()" [disabled]="!isDirty()">
         {{ translate.t().profile.saveBtn }}
       </button>

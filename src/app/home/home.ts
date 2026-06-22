@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed } from '@angular/core';
+import { Component, signal, inject, computed, OnInit } from '@angular/core';
 import { DashboardComponent } from '@app/dashboard/dashboard';
 import { ApplyJobComponent } from '@app/apply-job/apply-job';
 import { JobTrackerComponent } from '@app/job-tracker/job-tracker';
@@ -10,6 +10,7 @@ import { StatusBarComponent } from '@app/status-bar/status-bar';
 import { selectCurrentUser } from '@app/utils/store/auth/auth.selectors';
 import { ThemeService } from '@app/utils/services/theme.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import { ActivatedRoute } from '@angular/router';
 
 type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 
@@ -19,12 +20,22 @@ type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   private store = inject(Store);
   public themeService = inject(ThemeService);
   public translate = inject(TranslationService);
+  private route = inject(ActivatedRoute);
 
   activeTab = signal<TabId>('dashboard');
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      const tab = params['tab'] as TabId;
+      if (tab && ['dashboard', 'apply-job', 'job-tracker', 'profile'].includes(tab)) {
+        this.activeTab.set(tab);
+      }
+    });
+  }
 
   tabs = computed<{ id: TabId; label: string; icon: string }[]>(() => [
     { id: 'dashboard',  label: this.translate.t().navigation.home,       icon: '⊞' },

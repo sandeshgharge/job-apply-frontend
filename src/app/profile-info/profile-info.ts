@@ -7,6 +7,7 @@ import { selectProfileInfo } from '../utils/store/profile/profile.selector';
 import { updateProfileInfo } from '../utils/store/profile/profile.actions';
 import { ProfileService } from '@app/utils/services/profile.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile-info',
@@ -20,6 +21,7 @@ export class ProfileInfoComponent implements OnInit {
   private profileService = inject(ProfileService);
   private store = inject(Store);
   public translate = inject(TranslationService);
+  private router = inject(Router);
 
   profileImageUrl = signal<string>('');
   signatureImageUrl = signal<string>('');
@@ -117,6 +119,10 @@ export class ProfileInfoComponent implements OnInit {
     this.isDirty.set(false);
     this.imageChanged.set(false);
 
+  }
+
+  openSetPassword(): void {
+    this.router.navigate(['/set-password']);
   }
 
 }
