@@ -20,6 +20,13 @@
     </nav>
 
     <div class="topbar-right">
+      <button class="theme-btn" (click)="themeService.toggleTheme()" aria-label="Toggle theme">
+        @if (themeService.theme() === 'light') {
+          <span class="theme-icon">🌙</span>
+        } @else {
+          <span class="theme-icon">☀️</span>
+        }
+      </button>
       <span class="user-name">{{ user?.name }}</span>
       <button class="logout-btn" (click)="logout()">Sign out</button>
     </div>

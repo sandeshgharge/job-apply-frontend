@@ -8,6 +8,7 @@ import { logout } from '@app/utils/store/auth/auth.actions';
 import { ProfileInfoComponent } from "@app/profile-info/profile-info";
 import { StatusBarComponent } from '@app/status-bar/status-bar';
 import { selectCurrentUser } from '@app/utils/store/auth/auth.selectors';
+import { ThemeService } from '@app/utils/services/theme.service';
 
 type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 
@@ -19,6 +20,8 @@ type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 })
 export class HomeComponent {
   private store = inject(Store);
+  public themeService = inject(ThemeService);
+
 
   activeTab = signal<TabId>('dashboard');
 

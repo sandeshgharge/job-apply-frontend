@@ -3,24 +3,25 @@
   width: 95%;
   margin: 0 auto;
   padding: 20px;
+  color: var(--text-primary);
 
   .preview-header {
     text-align: center;
     margin-bottom: 30px;
 
     h2 {
-      color: #111827;
+      color: var(--text-primary);
       margin-bottom: 10px;
     }
 
     .subtitle {
-      color: #6b7280;
+      color: var(--text-light);
       font-size: 0.9rem;
       margin-bottom: 20px;
     }
 
     .btn-generate {
-      background-color: #1a56db;
+      background-color: var(--primary);
       color: white;
       border: none;
       padding: 10px 20px;
@@ -30,11 +31,11 @@
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: #1e40af;
+        background-color: var(--primary-hover);
       }
 
       &:disabled {
-        background-color: #9ca3af;
+        background-color: var(--text-muted);
         cursor: not-allowed;
       }
 
@@ -42,7 +43,7 @@
         display: inline-block;
         width: 16px;
         height: 16px;
-        border: 2px solid #f3f4f6;
+        border: 2px solid var(--bg-hover);
         border-top: 2px solid white;
         border-radius: 50%;
         animation: spin 1s linear infinite;
@@ -55,14 +56,14 @@
   .empty-state {
     text-align: center;
     padding: 40px 20px;
-    color: #6b7280;
+    color: var(--text-light);
 
     .spinner {
       display: inline-block;
       width: 20px;
       height: 20px;
-      border: 2px solid #e5e7eb;
-      border-top: 2px solid #1a56db;
+      border: 2px solid var(--border-color);
+      border-top: 2px solid var(--primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin-bottom: 15px;
@@ -77,22 +78,23 @@
   }
 
   .preview-panel {
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
+    background: var(--bg-card);
 
     .preview-header {
-      background-color: #f9fafb;
+      background-color: var(--bg-subtle);
       padding: 15px 20px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
 
       h3 {
         margin: 0;
-        color: #111827;
+        color: var(--text-primary);
         font-size: 1.1rem;
       }
 
@@ -110,15 +112,15 @@
         }
 
         .btn-preview {
-          background-color: #e0e7ff;
-          color: #1a56db;
-          &:hover { background-color: #c7d2fe; }
+          background-color: var(--primary-light);
+          color: var(--primary);
+          &:hover { background-color: var(--primary-light-hover); }
         }
 
         .btn-download {
-          background-color: #6b7280;
+          background-color: var(--text-secondary);
           color: white;
-          &:hover { background-color: #4b5563; }
+          &:hover { background-color: var(--text-primary); }
         }
       }
     }
@@ -132,14 +134,11 @@
         height: 800px;
         border: none;
         border-radius: 8px;
-        box-shadow: 0 0 0 1px #e5e7eb, 0 2px 8px rgba(0, 0, 0, 0.08);
-        background: #fff;
+        box-shadow: 0 0 0 1px var(--border-color), var(--shadow);
+        background: #fff; /* Keep backdrop white for the PDF print preview layout structure */
       }
     }
   }
-
-
-
 }
 
 @keyframes spin {
