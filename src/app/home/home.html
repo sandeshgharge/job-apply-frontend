@@ -11,7 +11,7 @@
     </div>
 
     <nav class="tab-nav">
-      @for (tab of tabs; track tab.id) {
+      @for (tab of tabs(); track tab.id) {
         <button class="tab-btn" [class.active]="activeTab() === tab.id" (click)="setTab(tab.id)">
           <span class="tab-icon">{{ tab.icon }}</span>
           {{ tab.label }}
@@ -20,6 +20,12 @@
     </nav>
 
     <div class="topbar-right">
+      <select [value]="translate.currentLang()" (change)="translate.loadLanguage($any($event.target).value)" class="lang-select">
+        @for (lang of translate.languages(); track lang.code) {
+          <option [value]="lang.code">{{ lang.name }}</option>
+        }
+      </select>
+
       <button class="theme-btn" (click)="themeService.toggleTheme()" aria-label="Toggle theme">
         @if (themeService.theme() === 'light') {
           <span class="theme-icon">🌙</span>
@@ -28,7 +34,7 @@
         }
       </button>
       <span class="user-name">{{ user?.name }}</span>
-      <button class="logout-btn" (click)="logout()">Sign out</button>
+      <button class="logout-btn" (click)="logout()">{{ translate.t().common.signOut }}</button>
     </div>
   </header>
 

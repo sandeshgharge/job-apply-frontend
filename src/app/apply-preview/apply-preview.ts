@@ -9,6 +9,7 @@ import { Store } from '@ngrx/store';
 import { selectProfileInfo } from '@app/utils/store/profile/profile.selector';
 import { CvService } from '@app/utils/services/cv.service';
 import { addJob } from '@app/utils/store/jobs/jobs.actions';
+import { TranslationService } from '@app/utils/services/translation/translation.service';
 
 @Component({
   selector: 'app-pdf-preview',
@@ -23,6 +24,7 @@ export class ApplyPreviewComponent {
   private sanitizer = inject(DomSanitizer);
   private clService = inject(CLService);
   private cvService = inject(CvService);
+  public translate = inject(TranslationService);
   private cvPreviewUrl = signal<SafeResourceUrl | null>(null);
   private clPreviewUrl = signal<SafeResourceUrl | null>(null);
 
@@ -95,8 +97,8 @@ export class ApplyPreviewComponent {
       }
     } catch (error) {
       console.error(`Error fetching ${type} preview:`, error);
-      this.toast.show(`Failed to fetch ${type === 'cv' ? 'CV' : 'Cover Letter'} preview`, 'error');
-      this.toast.show(`Please check for missing fields.`, 'error');
+      this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastFailPreviewCv : this.translate.t().applyPreview.toastFailPreviewCl, 'error');
+      this.toast.show(this.translate.t().applyPreview.toastMissingFields, 'error');
     } finally {
       this.loading.set(false);
     }
@@ -123,10 +125,10 @@ export class ApplyPreviewComponent {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      this.toast.show(`${type === 'cv' ? 'CV' : 'Cover Letter'} PDF downloaded!`);
+      this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastDownloadedCv : this.translate.t().applyPreview.toastDownloadedCl);
     } catch (error) {
       console.error(`Error downloading ${type} PDF:`, error);
-      this.toast.show(`Failed to download ${type === 'cv' ? 'CV' : 'Cover Letter'} PDF`, 'error');
+      this.toast.show(type === 'cv' ? this.translate.t().applyPreview.toastFailDownloadCv : this.translate.t().applyPreview.toastFailDownloadCl, 'error');
     } finally {
       this.loading.set(false);
     }

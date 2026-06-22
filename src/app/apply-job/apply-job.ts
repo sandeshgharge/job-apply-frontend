@@ -1,4 +1,4 @@
-import { Component, signal, inject, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, signal, inject, ViewChild, AfterViewInit, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CvBuilderComponent } from '@app/cv-builder/cv-builder';
 import { ToastService } from '@app/utils/services/toast.service';
@@ -10,6 +10,7 @@ import { ApplyPreviewComponent } from '../apply-preview/apply-preview';
 import { CoverLetterDocInfo, defaultcl } from '@app/utils/entities/cover-letter';
 import { CvData } from '@app/utils/entities/cv';
 import { applyJob } from '@app/utils/store/jobs/jobs.actions';
+import { TranslationService } from '@app/utils/services/translation/translation.service';
 
 const SKILL_CATEGORIES = [
   'Frontend', 'Backend', 'DevOps'
@@ -33,6 +34,7 @@ export class ApplyJobComponent {
   private toast = inject(ToastService);
   private jobsService = inject(JobsService);
   private store = inject(Store);
+  public translate = inject(TranslationService);
 
   // ViewChild references to access child component data
   @ViewChild('cvBuilder') cvBuilder!: CvBuilderComponent;
@@ -59,12 +61,12 @@ export class ApplyJobComponent {
 
   activeTab = signal<TabId>('Fetch Job');
 
-  tabs: { id: TabId; label: string; icon: string }[] = [
-    { id: 'Fetch Job', label: 'Fetch Job', icon: '📥' },
-    { id: 'Cover Letter', label: 'Cover Letter', icon: '📝' },
-    { id: 'CV', label: 'CV', icon: '📄' },
-    { id: 'PDF Preview', label: 'Preview', icon: '👁️' },
-  ];
+  tabs = computed<{ id: TabId; label: string; icon: string }[]>(() => [
+    { id: 'Fetch Job', label: this.translate.t().applyWizard.stepFetch, icon: '📥' },
+    { id: 'Cover Letter', label: this.translate.t().applyWizard.stepCl, icon: '📝' },
+    { id: 'CV', label: this.translate.t().applyWizard.stepCv, icon: '📄' },
+    { id: 'PDF Preview', label: this.translate.t().applyWizard.stepPreview, icon: '👁️' },
+  ]);
 
   // Data for PDF preview
   cvPreviewData = signal<CvData | null>(null);
@@ -116,11 +118,11 @@ export class ApplyJobComponent {
       next: desc => {
         this.jobDescription.set(desc.description);
         this.jobUrl.set(desc.url);
-        this.toast.show('Job description loaded! Extracting details...');
+        this.toast.show(this.translate.t().applyWizard.toastJobLoaded);
       },
       error: err => {
         console.error('Error fetching job description:', err);
-        this.toast.show('Failed to load job description', 'error');
+        this.toast.show(this.translate.t().applyWizard.toastFetchFailed, 'error');
         this.fetchLoading.set(false);
       },
       complete: () => {
@@ -147,7 +149,7 @@ export class ApplyJobComponent {
             jobDescription: this.jobDescription(),
             appliedDate
           });
-          this.toast.show('Data extracted for cover letter!');
+          this.toast.show(this.translate.t().applyWizard.toastDataExtracted);
 
         },
         error: err => {

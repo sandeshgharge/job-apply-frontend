@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '@app/utils/services/auth.service';
 import { BackendApiService } from '@app/utils/services/backend-service/backend-api-services';
 import { firstValueFrom } from 'rxjs';
+import { TranslationService } from '@app/utils/services/translation/translation.service';
 
 @Component({
   selector: 'app-auth-callback',
@@ -15,6 +16,7 @@ export class AuthCallback {
   private router = inject(Router);
   private backendApi = inject(BackendApiService);
   private authService = inject(AuthService);
+  public translate = inject(TranslationService);
 
   error = signal<string | null>(null);
 

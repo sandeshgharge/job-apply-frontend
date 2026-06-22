@@ -2,8 +2,8 @@
 @if (error()) {
     <div>
     <p>{{ error() }}</p>
-    <p>Redirecting to login in 5 seconds...</p>
-    <p><a routerLink="/login">Click here to login now</a></p>
+    <p>{{ translate.currentLang() === 'de' ? 'Weiterleitung zum Login in 5 Sekunden...' : 'Redirecting to login in 5 seconds...' }}</p>
+    <p><a routerLink="/login">{{ translate.currentLang() === 'de' ? 'Klicken Sie hier, um sich jetzt einzuloggen' : 'Click here to login now' }}</a></p>
     <img
         src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
         onload="setTimeout(function(){ window.location.href = '/login'; }, 5000)"

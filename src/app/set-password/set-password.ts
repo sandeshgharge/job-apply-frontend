@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { ToastService } from '@app/utils/services/toast.service';
 import { changePassword } from '@app/utils/store/auth/auth.actions';
+import { TranslationService } from '@app/utils/services/translation/translation.service';
 
 export interface PasswordForm {
   newPassword:     string;
@@ -24,6 +25,7 @@ export interface PasswordStrength {
 export class SetPassword {
   private store = inject(Store);
   private toast = inject(ToastService);
+  public translate = inject(TranslationService);
 
   form = signal<PasswordForm>({
     newPassword:     '',
@@ -43,21 +45,22 @@ export class SetPassword {
   errors = computed(() => {
     const f   = this.form();
     const out: Record<string, string> = {};
+    const t = this.translate.t().setPassword.errors;
 
     if (!f.newPassword)
-      out['newPassword'] = 'New password is required.';
+      out['newPassword'] = t.required;
     else if (f.newPassword.length < 8)
-      out['newPassword'] = 'Must be at least 8 characters.';
+      out['newPassword'] = t.minLength;
     else if (!/[A-Z]/.test(f.newPassword))
-      out['newPassword'] = 'Must contain at least one uppercase letter.';
+      out['newPassword'] = t.uppercase;
     else if (!/[0-9]/.test(f.newPassword))
-      out['newPassword'] = 'Must contain at least one number.';
+      out['newPassword'] = t.number;
 
 
     if (!f.repeatPassword)
-      out['repeatPassword'] = 'Please repeat your new password.';
+      out['repeatPassword'] = t.repeatRequired;
     else if (f.newPassword && f.repeatPassword !== f.newPassword)
-      out['repeatPassword'] = 'Passwords do not match.';
+      out['repeatPassword'] = t.mismatch;
 
     return out;
   });
@@ -77,13 +80,14 @@ export class SetPassword {
     if (/[0-9]/.test(p))                      score++;
     if (/[^A-Za-z0-9]/.test(p))              score++;
 
+    const str = this.translate.t().setPassword.strength;
     const map: PasswordStrength[] = [
       { score: 0, label: '',          color: '' },
-      { score: 1, label: 'Weak',      color: '#ef4444' },
-      { score: 2, label: 'Fair',      color: '#f59e0b' },
-      { score: 3, label: 'Good',      color: '#3b82f6' },
-      { score: 4, label: 'Strong',    color: '#10b981' },
-      { score: 5, label: 'Very Strong', color: '#059669' },
+      { score: 1, label: str.weak,      color: '#ef4444' },
+      { score: 2, label: str.fair,      color: '#f59e0b' },
+      { score: 3, label: str.good,      color: '#3b82f6' },
+      { score: 4, label: str.strong,    color: '#10b981' },
+      { score: 5, label: str.veryStrong, color: '#059669' },
     ];
 
     return map[score] ?? map[0];

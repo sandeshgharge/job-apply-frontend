@@ -1,7 +1,7 @@
 <div class="dashboard">
   <div class="page-header">
-    <h2>Welcome back, <span class="name">{{ user?.name| titlecase }}</span></h2>
-    <p class="subtitle">Here's your job search overview</p>
+    <h2>{{ translate.t().dashboard.welcome }} <span class="name">{{ user?.name| titlecase }}</span></h2>
+    <p class="subtitle">{{ translate.t().dashboard.overviewSubtitle }}</p>
   </div>
 
   <div class="stats-grid">
@@ -9,37 +9,37 @@
       <div class="stat-icon blue">◈</div>
       <div class="stat-info">
         <div class="stat-value">{{ stats().total }}</div>
-        <div class="stat-label">Total Applications</div>
+        <div class="stat-label">{{ translate.t().dashboard.totalApps }}</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon green">✓</div>
       <div class="stat-info">
         <div class="stat-value">{{ stats().active }}</div>
-        <div class="stat-label">Active Applications</div>
+        <div class="stat-label">{{ translate.t().dashboard.activeApps }}</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon amber">◷</div>
       <div class="stat-info">
         <div class="stat-value">{{ stats().interviews }}</div>
-        <div class="stat-label">Interviews Scheduled</div>
+        <div class="stat-label">{{ translate.t().dashboard.interviewsScheduled }}</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon purple">★</div>
       <div class="stat-info">
         <div class="stat-value">{{ stats().offers }}</div>
-        <div class="stat-label">Offers Received</div>
+        <div class="stat-label">{{ translate.t().dashboard.offersReceived }}</div>
       </div>
     </div>
   </div>
 
   <div class="panels">
     <div class="panel">
-      <h3 class="panel-title">Upcoming Interviews</h3>
+      <h3 class="panel-title">{{ translate.t().dashboard.upcomingInterviews }}</h3>
       @if (upcomingInterviews().length === 0) {
-        <div class="empty-state">No interviews scheduled yet.</div>
+        <div class="empty-state">{{ translate.t().dashboard.emptyInterviews }}</div>
       }
       @for (job of upcomingInterviews(); track job.id) {
         <div class="interview-row">
@@ -48,13 +48,13 @@
             <div class="interview-company">{{ job.companyName }}</div>
             <div class="interview-role">{{ job.role }}</div>
           </div>
-          <span class="badge badge-amber">{{ job.status }}</span>
+          <span class="badge badge-amber">{{ translateStatus(job.status) }}</span>
         </div>
       }
     </div>
 
     <div class="panel">
-      <h3 class="panel-title">Recent Applications</h3>
+      <h3 class="panel-title">{{ translate.t().dashboard.recentApps }}</h3>
       @for (job of recentActivity(); track job.id) {
         <div class="activity-row">
           <div class="activity-info">
@@ -62,7 +62,7 @@
             <div class="activity-meta">{{ job.role }} · {{ job.companyLocation }}</div>
           </div>
           <div class="activity-right">
-            <span class="badge badge-{{ statusColor(job.status) }}">{{ job.status }}</span>
+            <span class="badge badge-{{ statusColor(job.status) }}">{{ translateStatus(job.status) }}</span>
             <div class="activity-date">{{ formatDate(job.appliedDate) }}</div>
           </div>
         </div>
@@ -71,7 +71,7 @@
   </div>
 
   <div class="panel progress-panel">
-    <h3 class="panel-title">Application Pipeline</h3>
+    <h3 class="panel-title">{{ translate.t().dashboard.pipelineTitle }}</h3>
     <div class="pipeline">
       @for (stage of pipelineData(); track stage.label) {
         <div class="pipeline-stage">

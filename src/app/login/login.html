@@ -1,4 +1,12 @@
 <div class="login-page">
+  <div class="lang-selector-container">
+    <select [value]="translate.currentLang()" (change)="translate.loadLanguage($any($event.target).value)" class="lang-select">
+      @for (lang of translate.languages(); track lang.code) {
+        <option [value]="lang.code">{{ lang.name }}</option>
+      }
+    </select>
+  </div>
+
   <div class="login-card">
     <div class="brand">
       <div class="brand-icon">
@@ -9,15 +17,15 @@
       </div>
       <h1>JobApply<span class="brand-de">.de</span></h1>
     </div>
-    <p class="tagline">Your German job search, organised.</p>
+    <p class="tagline">{{ translate.t().login.tagline }}</p>
 
     <form (ngSubmit)="onSubmit()" #f="ngForm">
       <div class="field">
-        <label for="email">Email address</label>
+        <label for="email">{{ translate.t().login.emailLabel }}</label>
         <input
           id="email"
           type="email"
-          placeholder="you@example.com"
+          [placeholder]="translate.t().login.emailPlaceholder"
           [ngModel]="email()"
           (ngModelChange)="email.set($event)"
           name="email"
@@ -25,11 +33,11 @@
         />
       </div>
       <div class="field">
-        <label for="password">Password</label>
+        <label for="password">{{ translate.t().login.passwordLabel }}</label>
         <input
           id="password"
           type="password"
-          placeholder="Min. 6 characters"
+          [placeholder]="translate.t().login.passwordPlaceholder"
           [ngModel]="password()"
           (ngModelChange)="password.set($event)"
           name="password"
@@ -43,13 +51,13 @@
 
       <button type="submit" class="btn-primary" [disabled]="loading()">
         @if (loading()) {
-          <span class="spinner"></span> Signing in…
+          <span class="spinner"></span> {{ translate.t().login.signingIn }}
         } @else {
-          Sign in
+          {{ translate.t().login.signInBtn }}
         }
       </button>
     </form>
 
-    <p class="hint">Demo: use any email + 6+ char password</p>
+    <p class="hint">{{ translate.t().login.demoHint }}</p>
   </div>
 </div>

@@ -7,6 +7,7 @@ import { Store } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
 import { selectAuthError, selectAuthLoading, selectIsAuthenticated } from '@app/utils/store/auth/auth.selectors';
 import { distinctUntilChanged, filter, Subject, takeUntil } from 'rxjs';
+import { TranslationService } from '@app/utils/services/translation/translation.service';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
   private store = inject(Store);
+  public translate = inject(TranslationService);
   private destroy$ = new Subject<void>();
 
   email = signal('');
