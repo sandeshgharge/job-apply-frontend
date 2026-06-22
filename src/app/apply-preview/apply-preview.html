@@ -1,20 +1,20 @@
 <div class="preview-container">
   <div class="preview-header">
-    <h2>Application Documents</h2>
-    <p class="subtitle">Review and download your generated CV and Cover Letter before applying.</p>
+    <h2>{{ translate.t().applyPreview.title }}</h2>
+    <p class="subtitle">{{ translate.t().applyPreview.subtitle }}</p>
   </div>
 
   <div class="previews">
     <!-- CV Panel -->
     <div class="preview-panel">
       <div class="preview-header">
-        <h3>Curriculum Vitae (CV)</h3>
+        <h3>{{ translate.t().applyPreview.cvTitle }}</h3>
         <div class="action-buttons">
           <button type="button" class="btn-preview" (click)="fetchPreview('cv')" [disabled]="loading$()">
-            Preview
+            {{ translate.t().applyPreview.btnPreview }}
           </button>
           <button type="button" class="btn-download" (click)="downloadPDF('cv')" [disabled]="loading$()">
-            Download
+            {{ translate.t().applyPreview.btnDownload }}
           </button>
         </div>
       </div>
@@ -25,9 +25,9 @@
           <div class="empty-state">
             @if (loading$()) {
               <div class="spinner"></div>
-              <p>Generating preview...</p>
+              <p>{{ translate.t().applyPreview.generatingPreview }}</p>
             } @else {
-              <p>No preview loaded. Click "Preview" to view your CV.</p>
+              <p>{{ translate.t().applyPreview.noPreviewLoadedCv }}</p>
             }
           </div>
         }
@@ -37,13 +37,13 @@
     <!-- Cover Letter Panel -->
     <div class="preview-panel">
       <div class="preview-header">
-        <h3>Cover Letter</h3>
+        <h3>{{ translate.t().applyPreview.clTitle }}</h3>
         <div class="action-buttons">
           <button type="button" class="btn-preview" (click)="fetchPreview('cl')" [disabled]="loading$()">
-            Preview
+            {{ translate.t().applyPreview.btnPreview }}
           </button>
           <button type="button" class="btn-download" (click)="downloadPDF('cl')" [disabled]="loading$()">
-            Download
+            {{ translate.t().applyPreview.btnDownload }}
           </button>
         </div>
       </div>
@@ -54,9 +54,9 @@
           <div class="empty-state">
             @if (loading$()) {
               <div class="spinner"></div>
-              <p>Generating preview...</p>
+              <p>{{ translate.t().applyPreview.generatingPreview }}</p>
             } @else {
-              <p>No preview loaded. Click "Preview" to view your Cover Letter.</p>
+              <p>{{ translate.t().applyPreview.noPreviewLoadedCl }}</p>
             }
           </div>
         }

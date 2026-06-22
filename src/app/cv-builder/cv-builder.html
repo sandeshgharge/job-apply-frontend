@@ -3,17 +3,17 @@
   <!-- ── Top bar ──────────────────────────────────────────────── -->
   <div class="cv-topbar">
     <div class="cv-topbar-left">
-      <h2>CV Builder</h2>
+      <h2>{{ translate.t().cvBuilder.title }}</h2>
       <div class="completion-wrap">
         <div class="completion-bar">
           <div class="completion-fill" [style.width.%]="completionScore()"></div>
         </div>
-        <span class="completion-label">{{ completionScore() }}% complete</span>
+        <span class="completion-label">{{ completionScore() }}% {{ translate.t().cvBuilder.complete }}</span>
       </div>
     </div>
     <div class="cv-topbar-actions">
       <button class="btn-edit-toggle" [class.active]="editMode()" (click)="editMode.set(!editMode())">
-        {{ editMode() ? '✓ Done Editing' : '✎ Edit Mode' }}
+        {{ editMode() ? translate.t().cvBuilder.doneEditing : translate.t().cvBuilder.editMode }}
       </button>
       <select class="cv-version-select" (change)="onVersionChange($event)">
         @for (v of cvInfoList(); track v.version) {
@@ -23,16 +23,15 @@
       @if (cvInfoList().length > 0) {
         <button class="btn-edit-title" (click)="openRenameTitleDialog()" title="Rename selected version">✎</button>
       }
-      <button class="btn-action" (click)="saveNow()">💾 Save</button>
-      <button class="btn-action" (click)="openSaveAsDialog()">💾 SaveAs</button>
-      <!--<button class="btn-action" (click)="exportJson()">↓ Export</button>-->
-      <button class="btn-action btn-danger-soft" (click)="clearCv()">✕ Clear</button>
+      <button class="btn-action" (click)="saveNow()">{{ translate.t().cvBuilder.saveBtn }}</button>
+      <button class="btn-action" (click)="openSaveAsDialog()">{{ translate.t().cvBuilder.saveAsBtn }}</button>
+      <button class="btn-action btn-danger-soft" (click)="clearCv()">{{ translate.t().cvBuilder.clearBtn }}</button>
     </div>
   </div>
 
   @if (editMode()) {
     <div class="cv-hint">
-      ✎ Edit mode — checkboxes visible · Drag <strong>⠿</strong> handles to reorder sections and items
+      {{ translate.t().cvBuilder.editHint }}
     </div>
   }
 
@@ -59,9 +58,9 @@
                 [title]="sec.include ? 'Exclude from CV' : 'Include in CV'" />
             }
             <span class="sec-icon">{{ sec.icon }}</span>
-            <span class="sec-label">{{ sec.label }}</span>
-            @if (!sectionHasData(sec.id)) { <span class="badge-empty">empty</span> }
-            @if (!sec.include) { <span class="badge-excluded">excluded</span> }
+            <span class="sec-label">{{ getSectionLabel(sec.id) }}</span>
+            @if (!sectionHasData(sec.id)) { <span class="badge-empty">{{ translate.t().cvBuilder.emptyBadge }}</span> }
+            @if (!sec.include) { <span class="badge-excluded">{{ translate.t().cvBuilder.excludedBadge }}</span> }
           </div>
           <span class="collapse-caret">{{ sec.collapsed ? '▶' : '▼' }}</span>
         </div>
@@ -72,38 +71,68 @@
             <!-- ══ PERSONAL INFO ══════════════════════════════════ -->
             @if (sec.id === 'personal') {
               <div class="fields-grid">
-                <div class="field"><label>First Name</label><input type="text" [ngModel]="cv().cvData.personalInfo.firstName" (ngModelChange)="updatePersonal('firstName',$event)" placeholder="Maria" /></div>
-                <div class="field"><label>Last Name</label><input type="text" [ngModel]="cv().cvData.personalInfo.lastName" (ngModelChange)="updatePersonal('lastName',$event)" placeholder="Müller" /></div>
-                <div class="field field-full"><label>Professional Headline</label><input type="text" [ngModel]="cv().cvData.personalInfo.headline" (ngModelChange)="updatePersonal('headline',$event)" placeholder="Senior Angular Developer · 5 yrs · Berlin" /></div>
-                <div class="field"><label>Email</label><input type="email" [ngModel]="cv().cvData.personalInfo.email" (ngModelChange)="updatePersonal('email',$event)" placeholder="maria@example.com" /></div>
-                <div class="field"><label>Phone</label><input type="tel" [ngModel]="cv().cvData.personalInfo.phone" (ngModelChange)="updatePersonal('phone',$event)" placeholder="+49 170 1234567" /></div>
+                <div class="field">
+                  <label>{{ translate.t().cvBuilder.personalInfo.firstName }}</label>
+                  <input type="text" [ngModel]="cv().cvData.personalInfo.firstName" (ngModelChange)="updatePersonal('firstName',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderFirstName" />
+                </div>
+                <div class="field">
+                  <label>{{ translate.t().cvBuilder.personalInfo.lastName }}</label>
+                  <input type="text" [ngModel]="cv().cvData.personalInfo.lastName" (ngModelChange)="updatePersonal('lastName',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderLastName" />
+                </div>
+                <div class="field field-full">
+                  <label>{{ translate.t().cvBuilder.personalInfo.headline }}</label>
+                  <input type="text" [ngModel]="cv().cvData.personalInfo.headline" (ngModelChange)="updatePersonal('headline',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderHeadline" />
+                </div>
+                <div class="field">
+                  <label>{{ translate.t().cvBuilder.personalInfo.email }}</label>
+                  <input type="email" [ngModel]="cv().cvData.personalInfo.email" (ngModelChange)="updatePersonal('email',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderEmail" />
+                </div>
+                <div class="field">
+                  <label>{{ translate.t().cvBuilder.personalInfo.phone }}</label>
+                  <input type="tel" [ngModel]="cv().cvData.personalInfo.phone" (ngModelChange)="updatePersonal('phone',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderPhone" />
+                </div>
               </div>
-              <div class="sub-label">Address</div>
+              <div class="sub-label">{{ translate.t().cvBuilder.personalInfo.address }}</div>
               <div class="fields-grid">
-                <div class="field"><label>Location</label><input type="text" [ngModel]="cv().cvData.personalInfo.address" (ngModelChange)="updatePersonal('address',$event)" placeholder="Berlin" /></div>
+                <div class="field">
+                  <label>{{ translate.t().cvBuilder.personalInfo.address }}</label>
+                  <input type="text" [ngModel]="cv().cvData.personalInfo.address" (ngModelChange)="updatePersonal('address',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderAddress" />
+                </div>
               </div>
-              <div class="sub-label">Online Links</div>
+              <div class="sub-label">{{ translate.t().cvBuilder.personalInfo.onlineLinks }}</div>
               <div class="fields-grid">
-                <div class="field"><label>LinkedIn</label><input type="url" [ngModel]="cv().cvData.personalInfo.links.linkedin" (ngModelChange)="updateLink('linkedin',$event)" placeholder="linkedin.com/in/..." /></div>
-                <div class="field"><label>GitHub</label><input type="url" [ngModel]="cv().cvData.personalInfo.links.github" (ngModelChange)="updateLink('github',$event)" placeholder="github.com/..." /></div>
-                <div class="field"><label>Portfolio</label><input type="url" [ngModel]="cv().cvData.personalInfo.links.portfolio" (ngModelChange)="updateLink('portfolio',$event)" placeholder="https://..." /></div>
-                <div class="field"><label>Website</label><input type="url" [ngModel]="cv().cvData.personalInfo.links.website" (ngModelChange)="updateLink('website',$event)" placeholder="https://..." /></div>
+                <div class="field">
+                  <label>{{ translate.t().cvBuilder.personalInfo.linkedin }}</label>
+                  <input type="url" [ngModel]="cv().cvData.personalInfo.links.linkedin" (ngModelChange)="updateLink('linkedin',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderLinkedin" />
+                </div>
+                <div class="field">
+                  <label>{{ translate.t().cvBuilder.personalInfo.github }}</label>
+                  <input type="url" [ngModel]="cv().cvData.personalInfo.links.github" (ngModelChange)="updateLink('github',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderGithub" />
+                </div>
+                <div class="field">
+                  <label>{{ translate.t().cvBuilder.personalInfo.portfolio }}</label>
+                  <input type="url" [ngModel]="cv().cvData.personalInfo.links.portfolio" (ngModelChange)="updateLink('portfolio',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderPortfolio" />
+                </div>
+                <div class="field">
+                  <label>{{ translate.t().cvBuilder.personalInfo.website }}</label>
+                  <input type="url" [ngModel]="cv().cvData.personalInfo.links.website" (ngModelChange)="updateLink('website',$event)" [placeholder]="translate.t().cvBuilder.personalInfo.placeholderWebsite" />
+                </div>
               </div>
             }
 
             <!-- ══ SUMMARY ═════════════════════════════════════════ -->
             @if (sec.id === 'summary') {
               <div class="field">
-                <label>Professional Summary</label>
-                <textarea rows="5" placeholder="Briefly describe your professional background, key strengths, and career goals…"
+                <label>{{ translate.t().cvBuilder.sections.professionalSummary }}</label>
+                <textarea rows="5" [placeholder]="translate.t().cvBuilder.summary.placeholder"
                   [ngModel]="cv().cvData.summary" (ngModelChange)="updateSummary($event)"></textarea>
-                <span class="field-hint">{{ cv().cvData.summary.length }} / 600 characters recommended</span>
+                <span class="field-hint">{{ cv().cvData.summary.length }} / 600 {{ translate.t().cvBuilder.summary.recommendedChars }}</span>
               </div>
             }
 
             <!-- ══ EXPERIENCE ══════════════════════════════════════ -->
             @if (sec.id === 'experience') {
-              <button class="btn-add-item" (click)="addExperience()">+ Add Experience</button>
+              <button class="btn-add-item" (click)="addExperience()">{{ translate.t().cvBuilder.experience.addBtn }}</button>
               @for (exp of cv().cvData.experience; track exp.id; let ei = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('experience', ei, $event)"
@@ -111,25 +140,37 @@
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="exp.include" (change)="updateExp(exp.id,'include',!exp.include)" /> }
-                    <span class="item-title">{{ exp.jobTitle || 'New Position' }}
+                    <span class="item-title">{{ exp.jobTitle || translate.t().cvBuilder.experience.newPosition }}
                       @if (exp.company) { <span class="item-sub">@ {{ exp.company }}</span> }
                     </span>
                     <button class="btn-x" (click)="removeExperience(exp.id)">✕</button>
                   </div>
                   <div class="fields-grid">
-                    <div class="field"><label>Job Title</label><input type="text" [ngModel]="exp.jobTitle" (ngModelChange)="updateExp(exp.id,'jobTitle',$event)" placeholder="Senior Developer" /></div>
-                    <div class="field"><label>Company</label><input type="text" [ngModel]="exp.company" (ngModelChange)="updateExp(exp.id,'company',$event)" placeholder="SAP SE" /></div>
-                    <div class="field"><label>Location</label><input type="text" [ngModel]="exp.location" (ngModelChange)="updateExp(exp.id,'location',$event)" placeholder="Walldorf, Germany" /></div>
-                    <div class="field"><label>Start Date</label><input type="month" [ngModel]="exp.startDate" (ngModelChange)="updateExp(exp.id,'startDate',$event)" /></div>
                     <div class="field">
-                      <label>End Date</label>
+                      <label>{{ translate.t().cvBuilder.experience.jobTitle }}</label>
+                      <input type="text" [ngModel]="exp.jobTitle" (ngModelChange)="updateExp(exp.id,'jobTitle',$event)" [placeholder]="translate.t().cvBuilder.experience.placeholderJobTitle" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.experience.company }}</label>
+                      <input type="text" [ngModel]="exp.company" (ngModelChange)="updateExp(exp.id,'company',$event)" [placeholder]="translate.t().cvBuilder.experience.placeholderCompany" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.experience.location }}</label>
+                      <input type="text" [ngModel]="exp.location" (ngModelChange)="updateExp(exp.id,'location',$event)" [placeholder]="translate.t().cvBuilder.experience.placeholderLocation" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.experience.startDate }}</label>
+                      <input type="month" [ngModel]="exp.startDate" (ngModelChange)="updateExp(exp.id,'startDate',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.experience.endDate }}</label>
                       <input type="month" [ngModel]="exp.endDate" (ngModelChange)="updateExp(exp.id,'endDate',$event)" [disabled]="exp.current" />
-                      <label class="inline-check"><input type="checkbox" [checked]="exp.current" (change)="updateExp(exp.id,'current',!exp.current)" /> Currently here</label>
+                      <label class="inline-check"><input type="checkbox" [checked]="exp.current" (change)="updateExp(exp.id,'current',!exp.current)" /> {{ translate.t().cvBuilder.experience.currentlyHere }}</label>
                     </div>
                   </div>
                   <div class="sub-label">
-                    Responsibilities
-                    <button class="btn-add-sub" (click)="addResponsibility(exp.id)">+ Add</button>
+                    {{ translate.t().cvBuilder.experience.responsibilities }}
+                    <button class="btn-add-sub" (click)="addResponsibility(exp.id)">{{ translate.t().cvBuilder.experience.addRespBtn }}</button>
                   </div>
                   @for (r of exp.responsibilities; track r.id; let ri = $index) {
                     <div class="resp-row" draggable="true"
@@ -139,7 +180,7 @@
                       (dragend)="onRespDragEnd($event)">
                       <span class="drag-handle sm">⠿</span>
                       @if (editMode()) { <input type="checkbox" [checked]="r.include" (change)="updateResponsibility(exp.id,r.id,'include',!r.include)" /> }
-                      <input type="text" class="resp-input" [ngModel]="r.text" (ngModelChange)="updateResponsibility(exp.id,r.id,'text',$event)" placeholder="Describe a key responsibility or achievement…" />
+                      <input type="text" class="resp-input" [ngModel]="r.text" (ngModelChange)="updateResponsibility(exp.id,r.id,'text',$event)" [placeholder]="translate.t().cvBuilder.experience.placeholderResp" />
                       <button class="btn-x sm" (click)="removeResponsibility(exp.id,r.id)">✕</button>
                     </div>
                   }
@@ -149,7 +190,7 @@
 
             <!-- ══ EDUCATION ═══════════════════════════════════════ -->
             @if (sec.id === 'education') {
-              <button class="btn-add-item" (click)="addEducation()">+ Add Education</button>
+              <button class="btn-add-item" (click)="addEducation()">{{ translate.t().cvBuilder.education.addBtn }}</button>
               @for (edu of cv().cvData.education; track edu.id; let ei = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('education', ei, $event)"
@@ -157,18 +198,36 @@
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="edu.include" (change)="updateEdu(edu.id,'include', !edu.include ? 'true' : 'false')" /> }
-                    <span class="item-title">{{ edu.degree || 'New Education' }}
+                    <span class="item-title">{{ edu.degree || translate.t().cvBuilder.education.newEducation }}
                       @if (edu.institution) { <span class="item-sub">@ {{ edu.institution }}</span> }
                     </span>
                     <button class="btn-x" (click)="removeEducation(edu.id)">✕</button>
                   </div>
                   <div class="fields-grid">
-                    <div class="field"><label>Degree</label><input type="text" [ngModel]="edu.degree" (ngModelChange)="updateEdu(edu.id,'degree',$event)" placeholder="Bachelor of Science" /></div>
-                    <div class="field"><label>Field of Study</label><input type="text" [ngModel]="edu.fieldOfStudy" (ngModelChange)="updateEdu(edu.id,'fieldOfStudy',$event)" placeholder="Computer Science" /></div>
-                    <div class="field"><label>Institution</label><input type="text" [ngModel]="edu.institution" (ngModelChange)="updateEdu(edu.id,'institution',$event)" placeholder="TU München" /></div>
-                    <div class="field"><label>Location</label><input type="text" [ngModel]="edu.location" (ngModelChange)="updateEdu(edu.id,'location',$event)" /></div>
-                    <div class="field"><label>Start Date</label><input type="month" [ngModel]="edu.startDate" (ngModelChange)="updateEdu(edu.id,'startDate',$event)" /></div>
-                    <div class="field"><label>End Date</label><input type="month" [ngModel]="edu.endDate" (ngModelChange)="updateEdu(edu.id,'endDate',$event)" /></div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.education.degree }}</label>
+                      <input type="text" [ngModel]="edu.degree" (ngModelChange)="updateEdu(edu.id,'degree',$event)" [placeholder]="translate.t().cvBuilder.education.placeholderDegree" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.education.fieldOfStudy }}</label>
+                      <input type="text" [ngModel]="edu.fieldOfStudy" (ngModelChange)="updateEdu(edu.id,'fieldOfStudy',$event)" [placeholder]="translate.t().cvBuilder.education.placeholderField" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.education.institution }}</label>
+                      <input type="text" [ngModel]="edu.institution" (ngModelChange)="updateEdu(edu.id,'institution',$event)" [placeholder]="translate.t().cvBuilder.education.placeholderInstitution" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.education.location }}</label>
+                      <input type="text" [ngModel]="edu.location" (ngModelChange)="updateEdu(edu.id,'location',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.education.startDate }}</label>
+                      <input type="month" [ngModel]="edu.startDate" (ngModelChange)="updateEdu(edu.id,'startDate',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.education.endDate }}</label>
+                      <input type="month" [ngModel]="edu.endDate" (ngModelChange)="updateEdu(edu.id,'endDate',$event)" />
+                    </div>
                   </div>
                 </div>
               }
@@ -178,9 +237,9 @@
             @if (sec.id === 'skills') {
               <div class="skills-builder">
                 @for (def of [
-                  {f:'frontend',  label:'Frontend',       ph:'e.g. React, TypeScript'},
-                  {f:'backend',   label:'Backend',        ph:'e.g. Node.js, Python'},
-                  {f:'devops',    label:'DevOps / Cloud', ph:'e.g. Docker, Kubernetes'}
+                  {f:'frontend',  label: translate.t().cvBuilder.skills.frontend,       ph: translate.t().cvBuilder.skills.placeholderFrontend},
+                  {f:'backend',   label: translate.t().cvBuilder.skills.backend,        ph: translate.t().cvBuilder.skills.placeholderBackend},
+                  {f:'devops',    label: translate.t().cvBuilder.skills.devops, ph: translate.t().cvBuilder.skills.placeholderDevops}
                 ]; track def.f) {
                   <div class="skill-row">
                     <div class="skill-row-label">{{ def.label }}</div>
@@ -205,7 +264,7 @@
 
             <!-- ══ PROJECTS ════════════════════════════════════════ -->
             @if (sec.id === 'projects') {
-              <button class="btn-add-item" (click)="addProject()">+ Add Project</button>
+              <button class="btn-add-item" (click)="addProject()">{{ translate.t().cvBuilder.projects.addBtn }}</button>
               @for (proj of cv().cvData.projects; track proj.id; let pi = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('projects', pi, $event)"
@@ -213,24 +272,42 @@
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="proj.include" (change)="updateProject(proj.id,'include',!proj.include)" /> }
-                    <span class="item-title">{{ proj.title || 'New Project' }}</span>
+                    <span class="item-title">{{ proj.title || translate.t().cvBuilder.projects.newProject }}</span>
                     <button class="btn-x" (click)="removeProject(proj.id)">✕</button>
                   </div>
                   <div class="fields-grid">
-                    <div class="field"><label>Title</label><input type="text" [ngModel]="proj.title" (ngModelChange)="updateProject(proj.id,'title',$event)" /></div>
-                    <div class="field"><label>Your Role</label><input type="text" [ngModel]="proj.role" (ngModelChange)="updateProject(proj.id,'role',$event)" placeholder="Lead Developer" /></div>
-                    <div class="field"><label>Start</label><input type="month" [ngModel]="proj.startDate" (ngModelChange)="updateProject(proj.id,'startDate',$event)" /></div>
-                    <div class="field"><label>End</label><input type="month" [ngModel]="proj.endDate" (ngModelChange)="updateProject(proj.id,'endDate',$event)" /></div>
-                    <div class="field field-full"><label>Link</label><input type="url" [ngModel]="proj.link" (ngModelChange)="updateProject(proj.id,'link',$event)" placeholder="https://github.com/..." /></div>
-                    <div class="field field-full"><label>Description</label><textarea rows="2" [ngModel]="proj.description" (ngModelChange)="updateProject(proj.id,'description',$event)" placeholder="What did you build and why?"></textarea></div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.projects.title }}</label>
+                      <input type="text" [ngModel]="proj.title" (ngModelChange)="updateProject(proj.id,'title',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.projects.role }}</label>
+                      <input type="text" [ngModel]="proj.role" (ngModelChange)="updateProject(proj.id,'role',$event)" [placeholder]="translate.t().cvBuilder.projects.placeholderRole" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.projects.start }}</label>
+                      <input type="month" [ngModel]="proj.startDate" (ngModelChange)="updateProject(proj.id,'startDate',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.projects.end }}</label>
+                      <input type="month" [ngModel]="proj.endDate" (ngModelChange)="updateProject(proj.id,'endDate',$event)" />
+                    </div>
+                    <div class="field field-full">
+                      <label>{{ translate.t().cvBuilder.projects.link }}</label>
+                      <input type="url" [ngModel]="proj.link" (ngModelChange)="updateProject(proj.id,'link',$event)" [placeholder]="translate.t().cvBuilder.projects.placeholderLink" />
+                    </div>
+                    <div class="field field-full">
+                      <label>{{ translate.t().cvBuilder.projects.description }}</label>
+                      <textarea rows="2" [ngModel]="proj.description" (ngModelChange)="updateProject(proj.id,'description',$event)" [placeholder]="translate.t().cvBuilder.projects.placeholderDesc"></textarea>
+                    </div>
                   </div>
-                  <div class="sub-label">Technologies</div>
+                  <div class="sub-label">{{ translate.t().cvBuilder.projects.technologies }}</div>
                   <div class="chips-wrap">
                     @for (t of proj.technologies; track t; let ti = $index) {
                       <span class="cv-chip">{{ t }}<button class="chip-x" (click)="removeProjectTech(proj.id, ti)">✕</button></span>
                     }
                     <div class="chip-add-row">
-                      <input class="chip-input" placeholder="Add tech…"
+                      <input class="chip-input" [placeholder]="translate.t().cvBuilder.projects.placeholderTech"
                         [ngModel]="newSkillInputs['p_'+proj.id]"
                         (ngModelChange)="newSkillInputs['p_'+proj.id]=$event"
                         (keydown.enter)="addProjectTech(proj.id,newSkillInputs['p_'+proj.id]); newSkillInputs['p_'+proj.id]=''" />
@@ -243,7 +320,7 @@
 
             <!-- ══ CERTIFICATIONS ══════════════════════════════════ -->
             @if (sec.id === 'certifications') {
-              <button class="btn-add-item" (click)="addCertification()">+ Add Certification</button>
+              <button class="btn-add-item" (click)="addCertification()">{{ translate.t().cvBuilder.certifications.addBtn }}</button>
               @for (cert of cv().cvData.certifications; track cert.id; let ci = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('certifications', ci, $event)"
@@ -251,16 +328,34 @@
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="cert.include" (change)="updateCert(cert.id,'include',!cert.include)" /> }
-                    <span class="item-title">{{ cert.name || 'New Certification' }}</span>
+                    <span class="item-title">{{ cert.name || translate.t().cvBuilder.certifications.newCert }}</span>
                     <button class="btn-x" (click)="removeCertification(cert.id)">✕</button>
                   </div>
                   <div class="fields-grid">
-                    <div class="field"><label>Name</label><input type="text" [ngModel]="cert.name" (ngModelChange)="updateCert(cert.id,'name',$event)" placeholder="AWS Solutions Architect" /></div>
-                    <div class="field"><label>Issuer</label><input type="text" [ngModel]="cert.issuer" (ngModelChange)="updateCert(cert.id,'issuer',$event)" /></div>
-                    <div class="field"><label>Issue Date</label><input type="month" [ngModel]="cert.issueDate" (ngModelChange)="updateCert(cert.id,'issueDate',$event)" /></div>
-                    <div class="field"><label>Expiry Date</label><input type="month" [ngModel]="cert.expiryDate" (ngModelChange)="updateCert(cert.id,'expiryDate',$event)" /></div>
-                    <div class="field"><label>Credential ID</label><input type="text" [ngModel]="cert.credentialId" (ngModelChange)="updateCert(cert.id,'credentialId',$event)" /></div>
-                    <div class="field"><label>Credential URL</label><input type="url" [ngModel]="cert.credentialUrl" (ngModelChange)="updateCert(cert.id,'credentialUrl',$event)" /></div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.certifications.name }}</label>
+                      <input type="text" [ngModel]="cert.name" (ngModelChange)="updateCert(cert.id,'name',$event)" [placeholder]="translate.t().cvBuilder.certifications.placeholderName" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.certifications.issuer }}</label>
+                      <input type="text" [ngModel]="cert.issuer" (ngModelChange)="updateCert(cert.id,'issuer',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.certifications.issueDate }}</label>
+                      <input type="month" [ngModel]="cert.issueDate" (ngModelChange)="updateCert(cert.id,'issueDate',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.certifications.expiryDate }}</label>
+                      <input type="month" [ngModel]="cert.expiryDate" (ngModelChange)="updateCert(cert.id,'expiryDate',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.certifications.credentialId }}</label>
+                      <input type="text" [ngModel]="cert.credentialId" (ngModelChange)="updateCert(cert.id,'credentialId',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.certifications.credentialUrl }}</label>
+                      <input type="url" [ngModel]="cert.credentialUrl" (ngModelChange)="updateCert(cert.id,'credentialUrl',$event)" />
+                    </div>
                   </div>
                 </div>
               }
@@ -268,7 +363,7 @@
 
             <!-- ══ AWARDS ══════════════════════════════════════════ -->
             @if (sec.id === 'awards') {
-              <button class="btn-add-item" (click)="addAward()">+ Add Award</button>
+              <button class="btn-add-item" (click)="addAward()">{{ translate.t().cvBuilder.awards.addBtn }}</button>
               @for (award of cv().cvData.awards; track award.id; let ai = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('awards', ai, $event)"
@@ -276,14 +371,26 @@
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="award.include" (change)="updateAward(award.id,'include',!award.include)" /> }
-                    <span class="item-title">{{ award.title || 'New Award' }}</span>
+                    <span class="item-title">{{ award.title || translate.t().cvBuilder.awards.newAward }}</span>
                     <button class="btn-x" (click)="removeAward(award.id)">✕</button>
                   </div>
                   <div class="fields-grid">
-                    <div class="field"><label>Title</label><input type="text" [ngModel]="award.title" (ngModelChange)="updateAward(award.id,'title',$event)" /></div>
-                    <div class="field"><label>Issuer</label><input type="text" [ngModel]="award.issuer" (ngModelChange)="updateAward(award.id,'issuer',$event)" /></div>
-                    <div class="field"><label>Date</label><input type="month" [ngModel]="award.date" (ngModelChange)="updateAward(award.id,'date',$event)" /></div>
-                    <div class="field field-full"><label>Description</label><textarea rows="2" [ngModel]="award.description" (ngModelChange)="updateAward(award.id,'description',$event)"></textarea></div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.awards.title }}</label>
+                      <input type="text" [ngModel]="award.title" (ngModelChange)="updateAward(award.id,'title',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.awards.issuer }}</label>
+                      <input type="text" [ngModel]="award.issuer" (ngModelChange)="updateAward(award.id,'issuer',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.awards.date }}</label>
+                      <input type="month" [ngModel]="award.date" (ngModelChange)="updateAward(award.id,'date',$event)" />
+                    </div>
+                    <div class="field field-full">
+                      <label>{{ translate.t().cvBuilder.awards.description }}</label>
+                      <textarea rows="2" [ngModel]="award.description" (ngModelChange)="updateAward(award.id,'description',$event)"></textarea>
+                    </div>
                   </div>
                 </div>
               }
@@ -291,7 +398,7 @@
 
             <!-- ══ PUBLICATIONS ════════════════════════════════════ -->
             @if (sec.id === 'publications') {
-              <button class="btn-add-item" (click)="addPublication()">+ Add Publication</button>
+              <button class="btn-add-item" (click)="addPublication()">{{ translate.t().cvBuilder.publications.addBtn }}</button>
               @for (pub of cv().cvData.publications; track pub.id; let pi = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('publications', pi, $event)"
@@ -299,15 +406,30 @@
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="pub.include" (change)="updatePub(pub.id,'include',!pub.include)" /> }
-                    <span class="item-title">{{ pub.title || 'New Publication' }}</span>
+                    <span class="item-title">{{ pub.title || translate.t().cvBuilder.publications.newPub }}</span>
                     <button class="btn-x" (click)="removePublication(pub.id)">✕</button>
                   </div>
                   <div class="fields-grid">
-                    <div class="field"><label>Title</label><input type="text" [ngModel]="pub.title" (ngModelChange)="updatePub(pub.id,'title',$event)" /></div>
-                    <div class="field"><label>Publisher</label><input type="text" [ngModel]="pub.publisher" (ngModelChange)="updatePub(pub.id,'publisher',$event)" /></div>
-                    <div class="field"><label>Date</label><input type="month" [ngModel]="pub.date" (ngModelChange)="updatePub(pub.id,'date',$event)" /></div>
-                    <div class="field"><label>Link</label><input type="url" [ngModel]="pub.link" (ngModelChange)="updatePub(pub.id,'link',$event)" /></div>
-                    <div class="field field-full"><label>Description</label><textarea rows="2" [ngModel]="pub.description" (ngModelChange)="updatePub(pub.id,'description',$event)"></textarea></div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.publications.title }}</label>
+                      <input type="text" [ngModel]="pub.title" (ngModelChange)="updatePub(pub.id,'title',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.publications.publisher }}</label>
+                      <input type="text" [ngModel]="pub.publisher" (ngModelChange)="updatePub(pub.id,'publisher',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.publications.date }}</label>
+                      <input type="month" [ngModel]="pub.date" (ngModelChange)="updatePub(pub.id,'date',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.publications.link }}</label>
+                      <input type="url" [ngModel]="pub.link" (ngModelChange)="updatePub(pub.id,'link',$event)" />
+                    </div>
+                    <div class="field field-full">
+                      <label>{{ translate.t().cvBuilder.publications.description }}</label>
+                      <textarea rows="2" [ngModel]="pub.description" (ngModelChange)="updatePub(pub.id,'description',$event)"></textarea>
+                    </div>
                   </div>
                 </div>
               }
@@ -315,7 +437,7 @@
 
             <!-- ══ VOLUNTEER ═══════════════════════════════════════ -->
             @if (sec.id === 'volunteer') {
-              <button class="btn-add-item" (click)="addVolunteer()">+ Add Volunteer Experience</button>
+              <button class="btn-add-item" (click)="addVolunteer()">{{ translate.t().cvBuilder.volunteer.addBtn }}</button>
               @for (vol of cv().cvData.volunteerExperience; track vol.id; let vi = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('volunteerExperience', vi, $event)"
@@ -323,16 +445,34 @@
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="vol.include" (change)="updateVol(vol.id,'include',!vol.include)" /> }
-                    <span class="item-title">{{ vol.role || 'New Role' }} @if(vol.organization){<span class="item-sub">@ {{ vol.organization }}</span>}</span>
+                    <span class="item-title">{{ vol.role || translate.t().cvBuilder.volunteer.newRole }} @if(vol.organization){<span class="item-sub">@ {{ vol.organization }}</span>}</span>
                     <button class="btn-x" (click)="removeVolunteer(vol.id)">✕</button>
                   </div>
                   <div class="fields-grid">
-                    <div class="field"><label>Role</label><input type="text" [ngModel]="vol.role" (ngModelChange)="updateVol(vol.id,'role',$event)" /></div>
-                    <div class="field"><label>Organization</label><input type="text" [ngModel]="vol.organization" (ngModelChange)="updateVol(vol.id,'organization',$event)" /></div>
-                    <div class="field"><label>Location</label><input type="text" [ngModel]="vol.location" (ngModelChange)="updateVol(vol.id,'location',$event)" /></div>
-                    <div class="field"><label>Start</label><input type="month" [ngModel]="vol.startDate" (ngModelChange)="updateVol(vol.id,'startDate',$event)" /></div>
-                    <div class="field"><label>End</label><input type="month" [ngModel]="vol.endDate" (ngModelChange)="updateVol(vol.id,'endDate',$event)" /></div>
-                    <div class="field field-full"><label>Description</label><textarea rows="2" [ngModel]="vol.description" (ngModelChange)="updateVol(vol.id,'description',$event)"></textarea></div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.volunteer.role }}</label>
+                      <input type="text" [ngModel]="vol.role" (ngModelChange)="updateVol(vol.id,'role',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.volunteer.organization }}</label>
+                      <input type="text" [ngModel]="vol.organization" (ngModelChange)="updateVol(vol.id,'organization',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.volunteer.location }}</label>
+                      <input type="text" [ngModel]="vol.location" (ngModelChange)="updateVol(vol.id,'location',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.volunteer.start }}</label>
+                      <input type="month" [ngModel]="vol.startDate" (ngModelChange)="updateVol(vol.id,'startDate',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.volunteer.end }}</label>
+                      <input type="month" [ngModel]="vol.endDate" (ngModelChange)="updateVol(vol.id,'endDate',$event)" />
+                    </div>
+                    <div class="field field-full">
+                      <label>{{ translate.t().cvBuilder.volunteer.description }}</label>
+                      <textarea rows="2" [ngModel]="vol.description" (ngModelChange)="updateVol(vol.id,'description',$event)"></textarea>
+                    </div>
                   </div>
                 </div>
               }
@@ -347,7 +487,7 @@
                   </span>
                 }
                 <div class="chip-add-row">
-                  <input class="chip-input" placeholder="e.g. Open Source, Hiking…"
+                  <input class="chip-input" [placeholder]="translate.t().cvBuilder.interests.placeholder"
                     [ngModel]="newInterest()" (ngModelChange)="newInterest.set($event)"
                     (keydown.enter)="addInterest()" />
                   <button class="btn-chip-add" (click)="addInterest()">+</button>
@@ -357,7 +497,7 @@
 
             <!-- ══ REFERENCES ══════════════════════════════════════ -->
             @if (sec.id === 'references') {
-              <button class="btn-add-item" (click)="addReference()">+ Add Reference</button>
+              <button class="btn-add-item" (click)="addReference()">{{ translate.t().cvBuilder.references.addBtn }}</button>
               @for (ref of cv().cvData.references; track ref.id; let ri = $index) {
                 <div class="item-card" draggable="true"
                   (dragstart)="onItemDragStart('references', ri, $event)"
@@ -365,15 +505,30 @@
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="ref.include" (change)="updateRef(ref.id,'include',!ref.include)" /> }
-                    <span class="item-title">{{ ref.name || 'New Reference' }} @if(ref.company){<span class="item-sub">@ {{ ref.company }}</span>}</span>
+                    <span class="item-title">{{ ref.name || translate.t().cvBuilder.references.newReference }} @if(ref.company){<span class="item-sub">@ {{ ref.company }}</span>}</span>
                     <button class="btn-x" (click)="removeReference(ref.id)">✕</button>
                   </div>
                   <div class="fields-grid">
-                    <div class="field"><label>Name</label><input type="text" [ngModel]="ref.name" (ngModelChange)="updateRef(ref.id,'name',$event)" /></div>
-                    <div class="field"><label>Position</label><input type="text" [ngModel]="ref.position" (ngModelChange)="updateRef(ref.id,'position',$event)" /></div>
-                    <div class="field"><label>Company</label><input type="text" [ngModel]="ref.company" (ngModelChange)="updateRef(ref.id,'company',$event)" /></div>
-                    <div class="field"><label>Email</label><input type="email" [ngModel]="ref.email" (ngModelChange)="updateRef(ref.id,'email',$event)" /></div>
-                    <div class="field"><label>Phone</label><input type="tel" [ngModel]="ref.phone" (ngModelChange)="updateRef(ref.id,'phone',$event)" /></div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.references.name }}</label>
+                      <input type="text" [ngModel]="ref.name" (ngModelChange)="updateRef(ref.id,'name',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.references.position }}</label>
+                      <input type="text" [ngModel]="ref.position" (ngModelChange)="updateRef(ref.id,'position',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.references.company }}</label>
+                      <input type="text" [ngModel]="ref.company" (ngModelChange)="updateRef(ref.id,'company',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.references.email }}</label>
+                      <input type="email" [ngModel]="ref.email" (ngModelChange)="updateRef(ref.id,'email',$event)" />
+                    </div>
+                    <div class="field">
+                      <label>{{ translate.t().cvBuilder.references.phone }}</label>
+                      <input type="tel" [ngModel]="ref.phone" (ngModelChange)="updateRef(ref.id,'phone',$event)" />
+                    </div>
                   </div>
                 </div>
               }
@@ -381,24 +536,24 @@
 
             <!-- ══ CUSTOM SECTIONS ══════════════════════════════════ -->
             @if (sec.id === 'custom') {
-              <button class="btn-add-item" (click)="addCustomSection()">+ Add Custom Section</button>
+              <button class="btn-add-item" (click)="addCustomSection()">{{ translate.t().cvBuilder.custom.addBtn }}</button>
               @for (cs of cv().cvData.customSections; track cs.id) {
                 <div class="item-card">
                   <div class="item-header">
                     <span class="drag-handle">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="cs.include" (change)="updateCustomSection(cs.id,'include',!cs.include)" /> }
-                    <input class="custom-title-input" type="text" [ngModel]="cs.sectionTitle" (ngModelChange)="updateCustomSection(cs.id,'sectionTitle',$event)" placeholder="Section title" />
+                    <input class="custom-title-input" type="text" [ngModel]="cs.sectionTitle" (ngModelChange)="updateCustomSection(cs.id,'sectionTitle',$event)" [placeholder]="translate.t().cvBuilder.custom.sectionTitle" />
                     <button class="btn-x" (click)="removeCustomSection(cs.id)">✕</button>
                   </div>
                   @for (item of cs.items; track item.id) {
                     <div class="resp-row">
                       <span class="drag-handle sm">⠿</span>
                       @if (editMode()) { <input type="checkbox" [checked]="item.include" (change)="updateCustomItem(cs.id, item.id, item.text)" /> }
-                      <input class="resp-input" type="text" [ngModel]="item.text" (ngModelChange)="updateCustomItem(cs.id,item.id,$event)" placeholder="Item text…" />
+                      <input class="resp-input" type="text" [ngModel]="item.text" (ngModelChange)="updateCustomItem(cs.id,item.id,$event)" [placeholder]="translate.t().cvBuilder.custom.itemText" />
                       <button class="btn-x sm" (click)="removeCustomItem(cs.id,item.id)">✕</button>
                     </div>
                   }
-                  <button class="btn-add-sub mt-sm" (click)="addCustomItem(cs.id)">+ Add Item</button>
+                  <button class="btn-add-sub mt-sm" (click)="addCustomItem(cs.id)">{{ translate.t().cvBuilder.custom.addItemBtn }}</button>
                 </div>
               }
             }
@@ -410,21 +565,21 @@
   </div>
 
   <div class="cv-footer">
-    Last saved: {{ '' | date:'dd MMM yyyy, HH:mm' }} · v{{ cv().version }} · title: {{ cv().title }}
+    {{ translate.t().cvBuilder.lastSaved }} {{ '' | date:'dd MMM yyyy, HH:mm' }} · {{ translate.t().cvBuilder.versionLabel }}{{ cv().version }} · {{ translate.t().cvBuilder.titleLabel }} {{ cv().title }}
   </div>
 
   <!-- Save As / Rename Title Dialog -->
   @if (titleDialogMode()) {
     <div class="modal-overlay" (click)="closeTitleDialog()">
       <div class="modal-dialog" (click)="$event.stopPropagation()">
-        <h3>{{ titleDialogMode() === 'saveAs' ? 'Save CV As' : 'Rename CV' }}</h3>
-        <p class="modal-hint">{{ titleDialogMode() === 'saveAs' ? 'Enter a title for the new CV version' : 'Enter a new title for this CV version' }}</p>
+        <h3>{{ titleDialogMode() === 'saveAs' ? translate.t().cvBuilder.modals.saveAsTitle : translate.t().cvBuilder.modals.renameTitle }}</h3>
+        <p class="modal-hint">{{ titleDialogMode() === 'saveAs' ? translate.t().cvBuilder.modals.saveAsHint : translate.t().cvBuilder.modals.renameHint }}</p>
         <div class="modal-input-group">
-          <input type="text" class="modal-input" [(ngModel)]="dialogTitle" placeholder="e.g. CV - Senior Developer" autofocus />
+          <input type="text" class="modal-input" [(ngModel)]="dialogTitle" [placeholder]="translate.t().cvBuilder.modals.placeholderTitle" autofocus />
         </div>
         <div class="modal-actions">
-          <button class="btn-secondary" (click)="closeTitleDialog()">Cancel</button>
-          <button class="btn-primary" (click)="confirmTitleDialog()">{{ titleDialogMode() === 'saveAs' ? 'Save As' : 'Rename' }}</button>
+          <button class="btn-secondary" (click)="closeTitleDialog()">{{ translate.t().common.cancel }}</button>
+          <button class="btn-primary" (click)="confirmTitleDialog()">{{ titleDialogMode() === 'saveAs' ? translate.t().cvBuilder.modals.saveAsBtn : translate.t().cvBuilder.modals.renameBtn }}</button>
         </div>
       </div>
     </div>

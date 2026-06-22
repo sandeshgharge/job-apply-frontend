@@ -8,6 +8,7 @@ import { selectUserID } from '../utils/store/auth/auth.selectors';
 import { selectCurrentCV, selectCVInfoList } from '../utils/store/cv/cv.selectors';
 import { saveNewCVInfo, saveNewCVInfoSuccess, selectCVVersion, updateCVInfo } from '../utils/store/cv/cv.actions';
 import { CvService } from '@app/utils/services/cv.service';
+import { TranslationService } from '@app/utils/services/translation/translation.service';
 
 
 
@@ -26,6 +27,7 @@ export class CvBuilderComponent implements OnInit {
   private toast = inject(ToastService);
   private store = inject(Store);
   private cvService = inject(CvService);
+  public translate = inject(TranslationService);
 
   cv = this.cvService.draftCV;
   cvInfoList = this.store.selectSignal(selectCVInfoList);
@@ -72,7 +74,7 @@ export class CvBuilderComponent implements OnInit {
         },
       }
     }));
-    this.toast.show('Skills pre-filled from job description!');
+    this.toast.show(this.translate.t().cvBuilder.toastPrefilled);
   }
 
   // Global edit mode — shows checkboxes and edit controls
@@ -95,6 +97,27 @@ export class CvBuilderComponent implements OnInit {
   newSoftInput = signal('');
   newToolInput = signal('');
   newFrameworkInput = signal('');
+  newHtmlInput = signal('');
+
+  getSectionLabel(id: string): string {
+    const keys: Record<string, string> = {
+      personal: 'personalInfo',
+      summary: 'professionalSummary',
+      experience: 'workExperience',
+      education: 'education',
+      skills: 'skills',
+      projects: 'projects',
+      certifications: 'certifications',
+      awards: 'awards',
+      publications: 'publications',
+      volunteer: 'volunteerExperience',
+      interests: 'interests',
+      references: 'references',
+      custom: 'customSections'
+    };
+    const key = keys[id];
+    return key ? (this.translate.t().cvBuilder.sections as any)[key] || id : id;
+  }
 
   // Sections config — drives order and visibility
   sections = signal<CvSection[]>([
@@ -149,7 +172,7 @@ export class CvBuilderComponent implements OnInit {
   confirmTitleDialog() {
     const title = this.dialogTitle.trim();
     if (!title) {
-      this.toast.show('Title is required', 'error');
+      this.toast.show(this.translate.t().cvBuilder.toastTitleRequired, 'error');
       return;
     }
 
@@ -159,7 +182,7 @@ export class CvBuilderComponent implements OnInit {
       this.store.dispatch(saveNewCVInfo({ cvInfo: this.cv() }));
     } else {
       this.store.dispatch(updateCVInfo({ cvInfo: this.cv() }));
-      this.toast.show('Title updated!');
+      this.toast.show(this.translate.t().cvBuilder.toastTitleUpdated);
     }
 
     this.closeTitleDialog();
@@ -170,9 +193,9 @@ export class CvBuilderComponent implements OnInit {
   }
 
   clearCv() {
-    if (!confirm('Clear all CV data? This cannot be undone.')) return;
+    if (!confirm(this.translate.t().cvBuilder.clearConfirm)) return;
     this.cvService.clearDraft();
-    this.toast.show('CV cleared.', 'info');
+    this.toast.show(this.translate.t().cvBuilder.toastCleared, 'info');
   }
 
   // ── CV Data Helpers ────────────────────────────────────────────

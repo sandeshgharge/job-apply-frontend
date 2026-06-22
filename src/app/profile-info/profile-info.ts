@@ -6,6 +6,7 @@ import { Store } from '@ngrx/store';
 import { selectProfileInfo } from '../utils/store/profile/profile.selector';
 import { updateProfileInfo } from '../utils/store/profile/profile.actions';
 import { ProfileService } from '@app/utils/services/profile.service';
+import { TranslationService } from '@app/utils/services/translation/translation.service';
 
 @Component({
   selector: 'app-profile-info',
@@ -18,6 +19,7 @@ export class ProfileInfoComponent implements OnInit {
   private toast = inject(ToastService);
   private profileService = inject(ProfileService);
   private store = inject(Store);
+  public translate = inject(TranslationService);
 
   profileImageUrl = signal<string>('');
   signatureImageUrl = signal<string>('');
@@ -73,14 +75,14 @@ export class ProfileInfoComponent implements OnInit {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      this.toast.show('Please select a valid image file', 'error');
+      this.toast.show(this.translate.t().profile.toastValidImage, 'error');
       return;
     }
 
     // Validate file size (max 1MB)
     const maxSize = 1024 * 1024;
     if (file.size > maxSize) {
-      this.toast.show('Image must be smaller than 1MB', 'error');
+      this.toast.show(this.translate.t().profile.toastImageSize, 'error');
       return;
     }
 

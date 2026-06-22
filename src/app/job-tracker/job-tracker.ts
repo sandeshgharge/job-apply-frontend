@@ -5,6 +5,7 @@ import { JobDetails, JobStatus } from '../utils/entities/job-details';
 import { Store } from '@ngrx/store';
 import { selectAllJobs, selectJobsLoading } from '../utils/store/jobs/jobs.selectors';
 import { addJob, updateJob, deleteJob } from '../utils/store/jobs/jobs.actions';
+import { TranslationService } from '../utils/services/translation/translation.service';
 
 @Component({
   selector: 'app-job-tracker',
@@ -14,6 +15,7 @@ import { addJob, updateJob, deleteJob } from '../utils/store/jobs/jobs.actions';
 })
 export class JobTrackerComponent {
   private store = inject(Store);
+  public translate = inject(TranslationService);
 
   jobs = this.store.selectSignal(selectAllJobs);
   jobsLoading = this.store.selectSignal(selectJobsLoading);
@@ -65,9 +67,25 @@ export class JobTrackerComponent {
   }
 
   deleteJobById(id: string) {
-    if (confirm('Delete this application?')) {
+    if (confirm(this.translate.t().jobTracker.deleteConfirm)) {
       this.store.dispatch(deleteJob({ id }));
     }
+  }
+
+  translateStatus(status: JobStatus | string | undefined): string {
+    if (!status) return '';
+    const keyMap: Record<string, string> = {
+      'Open': 'open',
+      'Applied': 'applied',
+      '1st Interview': 'interview1',
+      '2nd Interview': 'interview2',
+      '3rd Interview': 'interview3',
+      'Offer': 'offer',
+      'Rejected': 'rejected',
+      'Withdrawn': 'withdrawn'
+    };
+    const key = keyMap[status];
+    return key ? (this.translate.t().statuses as any)[key] || status : status;
   }
 
   updateFormStatus(status: JobStatus) { this.form.update(f => ({ ...f, status })); }

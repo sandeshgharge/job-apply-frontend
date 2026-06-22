@@ -13,6 +13,7 @@ import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, selectCoverLette
 import { LocalAiService } from '../utils/services/local-ai-service';
 import { firstValueFrom } from 'rxjs';
 import { CLService } from '@app/utils/services/cl.service';
+import { TranslationService } from '@app/utils/services/translation/translation.service';
 
 @Component({
   selector: 'app-cover-letter',
@@ -26,6 +27,7 @@ export class CoverLetterComponent implements OnInit {
   private store = inject(Store);
   private aiService = inject(LocalAiService);
   private clService = inject(CLService);
+  public translate = inject(TranslationService);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
   jobDetails = this.jobsService.jobDetails$;
@@ -137,7 +139,7 @@ export class CoverLetterComponent implements OnInit {
   confirmTitleDialog() {
     const title = this.dialogTitle.trim();
     if (!title) {
-      this.toast.show('Title is required', 'error');
+      this.toast.show(this.translate.t().cvBuilder.toastTitleRequired, 'error');
       return;
     }
 
@@ -148,7 +150,7 @@ export class CoverLetterComponent implements OnInit {
       this.store.dispatch(saveNewCoverLetterInfo({ coverLetterInfo: this.coverLetterInfo() }));
     } else {
       this.store.dispatch(updateCoverLetterInfo({ coverLetterInfo: this.coverLetterInfo() }));
-      this.toast.show('Title updated!');
+      this.toast.show(this.translate.t().cvBuilder.toastTitleUpdated);
     }
 
     this.closeTitleDialog();
@@ -439,9 +441,9 @@ export class CoverLetterComponent implements OnInit {
   }
 
   clearCoverLetter() {
-    if (!confirm('Clear all Cover Letter data? This cannot be undone.')) return;
+    if (!confirm(this.translate.currentLang() === 'de' ? 'Möchten Sie alle Anschreiben-Daten löschen? Dies kann nicht rückgängig gemacht werden.' : 'Clear all Cover Letter data? This cannot be undone.')) return;
     this.clService.clearDraft();
-    this.toast.show('Cover Letter cleared.', 'info');
+    this.toast.show(this.translate.currentLang() === 'de' ? 'Anschreiben gelöscht.' : 'Cover Letter cleared.', 'info');
   }
 
   updateTitle(event: any) {

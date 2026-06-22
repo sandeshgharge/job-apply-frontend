@@ -3,12 +3,12 @@
   <!-- ── Header ──────────────────────────────────────────────── -->
   <div class="page-header">
     <div>
-      <h2>Profile Information</h2>
-      <p class="subtitle">Your personal details · used across applications</p>
+      <h2>{{ translate.t().profile.title }}</h2>
+      <p class="subtitle">{{ translate.t().profile.subtitle }}</p>
     </div>
     <div class="header-actions">
       <button class="btn-save" (click)="saveChanges()" [disabled]="!isDirty()">
-        💾 Save Changes
+        {{ translate.t().profile.saveBtn }}
       </button>
     </div>
   </div>
@@ -22,12 +22,12 @@
         @if (profileImageUrl()) {
           <img [src]="profileImageUrl()" alt="Profile photo" class="upload-preview" />
           <div class="upload-overlay">
-            <span>Change Photo</span>
+            <span>{{ translate.t().profile.changePhoto }}</span>
           </div>
         } @else {
           <div class="upload-placeholder">
             <span class="upload-icon">📷</span>
-            <span class="upload-label">Upload Photo</span>
+            <span class="upload-label">{{ translate.t().profile.uploadPhoto }}</span>
           </div>
         }
         <input #profileImageInput type="file" accept="image/*"
@@ -36,35 +36,35 @@
 
       <!-- Name & Basic Info -->
       <div class="identity-fields">
-        <h3 class="panel-title">Personal Details</h3>
+        <h3 class="panel-title">{{ translate.t().profile.personalDetailsTitle }}</h3>
         <div class="fields-grid">
           <div class="field">
-            <label for="firstName">First Name</label>
+            <label for="firstName">{{ translate.t().profile.firstName }}</label>
             <input type="text" id="firstName" name="firstName"
               [ngModel]="profile().firstName"
-              (input)="onFieldChange('firstName', $event.target.value)"
-              placeholder="e.g. Maria" />
+              (input)="onFieldChange('firstName', $any($event.target).value)"
+              [placeholder]="translate.t().profile.placeholderFirstName" />
           </div>
           <div class="field">
-            <label for="lastName">Last Name</label>
+            <label for="lastName">{{ translate.t().profile.lastName }}</label>
             <input type="text" id="lastName" name="lastName"
               [ngModel]="profile().lastName"
-              (input)="onFieldChange('lastName', $event.target.value)"
-              placeholder="e.g. Müller" />
+              (input)="onFieldChange('lastName', $any($event.target).value)"
+              [placeholder]="translate.t().profile.placeholderLastName" />
           </div>
           <div class="field">
-            <label for="email">Email</label>
+            <label for="email">{{ translate.t().profile.email }}</label>
             <input type="email" id="email" name="email"
               [ngModel]="profile().email"
-              (input)="onFieldChange('email', $event.target.value)"
-              placeholder="e.g. maria@example.com" />
+              (input)="onFieldChange('email', $any($event.target).value)"
+              [placeholder]="translate.t().profile.placeholderEmail" />
           </div>
           <div class="field">
-            <label for="location">Location</label>
+            <label for="location">{{ translate.t().profile.location }}</label>
             <input type="text" id="location" name="location"
               [ngModel]="profile().location"
-              (input)="onFieldChange('location', $event.target.value)"
-              placeholder="e.g. Berlin, Germany" />
+              (input)="onFieldChange('location', $any($event.target).value)"
+              [placeholder]="translate.t().profile.placeholderLocation" />
           </div>
         </div>
       </div>
@@ -74,20 +74,20 @@
 
   <!-- ── Signature ───────────────────────────────────────────── -->
   <div class="panel">
-    <h3 class="panel-title">Signature</h3>
+    <h3 class="panel-title">{{ translate.t().profile.signatureTitle }}</h3>
     <p class="panel-hint">
-      Upload an image of your handwritten signature. Used in cover letters and formal documents.
+      {{ translate.t().profile.signatureHint }}
     </p>
     <div class="signature-upload-zone" (click)="signatureImageInput.click()">
       @if (signatureImageUrl()) {
         <img [src]="signatureImageUrl()" alt="Signature" class="signature-preview" />
         <div class="signature-overlay">
-          <span>Change Signature</span>
+          <span>{{ translate.t().profile.changeSignature }}</span>
         </div>
       } @else {
         <div class="upload-placeholder signature-placeholder">
           <span class="upload-icon">✍️</span>
-          <span class="upload-label">Upload Signature Image</span>
+          <span class="upload-label">{{ translate.t().profile.uploadSignature }}</span>
         </div>
       }
       <input #signatureImageInput type="file" accept="image/*"
@@ -97,31 +97,31 @@
 
   <!-- ── AI Configuration ────────────────────────────────────── -->
   <div class="panel ai-panel">
-    <h3 class="panel-title">AI Configuration</h3>
+    <h3 class="panel-title">{{ translate.t().profile.aiTitle }}</h3>
     <p class="panel-hint">
-      Configure your AI agent endpoint for cover letter generation, CV assistance, and more.
+      {{ translate.t().profile.aiHint }}
     </p>
     <div class="fields-grid">
       <div class="field field-full">
-        <label for="agentApiUrl">Agent API URL</label>
+        <label for="agentApiUrl">{{ translate.t().profile.agentUrl }}</label>
         <input type="url" id="agentApiUrl" name="agentApiUrl"
           [ngModel]="profile().agentApiUrl"
-          (input)="onFieldChange('agentApiUrl', $event.target.value)"
-          placeholder="https://api.example.com/v1" />
+          (input)="onFieldChange('agentApiUrl', $any($event.target).value)"
+          [placeholder]="translate.t().profile.placeholderAgentUrl" />
       </div>
       <div class="field">
-        <label for="agentApiKey">Agent API Key</label>
+        <label for="agentApiKey">{{ translate.t().profile.agentKey }}</label>
         <input type="text" id="agentApiKey" name="agentApiKey"
           [ngModel]="profile().agentApiKey"
-          (input)="onFieldChange('agentApiKey', $event.target.value)"
-          placeholder="sk-..." />
+          (input)="onFieldChange('agentApiKey', $any($event.target).value)"
+          [placeholder]="translate.t().profile.placeholderAgentKey" />
       </div>
       <div class="field">
-        <label for="modelName">Model Name</label>
+        <label for="modelName">{{ translate.t().profile.modelName }}</label>
         <input type="text" id="modelName" name="modelName"
           [ngModel]="profile().modelName"
-          (input)="onFieldChange('modelName', $event.target.value)"
-          placeholder="e.g. claude-3-opus" />
+          (input)="onFieldChange('modelName', $any($event.target).value)"
+          [placeholder]="translate.t().profile.placeholderModelName" />
       </div>
     </div>
   </div>

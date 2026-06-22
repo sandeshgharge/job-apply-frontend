@@ -63,6 +63,21 @@
   gap: 12px;
   min-width: 170px;
   justify-content: flex-end;
+
+  .lang-select {
+    padding: 4px 8px;
+    border: 1px solid var(--border-dark);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+    &:focus {
+      border-color: var(--primary);
+    }
+  }
 }
 
 .theme-btn {

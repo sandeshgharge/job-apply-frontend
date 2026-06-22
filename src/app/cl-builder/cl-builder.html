@@ -3,8 +3,8 @@
   <!-- ── Header ──────────────────────────────────────────────── -->
   <div class="page-header">
     <div>
-      <h2>Cover Letter Generator</h2>
-      <p class="subtitle">AI-assisted · tailored for the German job market</p>
+      <h2>{{ translate.t().clBuilder.title }}</h2>
+      <p class="subtitle">{{ translate.t().clBuilder.subtitle }}</p>
     </div>
     <div class="header-actions">
       <select class="cv-version-select" (change)="onVersionChange($event)">
@@ -15,13 +15,13 @@
       @if (clInfoList().length > 0) {
         <button class="btn-edit-title" (click)="openRenameTitleDialog()" title="Rename selected version">✎</button>
       }
-      <button class="btn-action" (click)="saveNow()">💾 Save</button>
-      <button class="btn-action" (click)="openSaveAsDialog()">💾 SaveAs</button>
+      <button class="btn-action" (click)="saveNow()">{{ translate.t().cvBuilder.saveBtn }}</button>
+      <button class="btn-action" (click)="openSaveAsDialog()">{{ translate.t().cvBuilder.saveAsBtn }}</button>
       <button class="btn-outline" (click)="previewMode.set(!previewMode())">
-        {{ previewMode() ? '← Editor' : '👁 Preview' }}
+        {{ previewMode() ? translate.t().clBuilder.editorBtn : translate.t().clBuilder.previewBtn }}
       </button>
       <button class="btn-generate" (click)="generateFullLetter()">
-        ✦ Generate Full Letter
+        {{ translate.t().clBuilder.generateFull }}
       </button>
     </div>
   </div>
@@ -30,40 +30,40 @@
 
     <!-- ── Applicant & Position ────────────────────────────────── -->
     <div class="panel">
-      <h3 class="panel-title">Applicant & Position Details</h3>
+      <h3 class="panel-title">{{ translate.t().clBuilder.detailsTitle }}</h3>
       <div class="fields-grid">
         <div class="field">
-          <label>Applicant Name</label>
-          <input type="text" placeholder="e.g. Maria Müller"
+          <label>{{ translate.t().clBuilder.applicantName }}</label>
+          <input type="text" [placeholder]="translate.t().clBuilder.placeholderApplicantName"
             [ngModel]="meta().applicantName" />
         </div>
         <div class="field">
-          <label>Applicant Location</label>
-          <input type="text" placeholder="e.g. Berlin, Germany"
+          <label>{{ translate.t().clBuilder.applicantLocation }}</label>
+          <input type="text" [placeholder]="translate.t().clBuilder.placeholderApplicantLocation"
             [ngModel]="meta().applicantLocation" />
         </div>
         <div class="field">
-          <label>Company Name</label>
-          <input type="text" placeholder="e.g. SAP SE"
+          <label>{{ translate.t().clBuilder.companyName }}</label>
+          <input type="text" [placeholder]="translate.t().clBuilder.placeholderCompanyName"
             [ngModel]="(jobDetails | async)?.companyName" (ngModelChange)="updateField('companyName', $event)" />
         </div>
         <div class="field">
-          <label>Company Location</label>
-          <input type="text" placeholder="e.g. Waldorf, Germany"
+          <label>{{ translate.t().clBuilder.companyLocation }}</label>
+          <input type="text" [placeholder]="translate.t().clBuilder.placeholderCompanyLocation"
             [ngModel]="(jobDetails | async)?.companyLocation" (ngModelChange)="updateField('companyLocation', $event)" />
         </div>
         <div class="field">
-          <label>Role</label>
-          <input type="text" placeholder="e.g. Senior Frontend Developer"
+          <label>{{ translate.t().clBuilder.role }}</label>
+          <input type="text" [placeholder]="translate.t().clBuilder.placeholderRole"
             [ngModel]="(jobDetails | async)?.role" (ngModelChange)="updateField('role', $event)" />
         </div>
         <div class="field">
-          <label>Hiring Manager</label>
-          <input type="text" placeholder="e.g. Frau Schmidt"
+          <label>{{ translate.t().clBuilder.hiringManager }}</label>
+          <input type="text" [placeholder]="translate.t().clBuilder.placeholderHiringManager"
             [ngModel]="(jobDetails | async)?.contactName" (ngModelChange)="updateField('contactName', $event)" />
         </div>
         <div class="field">
-          <label>Date</label>
+          <label>{{ translate.t().clBuilder.date }}</label>
           <input type="date"
             [ngModel]="(jobDetails | async)?.appliedDate" (ngModelChange)="updateField('appliedDate', $event)" />
         </div>
@@ -74,16 +74,15 @@
     <div class="panel common-prompt-panel">
       <div class="common-prompt-header">
         <div>
-          <h3 class="panel-title">Common AI Prompt</h3>
+          <h3 class="panel-title">{{ translate.t().clBuilder.aiPromptTitle }}</h3>
           <p class="panel-hint">
-            Applied to every section. Add your background, tone preference, key skills, or anything
-            the AI should always keep in mind when writing.
+            {{ translate.t().clBuilder.aiPromptHint }}
           </p>
         </div>
       </div>
       <textarea class="common-prompt-input"
         rows="4"
-        placeholder="e.g. I have 5 years of Angular experience, worked in agile teams, and am fluent in German (B2). Keep the tone confident but not arrogant. Emphasise my leadership skills and passion for clean code."
+        [placeholder]="translate.t().clBuilder.placeholderAiPrompt"
         [ngModel]="coverLetterInfo().clData.commonPrompt"
         (ngModelChange)="updateCommonPrompt($event)">
       </textarea>
@@ -91,8 +90,8 @@
 
     <!-- ── Sections ───────────────────────────────────────────── -->
     <div class="sections-header">
-      <h3 class="panel-title">Cover Letter Sections</h3>
-      <button class="btn-add" (click)="addSection()">+ Add Section</button>
+      <h3 class="panel-title">{{ translate.t().clBuilder.sectionsTitle }}</h3>
+      <button class="btn-add" (click)="addSection()">{{ translate.t().clBuilder.addSection }}</button>
     </div>
 
     @for (section of coverLetterInfo().clData.sectionPrompts; track section.id) {
@@ -103,7 +102,7 @@
           <input class="section-title-input"
             [ngModel]="section.title"
             (ngModelChange)="updateSection(section.id, 'title', $event)"
-            placeholder="Section title" />
+            [placeholder]="translate.t().clBuilder.sectionTitlePlaceholder" />
           <button class="btn-remove" (click)="removeSection(section.id)" title="Remove section">✕</button>
         </div>
 
@@ -111,25 +110,25 @@
         <textarea class="section-content"
           [ngModel]="section.content"
           (ngModelChange)="updateSection(section.id, 'content', $event)"
-          placeholder="AI response will appear here. You can also write or edit manually."
+          [placeholder]="translate.t().clBuilder.sectionContentPlaceholder"
           rows="4">
         </textarea>
 
         <!-- Section-specific prompt + generate button -->
         <div class="section-ai-row">
           <div class="section-prompt-wrap">
-            <span class="prompt-label">Section prompt</span>
+            <span class="prompt-label">{{ translate.t().clBuilder.sectionPromptLabel }}</span>
             <input class="prompt-input"
               [ngModel]="section.sectionPrompt"
               (ngModelChange)="updateSection(section.id, 'sectionPrompt', $event)"
-              placeholder="Optional — override or add to the common prompt for this section only" />
+              [placeholder]="translate.t().clBuilder.sectionPromptPlaceholder" />
           </div>
           <button class="btn-ai"
             (click)="generateSection(section.id)"
             [disabled]="section.loading"
             [title]="'Common prompt + section prompt will be sent together'">
-            @if (section.loading) { <span class="spinner-sm"></span> Generating… }
-            @else { ✦ Generate }
+            @if (section.loading) { <span class="spinner-sm"></span> {{ translate.t().clBuilder.generating }} }
+            @else { {{ translate.t().clBuilder.generateSectionBtn }} }
           </button>
         </div>
 
@@ -138,7 +137,7 @@
 
     @if (coverLetterInfo().clData.sectionPrompts.length === 0) {
       <div class="empty-sections">
-        No sections yet. Click <strong>Add Section</strong> or <strong>Generate Full Letter</strong>.
+        {{ translate.t().clBuilder.emptySections }}
       </div>
     }
 
@@ -148,25 +147,25 @@
   @if (previewMode()) {
     <div class="panel preview-panel">
       <div class="preview-toolbar">
-        <span class="panel-title">Letter Preview</span>
+        <span class="panel-title">{{ translate.t().clBuilder.previewTitle }}</span>
         <button class="btn-outline" (click)="copyToClipboard()">
-          {{ copySuccess() ? '✓ Copied!' : '⎘ Copy to Clipboard' }}
+          {{ copySuccess() ? translate.t().clBuilder.copiedBtn : translate.t().clBuilder.copyBtn }}
         </button>
       </div>
       <div class="letter-preview">
         <div class="letter-meta-block">
           <div class="letter-sender">
-            <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
+            <strong>{{ meta().applicantName || translate.t().clBuilder.yourNamePlaceholder }}</strong>
             <span>{{ meta().applicantLocation }}</span>
           </div>
-          <div class="letter-date">{{ formatDisplayDate('') }}</div>
+          <div class="letter-date">{{ formatDisplayDate(meta().date) }}</div>
         </div>
         <div class="letter-recipient">
           <div>{{ (jobDetails | async)?.companyName }}</div>
           <div>{{ (jobDetails | async)?.companyLocation }}</div>
         </div>
         <div class="letter-salutation">
-          Dear {{ (jobDetails | async)?.contactName || 'Hiring Team' }},
+          {{ translate.t().clBuilder.salutationPlaceholder }}
         </div>
         @for (section of coverLetterInfo().clData.sectionPrompts; track section.id) {
           @if (section.content) {
@@ -177,8 +176,8 @@
           }
         }
         <div class="letter-closing">
-          <p>Yours sincerely,</p>
-          <strong>{{ meta().applicantName || '[Your Name]' }}</strong>
+          <p>{{ translate.t().clBuilder.closingPlaceholder }}</p>
+          <strong>{{ meta().applicantName || translate.t().clBuilder.yourNamePlaceholder }}</strong>
         </div>
       </div>
     </div>
@@ -187,14 +186,14 @@
   @if (titleDialogMode()) {
     <div class="modal-overlay" (click)="closeTitleDialog()">
       <div class="modal-dialog" (click)="$event.stopPropagation()">
-        <h3>{{ titleDialogMode() === 'saveAs' ? 'Save Cover Letter As' : 'Rename Cover Letter' }}</h3>
-        <p class="modal-hint">{{ titleDialogMode() === 'saveAs' ? 'Enter a title for the new cover letter version' : 'Enter a new title for this cover letter version' }}</p>
+        <h3>{{ titleDialogMode() === 'saveAs' ? translate.t().clBuilder.modals.saveAsTitle : translate.t().clBuilder.modals.renameTitle }}</h3>
+        <p class="modal-hint">{{ titleDialogMode() === 'saveAs' ? translate.t().clBuilder.modals.saveAsHint : translate.t().clBuilder.modals.renameHint }}</p>
         <div class="modal-input-group">
-          <input type="text" class="modal-input" [(ngModel)]="dialogTitle" placeholder="e.g. Cover Letter - Senior Developer" autofocus />
+          <input type="text" class="modal-input" [(ngModel)]="dialogTitle" [placeholder]="translate.t().clBuilder.modals.placeholderTitle" autofocus />
         </div>
         <div class="modal-actions">
-          <button class="btn-secondary" (click)="closeTitleDialog()">Cancel</button>
-          <button class="btn-primary" (click)="confirmTitleDialog()">{{ titleDialogMode() === 'saveAs' ? 'Save As' : 'Rename' }}</button>
+          <button class="btn-secondary" (click)="closeTitleDialog()">{{ translate.t().common.cancel }}</button>
+          <button class="btn-primary" (click)="confirmTitleDialog()">{{ titleDialogMode() === 'saveAs' ? translate.t().clBuilder.modals.saveAsBtn : translate.t().clBuilder.modals.renameBtn }}</button>
         </div>
       </div>
     </div>
