@@ -75,7 +75,6 @@ export class CvBuilderComponent implements OnInit {
         },
       }
     }));
-    this.toast.show(this.translate.t().cvBuilder.toastPrefilled);
   }
 
   // Global edit mode — shows checkboxes and edit controls
