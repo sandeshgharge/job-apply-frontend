@@ -117,7 +117,7 @@ export class ApplyPreviewComponent {
       const url = window.URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = type === 'cv' ? [name, "CV", ".pdf"].join("_") : [name, "CoverLetter", ".pdf"].join("_");
+      link.download = type === 'cv' ? [name, "CV.pdf"].join("_") : [name, "CoverLetter.pdf"].join("_");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
