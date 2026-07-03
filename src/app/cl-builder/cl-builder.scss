@@ -255,8 +255,9 @@
 
 /* ── Section AI row ────────────────────────────────────── */
 .section-ai-row {
+  margin-top: 0.75rem;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 8px;
 }
 
@@ -439,7 +440,9 @@
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
+  align-self: stretch;
 
   &:hover:not(:disabled) { background: rgba(109, 40, 217, 0.15); }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
