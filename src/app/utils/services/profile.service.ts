@@ -3,15 +3,16 @@ import { Store } from "@ngrx/store";
 import { selectUserID } from "../store/auth/auth.selectors";
 import { ProfileInfo } from "../entities/user";
 import { FileService } from "./file.service";
-import { BackendApiService } from "./backend-service/backend-api-services";
+import { HttpClient } from "@angular/common/http";
 import { environment } from "src/environments/environment";
 import { firstValueFrom } from "rxjs";
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
 
-    private backendApi = inject(BackendApiService);
+    private http = inject(HttpClient);
     private store = inject(Store);
+    private readonly baseUrl = environment.backendAiApiURL;
 
     userId = this.store.selectSignal(selectUserID);
     bucket = environment.PROFILE_ASSETS_BUCKET;
@@ -19,13 +20,13 @@ export class ProfileService {
 
     getProfile() {
         return firstValueFrom(
-            this.backendApi.get<any>(`profile/${this.userId()}`)
+            this.http.get<any>(`${this.baseUrl}profile/${this.userId()}`)
         );
     }
 
     updateProfile(profileInfo: ProfileInfo) {
         return firstValueFrom(
-            this.backendApi.put<any>(`profile/${this.userId()}`, profileInfo)
+            this.http.put<any>(`${this.baseUrl}profile/${this.userId()}`, profileInfo)
         );
     }
 
@@ -59,7 +60,7 @@ export class ProfileService {
 
     getImageUrl(fileName: string, expiresIn = 3600): Promise<any> {
         return firstValueFrom(
-            this.backendApi.get<any>(`profile/${this.userId()}/image-url?fileName=${encodeURIComponent(fileName)}&bucket=${encodeURIComponent(this.bucket)}&expiresIn=${expiresIn}`)
+            this.http.get<any>(`${this.baseUrl}profile/${this.userId()}/image-url?fileName=${encodeURIComponent(fileName)}&bucket=${encodeURIComponent(this.bucket)}&expiresIn=${expiresIn}`)
         ).then((signed_url: any) => {
             return signed_url ?? null;
         }).catch((error: any) => {

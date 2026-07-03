@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../store/auth/auth.selectors';
 import { Observable, firstValueFrom } from 'rxjs';
-import { BackendApiService } from './backend-service/backend-api-services';
 import { environment } from 'src/environments/environment';
 
 /**
@@ -45,13 +44,10 @@ export class FileService {
     formData.append('file_path', filePath);
 
     try {
-      const token = sessionStorage.getItem('access_token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
       const response = await firstValueFrom(
         this.http.post<{ public_url: string }>(
           `${environment.backendAiApiURL}storage/upload`,
-          formData,
-          { headers }
+          formData
         )
       );
       console.log(`[FileService] Upload response for ${filePath}:`, response);

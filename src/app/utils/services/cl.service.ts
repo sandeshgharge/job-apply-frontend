@@ -1,11 +1,13 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { BackendApiService } from './backend-service/backend-api-services';
+import { HttpClient } from '@angular/common/http';
 import { CoverLetterInfo, defaultcl } from '@app/utils/entities/cover-letter';
 import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CLService {
-  private backendApi = inject(BackendApiService);
+  private http = inject(HttpClient);
+  private readonly baseUrl = environment.backendAiApiURL;
 
   // --- Draft State ---
   draftCoverLetter = signal<CoverLetterInfo>(defaultcl());
@@ -24,27 +26,27 @@ export class CLService {
    * Save a cover letter
    */
   saveCoverLetter(clInfo: CoverLetterInfo): Observable<CoverLetterInfo> {
-    return this.backendApi.put('cover-letter/' + clInfo.id, clInfo);
+    return this.http.put<CoverLetterInfo>(`${this.baseUrl}cover-letter/${clInfo.id}`, clInfo);
   }
 
   /**
    * Save cover letter as (create a copy)
    */
   saveAsCoverLetter(clInfo: CoverLetterInfo): Observable<any> {
-    return this.backendApi.post('cover-letter', clInfo);
+    return this.http.post<any>(`${this.baseUrl}cover-letter`, clInfo);
   }
 
   /**
    * Get all cover letters
    */
   getCoverLetters(uID: string): Observable<CoverLetterInfo[]> {
-    return this.backendApi.get('cover-letter/user/' + uID);
+    return this.http.get<CoverLetterInfo[]>(`${this.baseUrl}cover-letter/user/${uID}`);
   }
 
   /**
    * Delete a cover letter
    */
-  async deleteCoverLetter(id: string): Promise<any> {
-    return this.backendApi.delete(`cover-letter/${id}`);
+  deleteCoverLetter(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}cover-letter/${id}`);
   }
 }

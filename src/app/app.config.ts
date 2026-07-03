@@ -7,14 +7,15 @@ import { provideEffects } from '@ngrx/effects';
 import { reducers } from './utils/store/app.reducer';
 import { effects } from './utils/store/app.effects';
 import { autoLogin } from './utils/store/auth/auth.actions';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './utils/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes), 
     provideStore(reducers), 
     provideEffects(effects),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideAppInitializer(() => {
       const store = inject(Store);  // ← inject directly inside the factory
       console.log("Initializing authentication...");

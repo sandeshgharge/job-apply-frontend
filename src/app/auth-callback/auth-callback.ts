@@ -1,9 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@app/utils/services/auth.service';
-import { BackendApiService } from '@app/utils/services/backend-service/backend-api-services';
+import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-auth-callback',
@@ -14,7 +15,8 @@ import { TranslationService } from '@app/utils/services/translation/translation.
 export class AuthCallback {
 
   private router = inject(Router);
-  private backendApi = inject(BackendApiService);
+  private http = inject(HttpClient);
+  private readonly baseUrl = environment.backendAiApiURL;
   private authService = inject(AuthService);
   public translate = inject(TranslationService);
 
@@ -45,7 +47,7 @@ export class AuthCallback {
     }
 
     const profile = await firstValueFrom(
-      this.backendApi.get<any>(`profile/${session.user.id}`)
+      this.http.get<any>(`${this.baseUrl}profile/${session.user.id}`)
     );
 
     console.log('User profile:', profile);

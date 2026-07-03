@@ -2,8 +2,7 @@ import { Injectable, signal, inject, effect } from '@angular/core';
 import { StorageService } from './storage.service';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { JobDetails } from '@app/utils/entities/job-details';
-
-import { BackendApiService } from './backend-service/backend-api-services';
+import { HttpClient } from '@angular/common/http';
 import { FileService } from './file.service';
 import { firstValueFrom, map } from 'rxjs';
 import { selectUserID } from '../store/auth/auth.selectors';
@@ -13,11 +12,13 @@ import { CoverLetterDocInfo } from '../entities/cover-letter';
 import { CvData } from '../entities/cv';
 import { selectAllJobs } from '../store/jobs/jobs.selectors';
 import { addJob } from '../store/jobs/jobs.actions';
+import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class JobsService {
   private storage = inject(StorageService);
-  private backendApi = inject(BackendApiService);
+  private http = inject(HttpClient);
+  private readonly baseUrl = environment.backendAiApiURL;
   private store = inject(Store);
   private toastService = inject(ToastService);
 
@@ -70,12 +71,12 @@ export class JobsService {
 
   extractJobDescription(url: string): Observable<{ url: string, description: string }> {
     console.log("Sending job URL to backend for extraction:", 'extract-job-description');
-    return this.backendApi.post<{ url: string, description: string }>('extract-job-description', { url });
+    return this.http.post<{ url: string, description: string }>(`${this.baseUrl}extract-job-description`, { url });
   }
 
   extractJobDetails(jobDescription: string): Observable<JobDetails> {
     console.log("Sending job description to backend for extraction:", 'extract-job-data');
-    return this.backendApi.post<JobDetails>('extract-job-data', { job_description: jobDescription });
+    return this.http.post<JobDetails>(`${this.baseUrl}extract-job-data`, { job_description: jobDescription });
   }
 
   // ── Backend CRUD methods (used by NgRx effects) ──────────────
@@ -85,7 +86,7 @@ export class JobsService {
    * TODO: Update URL when backend is ready.
    */
   fetchJobs(): Observable<JobDetails[]> {
-    return this.backendApi.get<JobDetails[]>(`jobs/user/${this.userid()}`);
+    return this.http.get<JobDetails[]>(`${this.baseUrl}jobs/user/${this.userid()}`);
   }
 
   /**
@@ -93,7 +94,7 @@ export class JobsService {
    * TODO: Update URL when backend is ready.
    */
   createJob(job: JobDetails): Observable<JobDetails> {
-    return this.backendApi.post<JobDetails>('jobs/upsert', {
+    return this.http.post<JobDetails>(`${this.baseUrl}jobs/upsert`, {
       ...job,
       userId: this.userid()
     });
@@ -104,7 +105,7 @@ export class JobsService {
    * TODO: Update URL when backend is ready.
    */
   updateJob(id: string, changes: Partial<JobDetails>): Observable<JobDetails> {
-    return this.backendApi.patch<JobDetails>(`jobs/${id}`, changes).pipe(
+    return this.http.patch<JobDetails>(`${this.baseUrl}jobs/${id}`, changes).pipe(
       map((response: any) => ({ ...changes, id } as JobDetails))
     );
   }
@@ -113,20 +114,18 @@ export class JobsService {
    * Delete a job on the backend.
    * TODO: Update URL when backend is ready.
    */
-  deleteJob(id: string) {
-    return this.backendApi.delete<void>(`jobs/${id}`);
+  deleteJob(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}jobs/${id}`);
   }
 
   fetchPreview(type: 'cv' | 'cl', data: any, userId?: string): Observable<any> {
     const endpoint = type === 'cv' ? 'cv' : 'cover-letter';
-    return this.backendApi.post<any>(endpoint + '/preview/' + userId, data);
+    return this.http.post<any>(`${this.baseUrl}${endpoint}/preview/${userId}`, data);
   }
 
   downloadPDF(type: 'cv' | 'cl', data: any): Observable<Blob> {
     const endpoint = type === 'cv' ? 'cv' : 'cover-letter';
-    return this.backendApi.post<Blob>(endpoint + '/pdf', data
-      , { responseType: 'blob' }
-    );
+    return this.http.post<Blob>(`${this.baseUrl}${endpoint}/pdf`, data, { responseType: 'blob' as 'json' });
   }
 
   getStats() {
@@ -164,13 +163,13 @@ export class JobsService {
     const { id, ...jobDetailsWithoutId } = jobDetails;
 
     if (cvData && coverLetterData)
-      return this.backendApi.post<any>('jobs', {
+      return this.http.post<any>(`${this.baseUrl}jobs`, {
         jd: { ...jobDetailsWithoutId, userId: this.userid(), status: 'Applied' },
         cv_data: cvData,
         cover_letter_data: coverLetterData
       });
     else
-      return this.backendApi.post<any>('jobs/upsert', 
+      return this.http.post<any>(`${this.baseUrl}jobs/upsert`,
         { ...jobDetailsWithoutId, userId: this.userid(), status: 'Applied' }
       );
   }
