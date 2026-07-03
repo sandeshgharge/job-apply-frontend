@@ -26,6 +26,15 @@ export class JobTrackerComponent {
   editingJob = signal<JobDetails | null>(null);
   sortField = signal<'appliedDate' | 'companyName' | 'status'>('appliedDate');
   sortDir = signal<'asc' | 'desc'>('desc');
+  showFilters = signal(false);
+
+  // Text / field filters
+  filterCompany  = signal('');
+  filterLocation = signal('');
+  filterRole     = signal('');
+  filterContact  = signal('');
+  filterSalary   = signal('');
+  filterStatusText = signal<JobStatus | 'All'>('All');
 
   form = signal<Omit<JobDetails, 'id'>>({
     companyName: '', role: '', companyLocation: '', appliedDate: new Date().toISOString().split('T')[0],
@@ -33,8 +42,27 @@ export class JobTrackerComponent {
   });
 
   filteredJobs = computed(() => {
-    const f = this.filterStatus();
-    const list = f === 'All' ? this.jobs() : this.jobs().filter(j => j.status === f);
+    const statusTab  = this.filterStatus();
+    const company    = this.filterCompany().toLowerCase().trim();
+    const location   = this.filterLocation().toLowerCase().trim();
+    const role       = this.filterRole().toLowerCase().trim();
+    const contact    = this.filterContact().toLowerCase().trim();
+    const salary     = this.filterSalary().toLowerCase().trim();
+    const statusText = this.filterStatusText();
+
+    let list = this.jobs();
+
+    // Status tab filter
+    if (statusTab !== 'All') list = list.filter(j => j.status === statusTab);
+
+    // Field filters
+    if (company)  list = list.filter(j => j.companyName?.toLowerCase().includes(company));
+    if (location) list = list.filter(j => j.companyLocation?.toLowerCase().includes(location));
+    if (role)     list = list.filter(j => j.role?.toLowerCase().includes(role));
+    if (contact)  list = list.filter(j => j.contactName?.toLowerCase().includes(contact));
+    if (salary)   list = list.filter(j => j.salary?.toLowerCase().includes(salary));
+    if (statusText !== 'All') list = list.filter(j => j.status === statusText);
+
     const field = this.sortField();
     const dir = this.sortDir() === 'asc' ? 1 : -1;
     return [...list].sort((a, b) => {
@@ -42,6 +70,20 @@ export class JobTrackerComponent {
       return av < bv ? -dir : av > bv ? dir : 0;
     });
   });
+
+  hasActiveFilters = computed(() =>
+    this.filterCompany() !== '' || this.filterLocation() !== '' || this.filterRole() !== '' ||
+    this.filterContact() !== '' || this.filterSalary() !== '' || this.filterStatusText() !== 'All'
+  );
+
+  clearFilters() {
+    this.filterCompany.set('');
+    this.filterLocation.set('');
+    this.filterRole.set('');
+    this.filterContact.set('');
+    this.filterSalary.set('');
+    this.filterStatusText.set('All');
+  }
 
   openAddModal() {
     this.editingJob.set(null);

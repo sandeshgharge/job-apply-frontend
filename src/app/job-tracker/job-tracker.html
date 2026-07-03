@@ -4,7 +4,14 @@
       <h2>{{ translate.t().jobTracker.title }}</h2>
       <p class="subtitle">{{ jobs().length }} {{ translate.t().jobTracker.subtitle }} {{ jobs() | jobCount:'Offer' }} {{ translate.t().jobTracker.offers }}</p>
     </div>
-    <button class="btn-primary" (click)="openAddModal()">{{ translate.t().jobTracker.addApplication }}</button>
+    <div class="header-actions">
+      <button class="btn-filter" [class.active]="showFilters()" (click)="showFilters.update(v => !v)">
+        <span class="filter-icon">⚙</span>
+        {{ translate.t().jobTracker.filtersBtn }}
+        @if (hasActiveFilters()) { <span class="filter-badge">●</span> }
+      </button>
+      <button class="btn-primary" (click)="openAddModal()">{{ translate.t().jobTracker.addApplication }}</button>
+    </div>
   </div>
 
   <!-- Filter bar -->
@@ -20,6 +27,52 @@
       </button>
     }
   </div>
+
+  <!-- Advanced filter panel -->
+  @if (showFilters()) {
+    <div class="adv-filters">
+      <div class="adv-filters-grid">
+        <div class="adv-filter-field">
+          <label>{{ translate.t().jobTracker.filterLabelCompany }}</label>
+          <input type="text" [placeholder]="translate.t().jobTracker.filterPlaceholderCompany" [ngModel]="filterCompany()" (ngModelChange)="filterCompany.set($event)" />
+        </div>
+        <div class="adv-filter-field">
+          <label>{{ translate.t().jobTracker.filterLabelLocation }}</label>
+          <input type="text" [placeholder]="translate.t().jobTracker.filterPlaceholderLocation" [ngModel]="filterLocation()" (ngModelChange)="filterLocation.set($event)" />
+        </div>
+        <div class="adv-filter-field">
+          <label>{{ translate.t().jobTracker.filterLabelRole }}</label>
+          <input type="text" [placeholder]="translate.t().jobTracker.filterPlaceholderRole" [ngModel]="filterRole()" (ngModelChange)="filterRole.set($event)" />
+        </div>
+        <div class="adv-filter-field">
+          <label>{{ translate.t().jobTracker.filterLabelContact }}</label>
+          <input type="text" [placeholder]="translate.t().jobTracker.filterPlaceholderContact" [ngModel]="filterContact()" (ngModelChange)="filterContact.set($event)" />
+        </div>
+        <div class="adv-filter-field">
+          <label>{{ translate.t().jobTracker.filterLabelSalary }}</label>
+          <input type="text" [placeholder]="translate.t().jobTracker.filterPlaceholderSalary" [ngModel]="filterSalary()" (ngModelChange)="filterSalary.set($event)" />
+        </div>
+        <div class="adv-filter-field">
+          <label>{{ translate.t().jobTracker.filterLabelStatus }}</label>
+          <select [ngModel]="filterStatusText()" (ngModelChange)="filterStatusText.set($event)">
+            <option value="All">{{ translate.t().jobTracker.filterAllStatuses }}</option>
+            @for (s of statuses; track s) {
+              <option [value]="s">{{ translateStatus(s) }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      @if (hasActiveFilters()) {
+        <div class="adv-filters-footer">
+          <span class="results-count">
+            {{ filteredJobs().length }}
+            {{ filteredJobs().length === 1 ? translate.t().jobTracker.filterResultSingular : translate.t().jobTracker.filterResultPlural }}
+          </span>
+          <button class="btn-clear" (click)="clearFilters()">{{ translate.t().jobTracker.clearFilters }}</button>
+        </div>
+      }
+    </div>
+  }
 
   <!-- Table -->
   <div class="table-wrap">
