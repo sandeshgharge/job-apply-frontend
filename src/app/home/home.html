@@ -25,25 +25,79 @@
     </nav>
 
     <div class="topbar-right">
-      <select [value]="translate.currentLang()" (change)="translate.loadLanguage($any($event.target).value)" class="lang-select">
-        @for (lang of translate.languages(); track lang.code) {
-          <option [value]="lang.code" [selected]="translate.currentLang() === lang.code">{{ lang.name }}</option>
-        }
-      </select>
+      <div class="user-menu-dropdown">
+        <!-- Hover trigger -->
+        <div class="user-menu-trigger">
+          <span class="user-name">{{ user?.name }}</span>
+          <span class="dropdown-chevron">▼</span>
+        </div>
+        
+        <!-- Dropdown menu content -->
+        <div class="user-menu-content">
+          <!-- User info header -->
+          <div class="menu-user-header">
+            <span class="menu-user-name">{{ user?.name }}</span>
+            <span class="menu-user-email">{{ user?.email }}</span>
+          </div>
 
-      <button class="theme-btn" (click)="themeService.toggleTheme()" aria-label="Toggle theme">
-        @if (themeService.theme() === 'light') {
-          <span class="theme-icon">🌙</span>
-        } @else {
-          <span class="theme-icon">☀️</span>
-        }
-      </button>
-      <span class="user-name">{{ user?.name }}</span>
-      <button class="tour-start-btn" (click)="tourService.startTour()" [title]="translate.t().tour.btnStartTour">
-        <span class="tour-start-icon">🎯</span>
-        {{ translate.t().tour.btnStartTour }}
-      </button>
-      <button class="logout-btn" (click)="logout()">{{ translate.t().common.signOut }}</button>
+          <hr class="menu-divider" />
+
+          <!-- Tutorial option -->
+          <button class="menu-item tour-btn" (click)="tourService.startTour()">
+            <span class="menu-item-icon">🎯</span>
+            {{ translate.t().tour.btnStartTour }}
+          </button>
+
+          <hr class="menu-divider" />
+
+          <!-- Language Selector -->
+          <div class="menu-section">
+            <span class="menu-section-title">🌐 {{ translate.t().common.selectLanguage }}</span>
+            <div class="menu-options-row">
+              @for (lang of translate.languages(); track lang.code) {
+                <button 
+                  class="menu-option-btn" 
+                  [class.active]="translate.currentLang() === lang.code"
+                  (click)="translate.loadLanguage(lang.code); $event.stopPropagation()"
+                >
+                  {{ lang.name }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <hr class="menu-divider" />
+
+          <!-- Theme Selector -->
+          <div class="menu-section">
+            <span class="menu-section-title">🎨 Theme</span>
+            <div class="menu-options-row">
+              <button 
+                class="menu-option-btn" 
+                [class.active]="themeService.theme() === 'light'"
+                (click)="themeService.theme.set('light'); $event.stopPropagation()"
+              >
+                ☀️ Light
+              </button>
+              <button 
+                class="menu-option-btn" 
+                [class.active]="themeService.theme() === 'dark'"
+                (click)="themeService.theme.set('dark'); $event.stopPropagation()"
+              >
+                🌙 Dark
+              </button>
+            </div>
+          </div>
+
+          <hr class="menu-divider" />
+
+          <!-- Sign Out -->
+          <button class="menu-item logout-btn-item" (click)="logout()">
+            <span class="menu-item-icon">🚪</span>
+            {{ translate.t().common.signOut }}
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 

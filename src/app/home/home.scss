@@ -60,85 +60,209 @@
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
   min-width: 170px;
   justify-content: flex-end;
+  height: 100%;
+}
 
-  .lang-select {
-    padding: 4px 8px;
-    border: 1px solid var(--border-dark);
-    background: var(--bg-card);
-    color: var(--text-primary);
-    border-radius: 6px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    outline: none;
-    transition: border-color 0.15s;
-    &:focus {
-      border-color: var(--primary);
+// ── Dropdown Container ──────────────────────────────────────────────────────
+.user-menu-dropdown {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  // Trigger hover interaction
+  &:hover {
+    .user-menu-trigger {
+      color: var(--primary);
+      .dropdown-chevron {
+        transform: rotate(180deg);
+        color: var(--primary);
+      }
+    }
+    .user-menu-content {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
     }
   }
 }
 
-.theme-btn {
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
+// ── Trigger Element ─────────────────────────────────────────────────────────
+.user-menu-trigger {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  transition: background-color 0.15s;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  user-select: none;
+
+  .user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: capitalize;
+  }
+
+  .dropdown-chevron {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+}
+
+// ── Dropdown Content Panel ──────────────────────────────────────────────────
+.user-menu-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 2px;
+  width: 230px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1000;
+
+  // Bridge hover gap
+  &::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: transparent;
+  }
+}
+
+// ── User Header ─────────────────────────────────────────────────────────────
+.menu-user-header {
+  padding: 8px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .menu-user-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: capitalize;
+  }
+
+  .menu-user-email {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+}
+
+// ── Menu Dividers ───────────────────────────────────────────────────────────
+.menu-divider {
+  border: none;
+  height: 1px;
+  background: var(--border-color);
+  margin: 6px 4px;
+}
+
+// ── Menu Items (Buttons) ────────────────────────────────────────────────────
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  .menu-item-icon {
+    font-size: 0.95rem;
+  }
+
   &:hover {
     background: var(--bg-hover);
   }
 }
 
-.user-name {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.logout-btn {
-  padding: 5px 12px;
-  border: 1px solid var(--border-dark);
-  background: var(--bg-card);
-  border-radius: 6px;
-  font-size: 0.8rem;
-  color: var(--text-primary);
-  cursor: pointer;
-  &:hover { background: var(--bg-hover); }
-}
-
-.tour-start-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border: 1px solid rgba(26, 86, 219, 0.45);
-  background: rgba(26, 86, 219, 0.1);
-  border-radius: 6px;
-  font-size: 0.8rem;
+.tour-btn {
+  color: var(--primary);
   font-weight: 600;
-  color: var(--primary, #1a56db);
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.1s;
-  white-space: nowrap;
-
-  .tour-start-icon { font-size: 0.9rem; }
-
   &:hover {
-    background: rgba(26, 86, 219, 0.18);
-    border-color: rgba(26, 86, 219, 0.7);
-    transform: translateY(-1px);
+    background: var(--primary-light);
+  }
+}
+
+.logout-btn-item {
+  color: var(--error);
+  &:hover {
+    background: var(--error-bg);
+    color: var(--error-text);
+  }
+}
+
+// ── Options Sections (Language, Theme) ──────────────────────────────────────
+.menu-section {
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .menu-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-left: 4px;
   }
 
-  &:active { transform: translateY(0); }
+  .menu-options-row {
+    display: flex;
+    gap: 4px;
+  }
+
+  .menu-option-btn {
+    flex: 1;
+    padding: 6px 4px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    outline: none;
+
+    &:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--border-dark);
+    }
+
+    &.active {
+      background: var(--primary-light);
+      color: var(--primary-light-text);
+      border-color: var(--primary-border);
+    }
+  }
 }
 
 .content {

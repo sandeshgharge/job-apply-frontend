@@ -24,6 +24,9 @@ export class AuthEffects {
     login$ = createEffect(() =>
         this.actions$.pipe(
             ofType(login),
+            tap(() => {
+                this.isFreshLogin = true;
+            }),
             switchMap(({ email, password }) => {
                 return this.authService.login(email, password).pipe(
 
@@ -62,9 +65,7 @@ export class AuthEffects {
                 sessionStorage.setItem('user', JSON.stringify(user));
                 sessionStorage.setItem('access_token', token);
                 sessionStorage.setItem('refresh_token', refresh_token);
-                // Mark as fresh login only when redirect is true (interactive login, not autoLogin)
                 if (redirect !== false) {
-                    this.isFreshLogin = true;
                     this.router.navigate(['/home']);
                 }
             })
@@ -76,7 +77,7 @@ export class AuthEffects {
         this.actions$.pipe(
             ofType(loginFailure),
             tap(({ error }) => {
-                // Here you can perform side effects like showing an error message
+                this.isFreshLogin = false; // reset flag
                 console.error("Login failed with error:", error);
                 this.router.navigate(['/login']);
                 return [];
@@ -89,6 +90,7 @@ export class AuthEffects {
         this.actions$.pipe(
             ofType(logout),
             tap(() => {
+                this.isFreshLogin = false; // reset flag
                 sessionStorage.removeItem('user');
                 this.authService.logout();
                 this.router.navigate(['/login']);

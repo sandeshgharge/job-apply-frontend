@@ -57,7 +57,7 @@ export class ProfileService {
 
     getImageUrl(fileName: string, expiresIn = 3600): Promise<any> {
         return firstValueFrom(
-            this.http.get<any>(`${this.baseUrl}profile/${this.userId()}/image-url?fileName=${encodeURIComponent(fileName)}&bucket=${encodeURIComponent(this.bucket)}&expiresIn=${expiresIn}`)
+            this.http.get<any>(`${this.baseUrl}profile/${this.userId}/image-url?fileName=${encodeURIComponent(fileName)}&bucket=${encodeURIComponent(this.bucket)}&expiresIn=${expiresIn}`)
         ).then((signed_url: any) => {
             return signed_url ?? null;
         }).catch((error: any) => {
