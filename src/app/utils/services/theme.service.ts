@@ -17,6 +17,8 @@ export class ThemeService {
       const activeTheme = this.theme();
       document.documentElement.setAttribute('data-theme', activeTheme);
       this.storageService.set('theme', activeTheme);
+      const favicon = document.getElementById('app-favicon') as HTMLLinkElement;
+      favicon.href = `assets/logo-${this.theme()}.svg?v=1`;
     });
   }
 

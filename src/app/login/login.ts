@@ -8,10 +8,11 @@ import { Actions } from '@ngrx/effects';
 import { selectAuthError, selectAuthLoading, selectIsAuthenticated } from '@app/utils/store/auth/auth.selectors';
 import { distinctUntilChanged, filter, Subject, takeUntil } from 'rxjs';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
+import { NameLogo } from "@app/name-logo/name-logo";
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule],
+  imports: [FormsModule, NameLogo],
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })

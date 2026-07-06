@@ -14,12 +14,13 @@ import { TranslationService } from '@app/utils/services/translation/translation.
 import { TourService } from '@app/utils/services/tour.service';
 import { TourOverlayComponent } from '@app/tour/tour-overlay';
 import { ActivatedRoute } from '@angular/router';
+import { NameLogo } from "@app/name-logo/name-logo";
 
 type TabId = 'dashboard' | 'apply-job' | 'job-tracker' | 'profile';
 
 @Component({
   selector: 'app-home',
-  imports: [DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent, ProfileInfoComponent, StatusBarComponent, TourOverlayComponent],
+  imports: [NameLogo, DashboardComponent, ApplyJobComponent, JobTrackerComponent, ToastComponent, ProfileInfoComponent, StatusBarComponent, TourOverlayComponent, NameLogo],
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })

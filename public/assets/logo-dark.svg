@@ -1,0 +1,15 @@
+<!-- 
+    ========================================================================
+    COPYRIGHT NOTICE
+    Copyright (c) 2026 SANDESH GHARGE. All Rights Reserved.
+    
+    This visual asset is proprietary. Unauthorized copying, distribution, 
+    modification, or commercial use is strictly prohibited under copyright law.
+    ========================================================================
+    -->
+<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="30" height="30" rx="15" fill="black"/>
+<path d="M15 17C18.3137 17 21 14.3137 21 11C21 7.68629 18.3137 5 15 5C11.6863 5 9 7.68629 9 11C9 14.3137 11.6863 17 15 17Z" stroke="#0051FF"/>
+<path d="M27.5 23.5L21 17" stroke="#0051FF" stroke-linecap="round"/>
+<path d="M16 20.125V19H14V20.125M15 28L17 25.75L16 21.25H14L13 25.75" fill="#0051FF"/>
+</svg>

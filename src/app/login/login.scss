@@ -23,6 +23,14 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 4px;
+  .brand-icon {
+    ::ng-deep {
+      app-name-logo svg {
+        width: 200px;
+        height: auto;
+      }
+    }
+  }
   h1 {
     font-size: 1.5rem;
     font-weight: 700;

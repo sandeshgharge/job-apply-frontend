@@ -92,6 +92,8 @@ export class AuthEffects {
             tap(() => {
                 this.isFreshLogin = false; // reset flag
                 sessionStorage.removeItem('user');
+                sessionStorage.removeItem('access_token');
+                sessionStorage.removeItem('refresh_token');
                 this.authService.logout();
                 this.router.navigate(['/login']);
             }),
@@ -112,8 +114,8 @@ export class AuthEffects {
                         const user = JSON.parse(userStr);
                         console.log("Auto-login successful from sessionStorage");
                         return of(
-                            loadProfileInfo(),
-                            loginSuccess({ user, token, refresh_token: sessionStorage.getItem('refresh_token') || '', redirect: false })
+                            loginSuccess({ user, token, refresh_token: sessionStorage.getItem('refresh_token') || '', redirect: false }),
+                            loadProfileInfo()
                         );
                     } else {
                         console.log("No session found in sessionStorage for auto-login");
