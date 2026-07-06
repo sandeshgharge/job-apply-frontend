@@ -67,7 +67,7 @@ export class ProfileInfoComponent implements OnInit {
   isDirty = signal(false);
   imageChanged = signal(false);
 
-  onFieldChange(field: keyof ProfileInfo, value: string): void {
+  onFieldChange<K extends keyof ProfileInfo>(field: K, value: ProfileInfo[K]): void {
     this.profile.update(p => ({ ...p, [field]: value }));
     this.isDirty.set(true);
   }

@@ -100,31 +100,49 @@
 
   <!-- ── AI Configuration ────────────────────────────────────── -->
   <div class="panel ai-panel">
-    <h3 class="panel-title">{{ translate.t().profile.aiTitle }}</h3>
-    <p class="panel-hint">
-      {{ translate.t().profile.aiHint }}
-    </p>
+    <div class="panel-header">
+      <div>
+        <h3 class="panel-title">{{ translate.t().profile.aiTitle }}</h3>
+        <p class="panel-hint">
+          {{ translate.t().profile.aiHint }}
+        </p>
+      </div>
+
+      <div class="toggle-container">
+        <span class="toggle-label">{{ translate.t().profile.useDefaultApi }}</span>
+        <label class="switch">
+          <input type="checkbox"
+            [checked]="profile().useDefaultApi"
+            (change)="onFieldChange('useDefaultApi', $any($event.target).checked)" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
     <div class="fields-grid">
       <div class="field field-full">
         <label for="agentApiUrl">{{ translate.t().profile.agentUrl }}</label>
         <input type="url" id="agentApiUrl" name="agentApiUrl"
           [ngModel]="profile().agentApiUrl"
           (input)="onFieldChange('agentApiUrl', $any($event.target).value)"
-          [placeholder]="translate.t().profile.placeholderAgentUrl" />
+          [placeholder]="translate.t().profile.placeholderAgentUrl"
+          [disabled]="profile().useDefaultApi" />
       </div>
       <div class="field">
         <label for="agentApiKey">{{ translate.t().profile.agentKey }}</label>
         <input type="text" id="agentApiKey" name="agentApiKey"
           [ngModel]="profile().agentApiKey"
           (input)="onFieldChange('agentApiKey', $any($event.target).value)"
-          [placeholder]="translate.t().profile.placeholderAgentKey" />
+          [placeholder]="translate.t().profile.placeholderAgentKey"
+          [disabled]="profile().useDefaultApi" />
       </div>
       <div class="field">
         <label for="modelName">{{ translate.t().profile.modelName }}</label>
         <input type="text" id="modelName" name="modelName"
           [ngModel]="profile().modelName"
           (input)="onFieldChange('modelName', $any($event.target).value)"
-          [placeholder]="translate.t().profile.placeholderModelName" />
+          [placeholder]="translate.t().profile.placeholderModelName"
+          [disabled]="profile().useDefaultApi" />
       </div>
     </div>
   </div>

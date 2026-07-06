@@ -14,6 +14,9 @@ import {
 import { AiAdapter } from './ai-adapter.interface';
 import { AnthropicAdapter } from './adapters/anthropic.adapter';
 import { OpenAiCompatibleAdapter } from './adapters/openai-compatible.adapter';
+import { AIServiceInterface } from '../ai.service.interface';
+import { Store } from '@ngrx/store';
+import { selectProfileApiKey, selectProfileApiUrl, selectProfileModelName } from '@app/utils/store/profile/profile.selector';
 
 /**
  * Generic, provider-agnostic AI service.
@@ -49,13 +52,34 @@ import { OpenAiCompatibleAdapter } from './adapters/openai-compatible.adapter';
  * | Perplexity  | url contains `perplexity.ai`     | `Authorization: Bearer` |
  * | Custom      | any other URL                    | `Authorization: Bearer` |
  */
-@Injectable({ providedIn: 'root' })
-export class AiService {
+export class AIService implements AIServiceInterface {
   private http = inject(HttpClient);
+  private store = inject(Store);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Public API
   // ─────────────────────────────────────────────────────────────────────────────
+
+  generate(prompt: string): Observable<any> {
+
+    const apiUrl = this.store.selectSignal(selectProfileApiUrl)();
+    const apiKey = this.store.selectSignal(selectProfileApiKey)();
+    const modelName = this.store.selectSignal(selectProfileModelName)();
+
+    if(!apiUrl || !apiKey || !modelName){
+      return throwError(() => new Error('AI API configuration is missing. Please check your profile settings.'));
+    }
+    
+    const config : AiProviderConfig = {
+      apiUrl: apiUrl,
+      apiKey: apiKey,
+      modelName: modelName
+    }
+    const provider = this.detectProvider(config);
+    const adapter = this.resolveAdapter(provider);
+    return adapter.generate(config, { messages: [{ role: 'user', content: prompt }] });
+
+  }
 
   /**
    * Send a normalised {@link AiRequest} to the configured provider.
@@ -64,7 +88,7 @@ export class AiService {
    * @param request Normalised messages + optional parameters.
    * @returns Observable that emits a single normalised {@link AiResponse}.
    */
-  generate(config: AiProviderConfig, request: AiRequest): Observable<AiResponse> {
+  generatev2(config: AiProviderConfig, request: AiRequest): Observable<AiResponse> {
     const validationError = this.validateConfig(config);
     if (validationError) {
       return throwError(() => new Error(validationError));
@@ -92,7 +116,7 @@ export class AiService {
     }
     messages.push({ role: 'user', content: userPrompt });
 
-    return this.generate(config, { messages });
+    return this.generatev2(config, { messages });
   }
 
   /**
@@ -102,7 +126,7 @@ export class AiService {
    * @param config   User-supplied provider configuration.
    */
   generateFromMessages(messages: AiMessage[], config: AiProviderConfig): Observable<AiResponse> {
-    return this.generate(config, { messages });
+    return this.generatev2(config, { messages });
   }
 
   /**

@@ -45,7 +45,7 @@
         <label>{{ translate.t().applyWizard.labelDescription }}</label>
         <textarea class="jd-textarea" rows="18"
           [placeholder]="translate.t().applyWizard.placeholderDescription"
-          [ngModel]="jobDescription()" (ngModelChange)="jobDescription.set($event)"
+          [ngModel]="jobDescription()" (ngModelChange)="updatejobDescription($event)"
           data-tour="tour-jd-textarea"></textarea>
       </div>
 

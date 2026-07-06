@@ -164,6 +164,11 @@ export class ApplyJobComponent {
       });
   }
 
+  updatejobDescription(value: string) {
+    this.jobDescription.set(value);
+    this.jobsService.updateField('jobDescription', value);
+  }
+
 }
 
 // NOTE: CvBuilderComponent is imported via apply-job template for Step 3

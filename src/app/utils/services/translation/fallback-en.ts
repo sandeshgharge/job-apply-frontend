@@ -361,6 +361,7 @@ export const fallbackEn = {
     placeholderAgentUrl: 'https://api.example.com/v1',
     placeholderAgentKey: 'sk-...',
     placeholderModelName: 'e.g. claude-3-opus',
+    useDefaultApi: 'Use Default API',
     toastValidImage: 'Please select a valid image file',
     toastImageSize: 'Image must be smaller than 1MB'
   },

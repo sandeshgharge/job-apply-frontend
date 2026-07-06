@@ -37,3 +37,18 @@ export const selectProfileUseDefaultApi = createSelector(
     selectProfileState,
     (state: ProfileInfoState) => state.profileInfo?.useDefaultApi
 );
+
+export const selectProfileApiUrl = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.agentApiUrl
+);
+
+export const selectProfileApiKey = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.agentApiKey
+);
+
+export const selectProfileModelName = createSelector(
+    selectProfileState,
+    (state: ProfileInfoState) => state.profileInfo?.modelName
+);

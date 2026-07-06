@@ -10,11 +10,11 @@ import { CoverLetterSection, CoverLetterDocInfo } from '../utils/entities/cover-
 import { selectCoverLetterInfoList, selectCurrentCoverLetter } from '../utils/store/cover-letter/cover-letter.selectors';
 import { selectProfileInfo, selectProfileUseDefaultApi } from '../utils/store/profile/profile.selector';
 import { saveNewCoverLetterInfo, saveNewCoverLetterInfoSuccess, selectCoverLetterVersion, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
-import { LocalAiService } from '../utils/services/local-ai-service';
+import { AIServiceInterface } from '../utils/services/ai-service/ai.service.interface';
 import { firstValueFrom } from 'rxjs';
 import { CLService } from '@app/utils/services/cl.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
-import { AiService } from '@app/utils/services/ai-service';
+import { DynamicAiService } from '@app/utils/services/ai-service/dynamic-ai.service';
 
 @Component({
   selector: 'app-cover-letter',
@@ -26,10 +26,9 @@ export class CoverLetterComponent implements OnInit {
   private toast = inject(ToastService);
   private jobsService = inject(JobsService);
   private store = inject(Store);
-  private localAiService = inject(LocalAiService);
+  private aiService = inject(DynamicAiService).getAIService();
   private clService = inject(CLService);
   public translate = inject(TranslationService);
-  private cloudAiService = inject(AiService);
 
   profileInfo = this.store.selectSignal(selectProfileInfo);
   jobDetails = this.jobsService.jobDetails$;
@@ -294,21 +293,12 @@ export class CoverLetterComponent implements OnInit {
         return;
       }
 
-      const apiUrl = pInfo.agentApiUrl;
-      const apiKey = pInfo.agentApiKey;
-      const modelName = pInfo.modelName;
       const userMessage = this.buildSectionPrompt(section);
-      let data : any = null;
-      if (this.useDefaultApi()) {
-        data = await firstValueFrom(this.localAiService.generate(userMessage))
-      }
-      else{
-        data = await firstValueFrom(this.cloudAiService.generateFromMessages([{ role: 'user', content: userMessage }], { apiUrl, apiKey, modelName }));
-      }
+      const data = await firstValueFrom(this.aiService.generate(userMessage));
 
-      console.log(data.output)
+      console.log(data)
 
-      const text = typeof data.output === 'string' ? data.output : data.output.toString();
+      const text = typeof data.text === 'string' ? data.text : data.text.toString();
 
           this.coverLetterInfo.update(info => ({
             ...info,
@@ -360,8 +350,6 @@ export class CoverLetterComponent implements OnInit {
             return;
           }
 
-          const apiUrl = pInfo.agentApiUrl;
-          const apiKey = pInfo.agentApiKey;
           const modelName = pInfo.modelName;
 
           const systemPrompt = `You are an expert career coach. Generate cover letter sections as a JSON array only. No markdown, no preamble.`;
@@ -382,7 +370,7 @@ export class CoverLetterComponent implements OnInit {
             messages: [{ role: 'user', content: userMessage }]
           });
 
-          const data: any = await firstValueFrom(this.localAiService.generate(promptBody))
+          const data: any = await firstValueFrom(this.aiService.generate(promptBody))
 
           const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
           const parsed: { title: string; content: string }[] = JSON.parse(
