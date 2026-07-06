@@ -9,6 +9,8 @@ import { effects } from './utils/store/app.effects';
 import { autoLogin } from './utils/store/auth/auth.actions';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './utils/interceptors/auth.interceptor';
+import { AIServiceInterface } from './utils/services/ai-service/ai.service.interface';
+import { DynamicAiService } from './utils/services/ai-service/dynamic-ai.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,5 +23,6 @@ export const appConfig: ApplicationConfig = {
       console.log("Initializing authentication...");
       return store.dispatch(autoLogin());
     }),
+    { provide: AIServiceInterface, useClass: DynamicAiService }
   ],
 };

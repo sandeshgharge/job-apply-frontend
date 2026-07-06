@@ -22,12 +22,15 @@ export class CVEffects {
     private cvService = inject(CvService);
     private toast = inject(ToastService);
 
-    loadCVOnProfileLoad$ = createEffect(() =>
-        this.actions$.pipe(
-            ofType(loadProfileInfoSuccess),
-            map(({ profileInfo }) => loadCVInfo({ userId: profileInfo.id }))
-        )
-    );
+    /**
+         loadCVOnProfileLoad$ = createEffect(() =>
+            this.actions$.pipe(
+                ofType(loadProfileInfoSuccess),
+                map(({ profileInfo }) => loadCVInfo({ userId: profileInfo.id }))
+            )
+        );
+     
+     */
 
     loadCVInfo$ = createEffect(() =>
         this.actions$.pipe(

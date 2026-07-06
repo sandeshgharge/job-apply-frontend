@@ -349,10 +349,12 @@ export const fallbackEn = {
     placeholderLocation: 'e.g. Berlin, Germany',
     changePhoto: 'Change Photo',
     uploadPhoto: 'Upload Photo',
+    viewPhoto: 'View Photo',
     signatureTitle: 'Signature',
     signatureHint: 'Upload an image of your handwritten signature. Used in cover letters and formal documents.',
     changeSignature: 'Change Signature',
     uploadSignature: 'Upload Signature Image',
+    viewSignature: 'View Signature',
     aiTitle: 'AI Configuration',
     aiHint: 'Configure your AI agent endpoint for cover letter generation, CV assistance, and more.',
     agentUrl: 'Agent API URL',
@@ -363,7 +365,9 @@ export const fallbackEn = {
     placeholderModelName: 'e.g. claude-3-opus',
     useDefaultApi: 'Use Default API',
     toastValidImage: 'Please select a valid image file',
-    toastImageSize: 'Image must be smaller than 1MB'
+    toastImageSize: 'Image must be smaller than 1MB',
+    toastNoPhoto: 'No profile photo found',
+    toastNoSignature: 'No signature image found'
   },
   setPassword: {
     title: 'Change Password',

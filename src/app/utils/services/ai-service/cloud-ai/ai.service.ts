@@ -52,6 +52,7 @@ import { selectProfileApiKey, selectProfileApiUrl, selectProfileModelName } from
  * | Perplexity  | url contains `perplexity.ai`     | `Authorization: Bearer` |
  * | Custom      | any other URL                    | `Authorization: Bearer` |
  */
+@Injectable({ providedIn: 'root' })
 export class AIService implements AIServiceInterface {
   private http = inject(HttpClient);
   private store = inject(Store);

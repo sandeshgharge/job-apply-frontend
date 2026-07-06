@@ -14,7 +14,6 @@ import { AIServiceInterface } from '../utils/services/ai-service/ai.service.inte
 import { firstValueFrom } from 'rxjs';
 import { CLService } from '@app/utils/services/cl.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
-import { DynamicAiService } from '@app/utils/services/ai-service/dynamic-ai.service';
 
 @Component({
   selector: 'app-cover-letter',
@@ -26,7 +25,7 @@ export class CoverLetterComponent implements OnInit {
   private toast = inject(ToastService);
   private jobsService = inject(JobsService);
   private store = inject(Store);
-  private aiService = inject(DynamicAiService).getAIService();
+  private aiService = inject(AIServiceInterface);
   private clService = inject(CLService);
   public translate = inject(TranslationService);
 

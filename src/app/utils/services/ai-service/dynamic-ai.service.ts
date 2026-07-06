@@ -4,23 +4,20 @@ import { Store } from "@ngrx/store";
 import { selectProfileUseDefaultApi } from "@app/utils/store/profile/profile.selector";
 import { DefaultAiService } from "./default-ai/default-ai.service";
 import { AIService } from "./cloud-ai";
+import { Observable } from "rxjs";
 
 @Injectable({ providedIn: 'root' })
-export class DynamicAiService {
+export class DynamicAiService implements AIServiceInterface {
 
     private store = inject(Store);
-    private defaultAiService = inject(AIServiceInterface) ;
+    private defaultAi = inject(DefaultAiService);
+    private cloudAi = inject(AIService);
 
-    constructor() {
-        const useDefaultAIService = this.store.selectSignal(selectProfileUseDefaultApi)();
+    private useDefaultApi = this.store.selectSignal(selectProfileUseDefaultApi);
 
-        if(useDefaultAIService) 
-            this.defaultAiService = new DefaultAiService();
-        else
-            this.defaultAiService = new AIService(); // Assuming AIs is another implementation of AIServiceInterface
-    }
-
-    getAIService(): AIServiceInterface {
-        return this.defaultAiService;
+    generate(prompt: string): Observable<any> {
+        return this.useDefaultApi()
+            ? this.defaultAi.generate(prompt)
+            : this.cloudAi.generate(prompt);
     }
 }

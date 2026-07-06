@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AIServiceInterface } from '../ai.service.interface';
 
+@Injectable({ providedIn: 'root' })
 export class DefaultAiService implements AIServiceInterface {
   private http = inject(HttpClient);
   private readonly baseUrl = environment.backendAiApiURL;

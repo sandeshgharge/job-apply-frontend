@@ -23,6 +23,7 @@ export class CoverLetterEffects {
     private clService = inject(CLService);
     private toast = inject(ToastService);
 
+    /**
     loadCoverLetterOnProfileLoad$ = createEffect(() =>
         this.actions$.pipe(
             ofType(loadProfileInfoSuccess),
@@ -31,6 +32,7 @@ export class CoverLetterEffects {
             )
         )
     );
+    */
 
     loadCoverLetterInfo$ = createEffect(() =>
         this.actions$.pipe(

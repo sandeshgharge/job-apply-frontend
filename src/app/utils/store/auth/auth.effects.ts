@@ -7,6 +7,8 @@ import { catchError, from, map, mergeMap, of, switchMap, tap } from "rxjs";
 import { ProfileInfo, User } from "../../entities/user";
 import { Router } from "@angular/router";
 import { loadProfileInfo, loadProfileInfoSuccess } from "../profile/profile.actions";
+import { loadCoverLetterInfo } from "../cover-letter/cover-letter.actions";
+import { loadCVInfo } from "../cv/cv.actions";
 
 
 @Injectable()
@@ -35,19 +37,20 @@ export class AuthEffects {
                         const id = response.user?.id || '';
                         const profile_info = response.profile_info;
                         let name = userEmail.split('@')[0].replace(/[._]/g, ' ');
-                        if(profile_info?.firstName && profile_info?.lastName) {
+                        if (profile_info?.firstName && profile_info?.lastName) {
                             name = profile_info.firstName + ' ' + profile_info.lastName;
                         }
                         return of(
-                        loadProfileInfoSuccess( {profileInfo : profile_info}),
-                        loginSuccess({
-                            user: { email: userEmail, name, id },
-                            token: response.access_token || '',
-                            refresh_token: response.refresh_token || '',
-                            redirect: true
-                        })
-                        
-                    );
+
+                            loadProfileInfoSuccess({ profileInfo: profile_info }),
+                            loginSuccess({
+                                user: { email: userEmail, name, id },
+                                token: response.access_token || '',
+                                refresh_token: response.refresh_token || '',
+                                redirect: true
+                            })
+
+                        );
                     }),
                     catchError(error => {
                         return of(loginFailure({ error: error?.detail || "Login failed" }));
@@ -60,17 +63,22 @@ export class AuthEffects {
     loginSuccess$ = createEffect(() =>
         this.actions$.pipe(
             ofType(loginSuccess),
-            tap(({ user, token, refresh_token, redirect }) => {
+            switchMap(({ user, token, refresh_token, redirect }) => {
                 // Here you can perform side effects like navigation or showing a success message
                 sessionStorage.setItem('user', JSON.stringify(user));
                 sessionStorage.setItem('access_token', token);
                 sessionStorage.setItem('refresh_token', refresh_token);
+
                 if (redirect !== false) {
                     this.router.navigate(['/home']);
                 }
+                return of(
+                    loadCoverLetterInfo({ userId: user.id }),
+                    loadCVInfo({ userId: user.id })
+                )
             })
 
-        ), { dispatch: false }
+        )
     );
 
     loginFailure$ = createEffect(() =>
@@ -109,7 +117,7 @@ export class AuthEffects {
                 try {
                     const userStr = sessionStorage.getItem('user');
                     const token = sessionStorage.getItem('access_token');
-                    
+
                     if (userStr && token) {
                         const user = JSON.parse(userStr);
                         console.log("Auto-login successful from sessionStorage");

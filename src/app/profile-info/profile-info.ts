@@ -36,14 +36,31 @@ export class ProfileInfoComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Images are not loaded automatically on load.
+  }
+
+  loadProfileImage(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.profileService.getImageUrl('profile-image').then(url => {
       if (url) {
         this.profileImageUrl.set(url);
+      } else {
+        this.toast.show(this.translate.t().profile.toastNoPhoto, 'info');
       }
     });
+  }
+
+  loadSignatureImage(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.profileService.getImageUrl('signature').then(url => {
       if (url) {
         this.signatureImageUrl.set(url);
+      } else {
+        this.toast.show(this.translate.t().profile.toastNoSignature, 'info');
       }
     });
   }
