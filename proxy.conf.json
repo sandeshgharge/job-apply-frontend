@@ -1,0 +1,11 @@
+{
+  "/ollama-proxy/**": {
+    "target": "https://ollama.com",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/ollama-proxy": ""
+    },
+    "logLevel": "debug"
+  }
+}

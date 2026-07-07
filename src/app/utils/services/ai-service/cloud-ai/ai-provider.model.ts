@@ -11,6 +11,8 @@ export enum AiProvider {
   Groq = 'groq',
   /** Perplexity AI API (OpenAI-compatible) */
   Perplexity = 'perplexity',
+  /** Ollama API (native /api/chat) */
+  Ollama = 'ollama',
   /** Custom / unknown – falls back to the generic OpenAI-compatible adapter */
   Custom = 'custom',
 }
@@ -78,6 +80,8 @@ export const PROVIDER_URL_HINTS: ReadonlyMap<string, AiProvider> = new Map([
   ['openai.com', AiProvider.OpenAI],
   ['groq.com', AiProvider.Groq],
   ['perplexity.ai', AiProvider.Perplexity],
+  ['ollama', AiProvider.Ollama],
+  ['11434', AiProvider.Ollama],
 ]);
 
 /**

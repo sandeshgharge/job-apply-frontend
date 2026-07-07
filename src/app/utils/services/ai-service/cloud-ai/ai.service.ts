@@ -14,6 +14,7 @@ import {
 import { AiAdapter } from './ai-adapter.interface';
 import { AnthropicAdapter } from './adapters/anthropic.adapter';
 import { OpenAiCompatibleAdapter } from './adapters/openai-compatible.adapter';
+import { OllamaAdapter } from './adapters/ollama.adapter';
 import { AIServiceInterface } from '../ai.service.interface';
 import { Store } from '@ngrx/store';
 import { selectProfileApiKey, selectProfileApiUrl, selectProfileModelName } from '@app/utils/store/profile/profile.selector';
@@ -67,16 +68,17 @@ export class AIService implements AIServiceInterface {
     const apiKey = this.store.selectSignal(selectProfileApiKey)();
     const modelName = this.store.selectSignal(selectProfileModelName)();
 
-    if(!apiUrl || !apiKey || !modelName){
-      return throwError(() => new Error('AI API configuration is missing. Please check your profile settings.'));
-    }
-    
     const config : AiProviderConfig = {
-      apiUrl: apiUrl,
-      apiKey: apiKey,
-      modelName: modelName
+      apiUrl: apiUrl ?? '',
+      apiKey: apiKey ?? '',
+      modelName: modelName ?? ''
     }
     const provider = this.detectProvider(config);
+    const validationError = this.validateConfig(config, provider);
+    if (validationError) {
+      return throwError(() => new Error(validationError));
+    }
+    
     const adapter = this.resolveAdapter(provider);
     return adapter.generate(config, { messages: [{ role: 'user', content: prompt }] });
 
@@ -90,12 +92,12 @@ export class AIService implements AIServiceInterface {
    * @returns Observable that emits a single normalised {@link AiResponse}.
    */
   generatev2(config: AiProviderConfig, request: AiRequest): Observable<AiResponse> {
-    const validationError = this.validateConfig(config);
+    const provider = this.detectProvider(config);
+    const validationError = this.validateConfig(config, provider);
     if (validationError) {
       return throwError(() => new Error(validationError));
     }
 
-    const provider = this.detectProvider(config);
     const adapter = this.resolveAdapter(provider);
     return adapter.generate(config, request);
   }
@@ -169,6 +171,9 @@ export class AIService implements AIServiceInterface {
       case AiProvider.Perplexity:
         return new OpenAiCompatibleAdapter(this.http, AiProvider.Perplexity);
 
+      case AiProvider.Ollama:
+        return new OllamaAdapter(this.http);
+
       case AiProvider.OpenAI:
       case AiProvider.Custom:
       default:
@@ -180,10 +185,14 @@ export class AIService implements AIServiceInterface {
    * Basic sanity check on the config before hitting the network.
    * Returns an error message string if invalid, `null` if valid.
    */
-  private validateConfig(config: AiProviderConfig): string | null {
+  private validateConfig(config: AiProviderConfig, provider?: AiProvider): string | null {
     if (!config.apiUrl?.trim()) return 'AI API URL is required.';
-    if (!config.apiKey?.trim()) return 'AI API key is required.';
     if (!config.modelName?.trim()) return 'AI model name is required.';
+    
+    const detected = provider ?? this.detectProvider(config);
+    if (detected !== AiProvider.Ollama && !config.apiKey?.trim()) {
+      return 'AI API key is required.';
+    }
     return null;
   }
 }
