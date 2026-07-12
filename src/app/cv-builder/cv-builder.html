@@ -41,18 +41,21 @@
   <!-- ── Sections ─────────────────────────────────────────────── -->
   <div class="sections-list">
     @for (sec of sections(); track sec.id) {
-      <div class="section-wrapper"
+      <div class="section-wrapper" #secWrapper
         [class.drag-over]="dragOverId() === sec.id"
         [class.section-excluded]="!sec.include"
-        draggable="true"
         (dragstart)="onSectionDragStart(sec.id, $event)"
         (dragover)="onSectionDragOver(sec.id, $event)"
         (drop)="onSectionDrop(sec.id)"
-        (dragend)="onSectionDragEnd()">
+        (dragend)="onSectionDragEnd(); secWrapper.draggable = false">
 
         <div class="section-header" (click)="toggleCollapse(sec.id)">
           <div class="sh-left">
-            <span class="drag-handle" (click)="$event.stopPropagation()">⠿</span>
+            <span class="drag-handle" 
+                  (mousedown)="secWrapper.draggable = true" 
+                  (mouseup)="secWrapper.draggable = false" 
+                  (mouseleave)="secWrapper.draggable = false" 
+                  (click)="$event.stopPropagation()">⠿</span>
             @if (editMode()) {
               <input type="checkbox" class="sec-checkbox"
                 [checked]="sec.include"
@@ -162,11 +165,15 @@
             @if (sec.id === 'experience') {
               <button class="btn-add-item" (click)="addExperience()">{{ translate.t().cvBuilder.experience.addBtn }}</button>
               @for (exp of cv().cvData.experience; track exp.id; let ei = $index) {
-                <div class="item-card" draggable="true"
+                <div class="item-card" #expCard
                   (dragstart)="onItemDragStart('experience', ei, $event)"
-                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('experience', ei)">
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('experience', ei)"
+                  (dragend)="expCard.draggable = false">
                   <div class="item-header">
-                    <span class="drag-handle">⠿</span>
+                    <span class="drag-handle"
+                          (mousedown)="expCard.draggable = true" 
+                          (mouseup)="expCard.draggable = false" 
+                          (mouseleave)="expCard.draggable = false">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="exp.include" (change)="updateExp(exp.id,'include',!exp.include)" /> }
                     <span class="item-title">{{ exp.jobTitle || translate.t().cvBuilder.experience.newPosition }}
                       @if (exp.company) { <span class="item-sub">@ {{ exp.company }}</span> }
@@ -201,12 +208,15 @@
                     <button class="btn-add-sub" (click)="addResponsibility(exp.id)">{{ translate.t().cvBuilder.experience.addRespBtn }}</button>
                   </div>
                   @for (r of exp.responsibilities; track r.id; let ri = $index) {
-                    <div class="resp-row" draggable="true"
+                    <div class="resp-row" #respRow
                       (dragstart)="onRespDragStart(exp.id, ri, $event)"
                       (dragover)="onRespDragOver($event)"
                       (drop)="onRespDrop(exp.id, ri, $event)"
-                      (dragend)="onRespDragEnd($event)">
-                      <span class="drag-handle sm">⠿</span>
+                      (dragend)="onRespDragEnd($event); respRow.draggable = false">
+                      <span class="drag-handle sm"
+                            (mousedown)="respRow.draggable = true" 
+                            (mouseup)="respRow.draggable = false" 
+                            (mouseleave)="respRow.draggable = false">⠿</span>
                       @if (editMode()) { <input type="checkbox" [checked]="r.include" (change)="updateResponsibility(exp.id,r.id,'include',!r.include)" /> }
                       <input type="text" class="resp-input" [ngModel]="r.text" (ngModelChange)="updateResponsibility(exp.id,r.id,'text',$event)" [placeholder]="translate.t().cvBuilder.experience.placeholderResp" />
                       <button class="btn-x sm" (click)="removeResponsibility(exp.id,r.id)">✕</button>
@@ -220,11 +230,15 @@
             @if (sec.id === 'education') {
               <button class="btn-add-item" (click)="addEducation()">{{ translate.t().cvBuilder.education.addBtn }}</button>
               @for (edu of cv().cvData.education; track edu.id; let ei = $index) {
-                <div class="item-card" draggable="true"
+                <div class="item-card" #eduCard
                   (dragstart)="onItemDragStart('education', ei, $event)"
-                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('education', ei)">
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('education', ei)"
+                  (dragend)="eduCard.draggable = false">
                   <div class="item-header">
-                    <span class="drag-handle">⠿</span>
+                    <span class="drag-handle"
+                          (mousedown)="eduCard.draggable = true" 
+                          (mouseup)="eduCard.draggable = false" 
+                          (mouseleave)="eduCard.draggable = false">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="edu.include" (change)="updateEdu(edu.id,'include', !edu.include ? 'true' : 'false')" /> }
                     <span class="item-title">{{ edu.degree || translate.t().cvBuilder.education.newEducation }}
                       @if (edu.institution) { <span class="item-sub">@ {{ edu.institution }}</span> }
@@ -294,11 +308,15 @@
             @if (sec.id === 'projects') {
               <button class="btn-add-item" (click)="addProject()">{{ translate.t().cvBuilder.projects.addBtn }}</button>
               @for (proj of cv().cvData.projects; track proj.id; let pi = $index) {
-                <div class="item-card" draggable="true"
+                <div class="item-card" #projCard
                   (dragstart)="onItemDragStart('projects', pi, $event)"
-                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('projects', pi)">
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('projects', pi)"
+                  (dragend)="projCard.draggable = false">
                   <div class="item-header">
-                    <span class="drag-handle">⠿</span>
+                    <span class="drag-handle"
+                          (mousedown)="projCard.draggable = true" 
+                          (mouseup)="projCard.draggable = false" 
+                          (mouseleave)="projCard.draggable = false">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="proj.include" (change)="updateProject(proj.id,'include',!proj.include)" /> }
                     <span class="item-title">{{ proj.title || translate.t().cvBuilder.projects.newProject }}</span>
                     <button class="btn-x" (click)="removeProject(proj.id)">✕</button>
@@ -350,11 +368,15 @@
             @if (sec.id === 'certifications') {
               <button class="btn-add-item" (click)="addCertification()">{{ translate.t().cvBuilder.certifications.addBtn }}</button>
               @for (cert of cv().cvData.certifications; track cert.id; let ci = $index) {
-                <div class="item-card" draggable="true"
+                <div class="item-card" #certCard
                   (dragstart)="onItemDragStart('certifications', ci, $event)"
-                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('certifications', ci)">
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('certifications', ci)"
+                  (dragend)="certCard.draggable = false">
                   <div class="item-header">
-                    <span class="drag-handle">⠿</span>
+                    <span class="drag-handle"
+                          (mousedown)="certCard.draggable = true" 
+                          (mouseup)="certCard.draggable = false" 
+                          (mouseleave)="certCard.draggable = false">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="cert.include" (change)="updateCert(cert.id,'include',!cert.include)" /> }
                     <span class="item-title">{{ cert.name || translate.t().cvBuilder.certifications.newCert }}</span>
                     <button class="btn-x" (click)="removeCertification(cert.id)">✕</button>
@@ -393,11 +415,15 @@
             @if (sec.id === 'awards') {
               <button class="btn-add-item" (click)="addAward()">{{ translate.t().cvBuilder.awards.addBtn }}</button>
               @for (award of cv().cvData.awards; track award.id; let ai = $index) {
-                <div class="item-card" draggable="true"
+                <div class="item-card" #awardCard
                   (dragstart)="onItemDragStart('awards', ai, $event)"
-                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('awards', ai)">
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('awards', ai)"
+                  (dragend)="awardCard.draggable = false">
                   <div class="item-header">
-                    <span class="drag-handle">⠿</span>
+                    <span class="drag-handle"
+                          (mousedown)="awardCard.draggable = true" 
+                          (mouseup)="awardCard.draggable = false" 
+                          (mouseleave)="awardCard.draggable = false">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="award.include" (change)="updateAward(award.id,'include',!award.include)" /> }
                     <span class="item-title">{{ award.title || translate.t().cvBuilder.awards.newAward }}</span>
                     <button class="btn-x" (click)="removeAward(award.id)">✕</button>
@@ -428,11 +454,15 @@
             @if (sec.id === 'publications') {
               <button class="btn-add-item" (click)="addPublication()">{{ translate.t().cvBuilder.publications.addBtn }}</button>
               @for (pub of cv().cvData.publications; track pub.id; let pi = $index) {
-                <div class="item-card" draggable="true"
+                <div class="item-card" #pubCard
                   (dragstart)="onItemDragStart('publications', pi, $event)"
-                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('publications', pi)">
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('publications', pi)"
+                  (dragend)="pubCard.draggable = false">
                   <div class="item-header">
-                    <span class="drag-handle">⠿</span>
+                    <span class="drag-handle"
+                          (mousedown)="pubCard.draggable = true" 
+                          (mouseup)="pubCard.draggable = false" 
+                          (mouseleave)="pubCard.draggable = false">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="pub.include" (change)="updatePub(pub.id,'include',!pub.include)" /> }
                     <span class="item-title">{{ pub.title || translate.t().cvBuilder.publications.newPub }}</span>
                     <button class="btn-x" (click)="removePublication(pub.id)">✕</button>
@@ -467,11 +497,15 @@
             @if (sec.id === 'volunteer') {
               <button class="btn-add-item" (click)="addVolunteer()">{{ translate.t().cvBuilder.volunteer.addBtn }}</button>
               @for (vol of cv().cvData.volunteerExperience; track vol.id; let vi = $index) {
-                <div class="item-card" draggable="true"
+                <div class="item-card" #volCard
                   (dragstart)="onItemDragStart('volunteerExperience', vi, $event)"
-                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('volunteerExperience', vi)">
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('volunteerExperience', vi)"
+                  (dragend)="volCard.draggable = false">
                   <div class="item-header">
-                    <span class="drag-handle">⠿</span>
+                    <span class="drag-handle"
+                          (mousedown)="volCard.draggable = true" 
+                          (mouseup)="volCard.draggable = false" 
+                          (mouseleave)="volCard.draggable = false">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="vol.include" (change)="updateVol(vol.id,'include',!vol.include)" /> }
                     <span class="item-title">{{ vol.role || translate.t().cvBuilder.volunteer.newRole }} @if(vol.organization){<span class="item-sub">@ {{ vol.organization }}</span>}</span>
                     <button class="btn-x" (click)="removeVolunteer(vol.id)">✕</button>
@@ -527,11 +561,15 @@
             @if (sec.id === 'references') {
               <button class="btn-add-item" (click)="addReference()">{{ translate.t().cvBuilder.references.addBtn }}</button>
               @for (ref of cv().cvData.references; track ref.id; let ri = $index) {
-                <div class="item-card" draggable="true"
+                <div class="item-card" #refCard
                   (dragstart)="onItemDragStart('references', ri, $event)"
-                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('references', ri)">
+                  (dragover)="onItemDragOver($event)" (drop)="onItemDrop('references', ri)"
+                  (dragend)="refCard.draggable = false">
                   <div class="item-header">
-                    <span class="drag-handle">⠿</span>
+                    <span class="drag-handle"
+                          (mousedown)="refCard.draggable = true" 
+                          (mouseup)="refCard.draggable = false" 
+                          (mouseleave)="refCard.draggable = false">⠿</span>
                     @if (editMode()) { <input type="checkbox" [checked]="ref.include" (change)="updateRef(ref.id,'include',!ref.include)" /> }
                     <span class="item-title">{{ ref.name || translate.t().cvBuilder.references.newReference }} @if(ref.company){<span class="item-sub">@ {{ ref.company }}</span>}</span>
                     <button class="btn-x" (click)="removeReference(ref.id)">✕</button>
