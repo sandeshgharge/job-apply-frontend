@@ -4,5 +4,6 @@ export const environment = {
   PROFILE_ASSETS_BUCKET: 'profile-assets',
   JOB_APPLICATION_BUCKET: 'apply-docs',
   translationBaseUrl: 'https://raw.githubusercontent.com/sandeshgharge/job-apply-translations/main',
-  extractJobDataPromptUrl: '/asset/prompt/extract_job_details_prompt.txt'
+  extractJobDataPromptUrl: '/assets/prompt/extract_job_details_prompt.txt',
+  frontendBaseUrl: 'https://job-apply-de.pages.dev/',
 };

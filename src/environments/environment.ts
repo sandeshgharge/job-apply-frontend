@@ -4,5 +4,6 @@ export const environment = {
   PROFILE_ASSETS_BUCKET: 'profile-assets',
   JOB_APPLICATION_BUCKET: 'apply-docs',
   translationBaseUrl: '/temp/job-apply-translations',
-  extractJobDataPromptUrl: '/asset/prompt/extract_job_details_prompt.txt'
+  extractJobDataPromptUrl: '/assets/prompt/extract_job_details_prompt.txt',
+  frontendBaseUrl: 'http://localhost:4200/',
 };
