@@ -48,8 +48,11 @@ export class ApplyJobComponent {
   activeTab = this.store.selectSignal(selectCurrentTab);
   jobUrl = this.store.selectSignal(selectJobUrl);
   jobDescription = this.store.selectSignal(selectJobDescription);
-  fetchLoading = this.store.selectSignal(selectIsLoadingKey('fetchJob'));
+  fetchJobLoading = this.store.selectSignal(selectIsLoadingKey('fetchJob'));
+  scrapeJobLoading = this.store.selectSignal(selectIsLoadingKey('scrapeJob'));
+  fetchLoading = computed(() => this.fetchJobLoading() || this.scrapeJobLoading());
   parseLoading = this.store.selectSignal(selectIsLoadingKey('extractData'));
+  applyLoading = this.store.selectSignal(selectIsLoadingKey('applyJob'));
   loadingMessages = this.store.selectSignal(selectLoadingMessages);
 
   // ─── Local signals ───────────────────────────────────────────

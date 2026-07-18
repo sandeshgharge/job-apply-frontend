@@ -5,6 +5,7 @@ import { selectProfileLoading } from '@app/utils/store/profile/profile.selector'
 import { selectCVLoading } from '@app/utils/store/cv/cv.selectors';
 import { selectCoverLetterLoading } from '@app/utils/store/cover-letter/cover-letter.selectors';
 import { selectJobsLoading } from '@app/utils/store/jobs/jobs.selectors';
+import { selectLoadingMessages } from '@app/utils/store/apply-wizard/apply-wizard.selectors';
 import { TranslationService } from '../utils/services/translation/translation.service';
 
 interface StatusItem {
@@ -29,6 +30,7 @@ export class StatusBarComponent {
   private cvLoading = this.store.selectSignal(selectCVLoading);
   private coverLetterLoading = this.store.selectSignal(selectCoverLetterLoading);
   private jobsLoading = this.store.selectSignal(selectJobsLoading);
+  private wizardLoadingMessages = this.store.selectSignal(selectLoadingMessages);
 
   // Whether any loading is active
   isAnyLoading = computed(() =>
@@ -36,7 +38,8 @@ export class StatusBarComponent {
     this.profileLoading() ||
     this.cvLoading() ||
     this.coverLetterLoading() ||
-    this.jobsLoading()
+    this.jobsLoading() ||
+    this.wizardLoadingMessages().length > 0
   );
 
   // Individual status items for display
@@ -59,6 +62,22 @@ export class StatusBarComponent {
     if (this.jobsLoading()) {
       items.push({ label: t.loadingJobs, icon: '💼', active: true });
     }
+
+    const wizardMessages = this.wizardLoadingMessages();
+    const fullT = this.translate.t() as any;
+    wizardMessages.forEach(msgKey => {
+      const parts = msgKey.split('.');
+      let translated = fullT;
+      for (const p of parts) {
+        if (translated && translated[p]) {
+          translated = translated[p];
+        } else {
+          translated = msgKey;
+          break;
+        }
+      }
+      items.push({ label: typeof translated === 'string' ? translated : msgKey, icon: '⏳', active: true });
+    });
 
     return items;
   });

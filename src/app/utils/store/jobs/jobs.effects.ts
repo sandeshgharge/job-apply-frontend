@@ -1,6 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap, from, withLatestFrom } from 'rxjs';
+import { catchError, map, of, switchMap, from, withLatestFrom, concat } from 'rxjs';
+import { addLoadingFlag, removeLoadingFlag } from '../apply-wizard/apply-wizard.actions';
+import { LOADING_KEYS } from '../apply-wizard/apply-wizard.effects';
 import { JobsService } from '../../services/jobs.service';
 import { ToastService } from '../../services/toast.service';
 import { loginSuccess } from '../auth/auth.actions';
@@ -93,18 +95,28 @@ export class JobsEffects {
       ofType(applyJob),
       withLatestFrom(this.store.select(selectJobDetails)),
       switchMap(([_, jobDetails]) =>
-        this.jobsService.applyAndSaveJob(undefined, undefined, jobDetails).pipe(
-          map((savedJob) => {
-            this.toastService.show('Application applied successfully!');
-            return addJobSuccess({ job: savedJob });
-          }),
-          catchError((error: any) => {
-            this.toastService.show('Failed to apply job: ' + (error?.message ?? 'Unknown error'), 'error');
-            return of(addJobFailure({ error: error?.message ?? 'Failed to apply job' }));
-          })
-        ))
+        concat(
+          of(addLoadingFlag({ key: LOADING_KEYS.APPLY_JOB, messageKey: 'applyWizard.loadingApplyJob' })),
+          this.jobsService.applyAndSaveJob(undefined, undefined, jobDetails).pipe(
+            switchMap((savedJob) => {
+              this.toastService.show('Application applied successfully!');
+              return [
+                removeLoadingFlag({ key: LOADING_KEYS.APPLY_JOB }),
+                addJobSuccess({ job: savedJob })
+              ];
+            }),
+            catchError((error: any) => {
+              this.toastService.show('Failed to apply job: ' + (error?.message ?? 'Unknown error'), 'error');
+              return of(
+                removeLoadingFlag({ key: LOADING_KEYS.APPLY_JOB }),
+                addJobFailure({ error: error?.message ?? 'Failed to apply job' })
+              );
+            })
+          )
+        )
+      )
     )
-  )
+  );
 
   updateJob$ = createEffect(() =>
     this.actions$.pipe(

@@ -23,10 +23,12 @@
       <button class="btn-outline" (click)="previewMode.set(!previewMode())">
         {{ previewMode() ? translate.t().clBuilder.editorBtn : translate.t().clBuilder.previewBtn }}
       </button>
-      <button class="btn-generate" (click)="generateFullLetter()" [disabled]="generatingFull()">
-        @if (generatingFull()) { <span class="spinner-btn"></span> }
-        {{ translate.t().clBuilder.generateFull }}
-      </button>
+      <!--
+        <button class="btn-generate" (click)="generateFullLetter()" [disabled]="generatingFull()">
+          @if (generatingFull()) { <span class="spinner-btn"></span> }
+          {{ translate.t().clBuilder.generateFull }}
+        </button>
+      -->
     </div>
   </div>
 

@@ -97,8 +97,9 @@
       <div class="step-footer apply-footer">
         <button class="btn-back" (click)="setTab('CV')">{{ translate.t().applyWizard.btnBack }}</button>
         <div class="footer-right">
-          <button class="btn-mark-applied" (click)="markAsApplied()" data-tour="tour-mark-applied-btn">
-            {{ translate.t().applyPreview.btnMarkApplied }}
+          <button class="btn-mark-applied" (click)="markAsApplied()" [disabled]="applyLoading()" data-tour="tour-mark-applied-btn">
+            @if (applyLoading()) { <span class="spinner"></span> {{ translate.t().applyWizard.loadingApplyJob }} }
+            @else { {{ translate.t().applyPreview.btnMarkApplied }} }
           </button>
         </div>
       </div>
