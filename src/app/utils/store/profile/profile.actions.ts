@@ -1,5 +1,5 @@
 import { createAction, props } from "@ngrx/store";
-import { ProfileInfo } from "../../entities/user";
+import { ApiAgentInfo, ProfileInfo } from "../../entities/user";
 
 /**
  * Profile Info Actions
@@ -23,6 +23,41 @@ export const updateProfileInfo = createAction(
     props<{ profileInfo: ProfileInfo }>()
 );
 
+export const updateSelectedAgentId = createAction(
+    '[Profile] Update Selected Agent Id',
+    props<{ selectedAgentId: string | null }>()
+);
+
 export const clearProfileInfo = createAction(
     '[Profile] Clear Profile Info'
 );  
+
+export const createAgent = createAction(
+    '[Profile] Create Agent',
+    props<{ agent: ApiAgentInfo }>()
+);
+
+export const createAgentSuccess = createAction(
+    '[Profile] Create Agent Success',
+    props<{ agent: ApiAgentInfo }>()
+);
+
+export const createAgentFailure = createAction(
+    '[Profile] Create Agent Failure',
+    props<{ error: string }>()
+);
+
+export const updateAgent = createAction(
+    '[Profile] Update Agent',
+    props<{ id: string, agent: Omit<ApiAgentInfo, 'id' | 'userId'> }>()
+);
+
+export const updateAgentSuccess = createAction(
+    '[Profile] Update Agent Success',
+    props<{ agent: ApiAgentInfo }>()
+);
+
+export const updateAgentFailure = createAction(
+    '[Profile] Update Agent Failure',
+    props<{ error: string }>()
+);

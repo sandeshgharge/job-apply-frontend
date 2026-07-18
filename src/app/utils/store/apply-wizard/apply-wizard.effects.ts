@@ -99,10 +99,14 @@ export class ApplyWizardEffects {
                 removeLoadingFlag({ key: LOADING_KEYS.EXTRACT_DATA })
               ];
             }),
-            catchError((error: any) => of(
+            catchError((error: any) => {
+              console.error(error)
+              return of(
               removeLoadingFlag({ key: LOADING_KEYS.EXTRACT_DATA }),
               extractJobDetailsFailure({ error: error?.message ?? 'Extraction failed' })
-            ))
+            
+            )}
+          )
           )
         )
       )

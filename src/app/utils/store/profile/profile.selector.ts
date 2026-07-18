@@ -38,17 +38,22 @@ export const selectProfileUseDefaultApi = createSelector(
     (state: ProfileInfoState) => state.profileInfo?.useDefaultApi
 );
 
-export const selectProfileApiUrl = createSelector(
+export const selectActiveAgent = createSelector(
     selectProfileState,
-    (state: ProfileInfoState) => state.profileInfo?.agentApiUrl
+    (state: ProfileInfoState) => state.profileInfo?.userApiAgents?.find(a => a.id === state.profileInfo?.selectedAgentId)
+);
+
+export const selectProfileApiUrl = createSelector(
+    selectActiveAgent,
+    (agent) => agent?.agentApiUrl
 );
 
 export const selectProfileApiKey = createSelector(
-    selectProfileState,
-    (state: ProfileInfoState) => state.profileInfo?.agentApiKey
+    selectActiveAgent,
+    (agent) => agent?.agentApiKey
 );
 
 export const selectProfileModelName = createSelector(
-    selectProfileState,
-    (state: ProfileInfoState) => state.profileInfo?.modelName
+    selectActiveAgent,
+    (agent) => agent?.modelName
 );

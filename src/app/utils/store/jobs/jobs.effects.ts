@@ -57,8 +57,9 @@ export class JobsEffects {
   applyAndSaveJob$ = createEffect(() =>
     this.actions$.pipe(
       ofType(applyAndSaveJob),
-      switchMap(({ cvData, coverLetterData }) =>
-        this.jobsService.applyAndSaveJob(cvData, coverLetterData).pipe(
+      withLatestFrom(this.store.select(selectJobDetails)),
+      switchMap(([{ cvData, coverLetterData }, jobDetails]) =>
+        this.jobsService.applyAndSaveJob(cvData, coverLetterData, jobDetails).pipe(
           map((res) => {
             this.toastService.show('Application saved successfully!');
             return addJobSuccess({ job: res.jobObj });
@@ -100,10 +101,11 @@ export class JobsEffects {
           this.jobsService.applyAndSaveJob(undefined, undefined, jobDetails).pipe(
             switchMap((savedJob) => {
               this.toastService.show('Application applied successfully!');
-              return [
+              const jobData = savedJob.jobObj ? savedJob.jobObj : savedJob;
+              return of(
                 removeLoadingFlag({ key: LOADING_KEYS.APPLY_JOB }),
-                addJobSuccess({ job: savedJob })
-              ];
+                addJobSuccess({ job: jobData })
+              );
             }),
             catchError((error: any) => {
               this.toastService.show('Failed to apply job: ' + (error?.message ?? 'Unknown error'), 'error');

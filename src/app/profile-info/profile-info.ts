@@ -1,10 +1,10 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal, computed, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../utils/services/toast.service';
-import { ProfileInfo } from '../utils/entities/user';
+import { ProfileInfo, ApiAgentInfo } from '../utils/entities/user';
 import { Store } from '@ngrx/store';
-import { selectProfileInfo } from '../utils/store/profile/profile.selector';
-import { updateProfileInfo } from '../utils/store/profile/profile.actions';
+import { selectProfileInfo, selectActiveAgent } from '../utils/store/profile/profile.selector';
+import { updateProfileInfo, updateSelectedAgentId, createAgent, updateAgent } from '../utils/store/profile/profile.actions';
 import { ProfileService } from '@app/utils/services/profile.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
 import { Router } from '@angular/router';
@@ -25,6 +25,10 @@ export class ProfileInfoComponent implements OnInit {
 
   profileImageUrl = signal<string>('');
   signatureImageUrl = signal<string>('');
+
+  @ViewChild('agentDialog') agentDialog!: ElementRef<HTMLDialogElement>;
+  isEditMode = signal(false);
+  agentForm = signal<ApiAgentInfo>({ name: '', isPublic: false, agentApiUrl: '', agentApiKey: '', modelName: '' });
 
   constructor() {
     effect(() => {
@@ -80,14 +84,15 @@ export class ProfileInfoComponent implements OnInit {
     lastName: '',
     location: '',
     email: '',
-    agentApiUrl: '',
-    agentApiKey: '',
-    modelName: '',
+    selectedAgentId: null,
+    userApiAgents: [],
     profileImageUrl: '',
     signatureImageUrl: '',
     role: 'guest',
     useDefaultApi: true
   });
+
+  activeAgentStore = computed(this.store.selectSignal(selectActiveAgent));
 
   isDirty = signal(false);
   imageChanged = signal(false);
@@ -150,6 +155,55 @@ export class ProfileInfoComponent implements OnInit {
 
   openSetPassword(): void {
     this.router.navigate(['/set-password']);
+  }
+
+  onAgentSelectionChange(newId: string | null): void {
+    const agentId = newId === 'null' ? null : newId;
+    this.profile.update(p => ({ ...p, selectedAgentId: agentId }));
+    
+    // Dispatch a local update so the activeAgentStore selector updates 
+    // and instantly updates the preview fields without calling the backend.
+    this.store.dispatch(updateSelectedAgentId({ selectedAgentId: agentId }));
+    
+    this.isDirty.set(true);
+  }
+
+  openAgentDialog(isEdit: boolean): void {
+    this.isEditMode.set(isEdit);
+    const selected = this.profile().userApiAgents?.find(a => a.id === this.profile().selectedAgentId);
+    if (isEdit && selected) {
+      this.agentForm.set({ ...selected });
+    } else {
+      this.agentForm.set({ name: '', isPublic: false, agentApiUrl: '', agentApiKey: '', modelName: '' });
+    }
+    this.agentDialog.nativeElement.showModal();
+  }
+
+  closeAgentDialog(): void {
+    this.agentDialog.nativeElement.close();
+  }
+
+  saveAgentDetails(): void {
+    const agent = { ...this.agentForm() };
+    if (!agent.name) {
+      this.toast.show('Agent name is required', 'error');
+      return;
+    }
+    
+    // Attach the userId for creating
+    agent.userId = this.profile().id;
+
+    if (this.isEditMode() && agent.id) {
+      const { id, userId, ...updateData } = agent;
+      this.store.dispatch(updateAgent({ id, agent: updateData }));
+    } else {
+      this.store.dispatch(createAgent({ agent }));
+    }
+    
+    // Turn on dirty flag so user can click save after adding/editing
+    this.isDirty.set(true);
+    
+    this.closeAgentDialog();
   }
 
 }

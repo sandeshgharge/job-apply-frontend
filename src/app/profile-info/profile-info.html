@@ -129,28 +129,44 @@
       </div>
     </div>
 
-    <div class="fields-grid">
+    <div class="agent-selection" [class.disabled-section]="profile().useDefaultApi" style="margin-bottom: 1.5rem; display: flex; gap: 10px; align-items: center;">
+      <label style="font-weight: 500; color: var(--text-secondary);">{{ translate.t().profile.selectAgent }}:</label>
+      <select [ngModel]="profile().selectedAgentId" (ngModelChange)="onAgentSelectionChange($event)" [disabled]="profile().useDefaultApi" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card, #fff); color: var(--text-primary); font-family: inherit; font-size: 0.88rem;">
+         <option [ngValue]="null">Default</option>
+         @for (agent of profile().userApiAgents; track agent.id) {
+           <option [ngValue]="agent.id">{{ agent.name }}</option>
+         }
+      </select>
+      <button class="btn-change-password" (click)="openAgentDialog(true)" [disabled]="!profile().selectedAgentId || profile().useDefaultApi">
+         ✎ {{ translate.t().profile.editAgentBtn }}
+      </button>
+      <button class="btn-save" (click)="openAgentDialog(false)" [disabled]="profile().useDefaultApi">
+         + {{ translate.t().profile.addAgentBtn }}
+      </button>
+    </div>
+
+    <div class="fields-grid" [style.opacity]="profile().useDefaultApi ? '0.5' : '1'">
       <div class="field field-full">
         <label for="agentApiUrl">{{ translate.t().profile.agentUrl }}</label>
         <input type="url" id="agentApiUrl" name="agentApiUrl"
-          [ngModel]="profile().agentApiUrl"
-          (input)="onFieldChange('agentApiUrl', $any($event.target).value)"
+          [ngModel]="activeAgentStore()?.agentApiUrl"
+          readonly
           [placeholder]="translate.t().profile.placeholderAgentUrl"
           [disabled]="profile().useDefaultApi" />
       </div>
       <div class="field">
         <label for="agentApiKey">{{ translate.t().profile.agentKey }}</label>
         <input type="text" id="agentApiKey" name="agentApiKey"
-          [ngModel]="profile().agentApiKey"
-          (input)="onFieldChange('agentApiKey', $any($event.target).value)"
+          [ngModel]="activeAgentStore()?.agentApiKey"
+          readonly
           [placeholder]="translate.t().profile.placeholderAgentKey"
           [disabled]="profile().useDefaultApi" />
       </div>
       <div class="field">
         <label for="modelName">{{ translate.t().profile.modelName }}</label>
         <input type="text" id="modelName" name="modelName"
-          [ngModel]="profile().modelName"
-          (input)="onFieldChange('modelName', $any($event.target).value)"
+          [ngModel]="activeAgentStore()?.modelName"
+          readonly
           [placeholder]="translate.t().profile.placeholderModelName"
           [disabled]="profile().useDefaultApi" />
       </div>
@@ -158,3 +174,42 @@
   </div>
 
 </div>
+
+<dialog #agentDialog class="agent-dialog">
+  <h3 class="dialog-title">{{ isEditMode() ? translate.t().profile.dialogEditAgentTitle : translate.t().profile.dialogAddAgentTitle }}</h3>
+  <form (submit)="saveAgentDetails(); $event.preventDefault();" class="dialog-form">
+    
+    <div class="field">
+      <label>{{ translate.t().profile.agentName }} *</label>
+      <input type="text" [ngModel]="agentForm().name" (ngModelChange)="agentForm.set({...agentForm(), name: $event})" name="dialogAgentName" [placeholder]="translate.t().profile.placeholderAgentName" required />
+    </div>
+
+    <div class="field">
+      <label>{{ translate.t().profile.agentUrl }}</label>
+      <input type="url" [ngModel]="agentForm().agentApiUrl" (ngModelChange)="agentForm.set({...agentForm(), agentApiUrl: $event})" name="dialogAgentUrl" [placeholder]="translate.t().profile.placeholderAgentUrl" />
+    </div>
+
+    <div class="field">
+      <label>{{ translate.t().profile.agentKey }}</label>
+      <input type="text" [ngModel]="agentForm().agentApiKey" (ngModelChange)="agentForm.set({...agentForm(), agentApiKey: $event})" name="dialogAgentKey" [placeholder]="translate.t().profile.placeholderAgentKey" />
+    </div>
+
+    <div class="field">
+      <label>{{ translate.t().profile.modelName }}</label>
+      <input type="text" [ngModel]="agentForm().modelName" (ngModelChange)="agentForm.set({...agentForm(), modelName: $event})" name="dialogModelName" [placeholder]="translate.t().profile.placeholderModelName" />
+    </div>
+
+    <div class="toggle-container" style="justify-content: flex-start; gap: 10px; margin-top: 5px;">
+      <span class="toggle-label" style="font-weight: 500; font-size: 0.9rem;">{{ translate.t().profile.agentPublic }}</span>
+      <label class="switch">
+        <input type="checkbox" [ngModel]="agentForm().isPublic" (ngModelChange)="agentForm.set({...agentForm(), isPublic: $event})" name="dialogIsPublic" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" class="btn-change-password" (click)="closeAgentDialog()">{{ translate.t().common.cancel }}</button>
+      <button type="submit" class="btn-save">{{ translate.t().profile.btnSaveAgent }}</button>
+    </div>
+  </form>
+</dialog>

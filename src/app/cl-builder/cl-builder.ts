@@ -329,7 +329,7 @@ export class CoverLetterComponent implements OnInit {
             return;
           }
 
-          const modelName = pInfo.modelName;
+          const modelName = "";
 
           const systemPrompt = `You are an expert career coach. Generate cover letter sections as a JSON array only. No markdown, no preamble.`;
           const userMessage = [

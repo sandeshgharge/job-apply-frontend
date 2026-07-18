@@ -467,3 +467,40 @@
     }
   }
 }
+
+/* ── Dialog ───────────────────────────────────────────── */
+.agent-dialog {
+  background: var(--bg-card, #ffffff);
+  color: var(--text-primary, #111827);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  padding: 24px;
+  min-width: 450px;
+  max-width: 90vw;
+  margin: auto;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+  }
+
+  .dialog-title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.25rem;
+  }
+
+  .dialog-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 15px;
+  }
+}
