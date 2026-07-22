@@ -14,7 +14,7 @@ import {
   PROVIDER_MODEL_HINTS,
 } from './ai-provider.model';
 import { AiAdapter, AI_ADAPTERS } from './ai-adapter.interface';
-import { AIServiceInterface } from '../ai.service.interface';
+import { AIServiceInterface, AIPrompt } from '../ai.service.interface';
 import { Store } from '@ngrx/store';
 import { selectProfileApiKey, selectProfileApiUrl, selectProfileModelName } from '@app/utils/store/profile/profile.selector';
 
@@ -49,7 +49,7 @@ import { selectProfileApiKey, selectProfileApiUrl, selectProfileModelName } from
  * | OpenAI      | url contains `openai.com`        | `Authorization: Bearer` |
  * | Anthropic   | url contains `anthropic.com`     | `x-api-key`         |
  * | Groq        | url contains `groq.com`          | `Authorization: Bearer` |
- * | Perplexity  | url contains `perplexity.ai`     | `Authorization: Bearer` |
+ * | Perplexity  | url contains `perplexity.ai`     | `x-api-key` or `Authorization` |
  * | Custom      | any other URL                    | `Authorization: Bearer` |
  */
 @Injectable({ providedIn: 'root' })
@@ -62,11 +62,18 @@ export class CloudAIService implements AIServiceInterface {
   // Public API
   // ─────────────────────────────────────────────────────────────────────────────
 
-  generate(prompt: string): Observable<{ text: string }> {
+  generate(prompt: AIPrompt): Observable<{ text: string }> {
     const { adapter, config, provider } = this.resolveProvider();
-    return adapter.generate({ messages: [{ role: 'user', content: prompt }] }, config, provider).pipe(
+    const messages: AiMessage[] = [];
+
+    if (prompt.system) {
+      messages.push({ role: 'system', content: prompt.system });
+    }
+    messages.push({ role: 'user', content: prompt.user });
+
+    return adapter.generate({ messages }, config, provider).pipe(
       map(res => ({
-        text: (res.text || '').replace(/[^a-zA-Z0-9\s."'?,-]/g, '')
+        text: AIServiceInterface.extractJson(res.text || '')
       }))
     );
   }
@@ -79,13 +86,8 @@ export class CloudAIService implements AIServiceInterface {
         const prompt = promptTemplate.replace('[job_description]', jobDescription);
         return adapter.generate({ messages: [{ role: 'user', content: prompt }] }, config, provider).pipe(
           map(res => {
-            let text = res.text;
-            if (text.includes('```')) {
-              const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-              if (match) {
-                text = match[1];
-              }
-            }
+            console.log(res)
+            const text = AIServiceInterface.extractJson(res.text);
             try {
               return JSON.parse(text) as JobDetails;
             } catch (e) {

@@ -9,14 +9,15 @@ import { CoverLetterSection, CoverLetterDocInfo, CoverLetterInfo, defaultcl } fr
 import { selectCoverLetterInfoList, selectCurrentCoverLetter } from '../utils/store/cover-letter/cover-letter.selectors';
 import { selectProfileInfo, selectProfileUseDefaultApi } from '../utils/store/profile/profile.selector';
 import { saveNewCoverLetterInfo, selectCoverLetterVersion, updateCoverLetterInfo } from '../utils/store/cover-letter/cover-letter.actions';
-import { AIServiceInterface } from '../utils/services/ai-service/ai.service.interface';
+import { AIServiceInterface, AIPrompt } from '../utils/services/ai-service/ai.service.interface';
 import { firstValueFrom } from 'rxjs';
 import { CLService } from '@app/utils/services/cl.service';
 import { TranslationService } from '@app/utils/services/translation/translation.service';
 import {
   selectJobDetails,
   selectCoverLetterDetails,
-  selectCoverLetterInfo
+  selectCoverLetterInfo,
+  selectJobDescription
 } from '../utils/store/apply-wizard/apply-wizard.selectors';
 import {
   updateJobDetailsField,
@@ -47,7 +48,7 @@ export class CoverLetterComponent implements OnInit {
 
   meta = this.store.selectSignal(selectCoverLetterDetails);
 
-  jobDescription = signal('');
+  jobDescription = this.store.selectSignal(selectJobDescription);
 
   /** Tracks which section IDs are collapsed */
   collapsedSections = signal<Set<string>>(new Set());
@@ -216,29 +217,27 @@ export class CoverLetterComponent implements OnInit {
   }
 
   // ── Prompt builder ─────────────────────────────────────────────
-  // Combines common prompt + section-specific prompt into one message.
-  // Common: global tone, background, skills context.
-  // Section: targeted instruction for that specific paragraph.
-  private buildSectionPrompt(section: CoverLetterSection): string {
+  // Separates commonPrompt (System) and section-specific prompt (User).
+  private buildSectionPrompt(section: CoverLetterSection): AIPrompt {
     const jd = this.jobDescription();
-    const common = this.coverLetterInfo().clData.commonPrompt.trim();
-    let specific = common;
+    let common = this.coverLetterInfo().clData.commonPrompt.trim();
 
-    if (jd) {
-      specific = specific.replace('[job_description]', jd);
+    if (jd && common) {
+      common = common.replace('[job_description]', jd);
     }
 
-    const parts: string[] = [`${specific}`];
-    if (section.sectionPrompt) {
-      parts.push('Input:');
-      parts.push(`${section.sectionPrompt}`);
+    if (!common) {
+      common = 'Write 3–4 sentences. Warm but professional. Suitable for the German job market.';
     }
 
-    if (!specific) {
-      parts.push('Write 3–4 sentences. Warm but professional. Suitable for the German job market.');
-    }
+    common += '\n\nReturn ONLY a valid JSON object in the format: {"paragraph": "..."}. No preamble, no markdown formatting.';
 
-    return parts.join('\n\n');
+    const userPrompt = section.sectionPrompt.trim() || `Write the "${section.title}" section for the cover letter.`;
+
+    return {
+      system: common,
+      user: userPrompt
+    };
   }
 
   // ── Generate single section ─────────────────────────────────────
@@ -272,22 +271,26 @@ export class CoverLetterComponent implements OnInit {
         return;
       }
 
-      const userMessage = this.buildSectionPrompt(section);
-      const data = await firstValueFrom(this.aiService.generate(userMessage));
+      const promptObj = this.buildSectionPrompt(section);
+      const data = await firstValueFrom(this.aiService.generate(promptObj));
 
-      console.log(data)
+      let text = '';
+      try {
+        const parsed = typeof data.text === 'string' ? JSON.parse(data.text) : data.text;
+        text = parsed?.paragraph ?? data.text ?? '';
+      } catch {
+        text = data.text ?? '';
+      }
 
-      const text = typeof data.text === 'string' ? data.text : data.text.toString();
-
-          this.updateCl(info => ({
-            ...info,
-            clData: {
-              ...info.clData,
-              sectionPrompts: info.clData.sectionPrompts.map(sec =>
-                sec.id === sectionId ? { ...sec, content: text, loading: false } : sec
-              )
-            }
-          }));
+      this.updateCl(info => ({
+        ...info,
+        clData: {
+          ...info.clData,
+          sectionPrompts: info.clData.sectionPrompts.map(sec =>
+            sec.id === sectionId ? { ...sec, content: text, loading: false } : sec
+          )
+        }
+      }));
           this.toast.show(this.translate.t().clBuilder.toastSectionGenerated);
 
 
@@ -312,16 +315,6 @@ export class CoverLetterComponent implements OnInit {
         const common = this.coverLetterInfo().clData.commonPrompt.trim();
         const titles = this.coverLetterInfo().clData.sectionPrompts.map(s => s.title).join(', ');
 
-        const prompt = [
-          common ? `Global guidance:\n${common}\n` : '',
-          `Write all cover letter sections for:`,
-          `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation || '[Location]'}.`,
-          `Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation || '[Location]'}.`,
-          `Hiring manager: ${m.contactName || 'Hiring Team'}.`,
-          `Sections: ${titles}.`,
-          `Return ONLY a JSON array: [{"title":"...","content":"..."}]. 3–4 sentences each.`
-        ].filter(Boolean).join('\n');
-
         try {
           const pInfo = this.profileInfo();
           if (!pInfo) {
@@ -329,32 +322,21 @@ export class CoverLetterComponent implements OnInit {
             return;
           }
 
-          const modelName = "";
-
           const systemPrompt = `You are an expert career coach. Generate cover letter sections as a JSON array only. No markdown, no preamble.`;
           const userMessage = [
             common ? `Global guidance:\n${common}\n` : '',
             `Write all cover letter sections for:`,
             `Applicant: ${m.applicantName || '[Name]'} from ${m.applicantLocation || '[Location]'}.`,
             `Role: ${m.role || '[Role]'} at ${m.companyName || '[Company]'} in ${m.companyLocation || '[Location]'}.`,
-            `Hiring manager: ${m.contactName || 'Hiring Team]'}.`,
+            `Hiring manager: ${m.contactName || 'Hiring Team'}.`,
             `Sections: ${titles}.`,
             `Return ONLY a JSON array: [{"title":"...","content":"..."}]. 3–4 sentences each.`
           ].filter(Boolean).join('\n');
 
-          const promptBody = JSON.stringify({
-            model: modelName,
-            max_tokens: 1200,
-            system: systemPrompt,
-            messages: [{ role: 'user', content: userMessage }]
-          });
+          const data: any = await firstValueFrom(this.aiService.generate({ system: systemPrompt, user: userMessage }));
 
-          const data: any = await firstValueFrom(this.aiService.generate(promptBody))
-
-          const raw = data.content?.find((c: any) => c.type === 'text')?.text ?? '[]';
-          const parsed: { title: string; content: string }[] = JSON.parse(
-            raw.replace(/```json|```/g, '').trim()
-          );
+          const raw = typeof data?.text === 'string' ? data.text : (typeof data === 'string' ? data : JSON.stringify(data));
+          const parsed: { title: string; content: string }[] = JSON.parse(raw);
 
           this.updateCl(info => ({
             ...info,
