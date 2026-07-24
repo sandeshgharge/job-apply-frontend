@@ -61,13 +61,13 @@ export const selectCvDetails = createSelector(
 );
 
 export const selectJobUrl = createSelector(
-  selectApplyWizardState,
-  (state) => state.jobUrl
+  selectJobDetails,
+  (jobDetails) => jobDetails?.jobUrl ?? ''
 );
 
 export const selectJobDescription = createSelector(
-  selectApplyWizardState,
-  (state) => state.jobDescription
+  selectJobDetails,
+  (jobDetails) => jobDetails?.jobDescription ?? ''
 );
 
 export const selectWizardError = createSelector(

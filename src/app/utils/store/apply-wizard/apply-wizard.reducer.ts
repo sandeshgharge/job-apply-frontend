@@ -1,5 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 import { ApplyWizardState } from './apply-wizard.state';
+import { JobDetails } from '../../entities/job-details';
 import {
   setWizardTab,
   addLoadingFlag,
@@ -29,8 +30,6 @@ export const initialApplyWizardState: ApplyWizardState = {
   jobDetails: null,
   coverLetterInfo: null,
   cvDetails: null,
-  jobUrl: '',
-  jobDescription: '',
   error: null
 };
 
@@ -60,8 +59,14 @@ export const applyWizardReducer = createReducer(
   })),
 
   // ─── Job URL & Description ─────────────────────────────────────────────
-  on(setJobUrl, (state, { url }) => ({ ...state, jobUrl: url })),
-  on(setJobDescription, (state, { description }) => ({ ...state, jobDescription: description })),
+  on(setJobUrl, (state, { url }) => ({
+    ...state,
+    jobDetails: { ...state.jobDetails, jobUrl: url } as JobDetails
+  })),
+  on(setJobDescription, (state, { description }) => ({
+    ...state,
+    jobDetails: { ...state.jobDetails, jobDescription: description } as JobDetails
+  })),
 
   // ─── Fetch Job From URL ────────────────────────────────────────────────
   on(fetchJobFromUrl, (state) => ({
@@ -71,8 +76,11 @@ export const applyWizardReducer = createReducer(
 
   on(fetchJobFromUrlSuccess, (state, { url, description }) => ({
     ...state,
-    jobUrl: url,
-    jobDescription: description,
+    jobDetails: {
+      ...state.jobDetails,
+      jobUrl: url,
+      jobDescription: description
+    } as JobDetails,
     error: null
   })),
 
@@ -89,7 +97,11 @@ export const applyWizardReducer = createReducer(
 
   on(extractJobDetailsSuccess, (state, { jobDetails }) => ({
     ...state,
-    jobDetails,
+    jobDetails: {
+      ...jobDetails,
+      jobUrl: jobDetails.jobUrl || state.jobDetails?.jobUrl,
+      jobDescription: jobDetails.jobDescription || state.jobDetails?.jobDescription
+    } as JobDetails,
     error: null
   })),
 
@@ -101,14 +113,19 @@ export const applyWizardReducer = createReducer(
   // ─── Job Details ──────────────────────────────────────────────────────
   on(setJobDetails, (state, { jobDetails }) => ({
     ...state,
-    jobDetails
+    jobDetails: {
+      ...jobDetails,
+      jobUrl: jobDetails.jobUrl || state.jobDetails?.jobUrl,
+      jobDescription: jobDetails.jobDescription || state.jobDetails?.jobDescription
+    } as JobDetails
   })),
 
   on(updateJobDetailsField, (state, { key, value }) => ({
     ...state,
-    jobDetails: state.jobDetails
-      ? { ...state.jobDetails, [key]: value }
-      : null
+    jobDetails: {
+      ...state.jobDetails,
+      [key]: value
+    } as JobDetails
   })),
 
   on(resetJobDetails, (state) => ({

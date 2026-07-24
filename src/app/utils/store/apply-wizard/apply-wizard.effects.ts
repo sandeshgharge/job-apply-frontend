@@ -1,9 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap, mergeMap, concat, tap } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { catchError, map, of, switchMap, mergeMap, concat, tap, withLatestFrom } from 'rxjs';
 import { JobsService } from '../../services/jobs.service';
 import { ToastService } from '../../services/toast.service';
 import { TranslationService } from '../../services/translation/translation.service';
+import { selectJobDetails, selectJobUrl } from './apply-wizard.selectors';
 import {
   fetchJobFromUrl,
   fetchJobFromUrlSuccess,
@@ -34,6 +36,7 @@ export class ApplyWizardEffects {
   private jobsService = inject(JobsService);
   private toastService = inject(ToastService);
   private translate = inject(TranslationService);
+  private store = inject(Store);
 
   /** Effect: Fetch job description from URL */
   fetchJobFromUrl$ = createEffect(() =>
@@ -86,13 +89,19 @@ export class ApplyWizardEffects {
   extractJobDetails$ = createEffect(() =>
     this.actions$.pipe(
       ofType(extractJobDetails),
-      switchMap(({ jobDescription }) =>
+      withLatestFrom(this.store.select(selectJobDetails)),
+      switchMap(([{ jobDescription }, currentJobDetails]) =>
         concat(
           of(addLoadingFlag({ key: LOADING_KEYS.EXTRACT_DATA, messageKey: 'applyWizard.loadingExtractData' })),
           this.jobsService.extractJobDetails(jobDescription).pipe(
             mergeMap((details) => {
               const appliedDate = new Date().toISOString().split('T')[0];
-              const jobDetails = { ...details, jobDescription, appliedDate };
+              const jobDetails = {
+                ...details,
+                jobUrl: currentJobDetails?.jobUrl || details.jobUrl,
+                jobDescription: jobDescription || currentJobDetails?.jobDescription || details.jobDescription,
+                appliedDate
+              };
               return [
                 extractJobDetailsSuccess({ jobDetails }),
                 setJobDetails({ jobDetails }),
@@ -100,13 +109,12 @@ export class ApplyWizardEffects {
               ];
             }),
             catchError((error: any) => {
-              console.error(error)
+              console.error(error);
               return of(
-              removeLoadingFlag({ key: LOADING_KEYS.EXTRACT_DATA }),
-              extractJobDetailsFailure({ error: error?.message ?? 'Extraction failed' })
-            
-            )}
-          )
+                removeLoadingFlag({ key: LOADING_KEYS.EXTRACT_DATA }),
+                extractJobDetailsFailure({ error: error?.message ?? 'Extraction failed' })
+              );
+            })
           )
         )
       )

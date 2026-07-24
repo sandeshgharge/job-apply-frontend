@@ -107,7 +107,6 @@ export class ApplyJobComponent {
 
   updateJobDescription(value: string) {
     this.store.dispatch(setJobDescription({ description: value }));
-    this.store.dispatch(updateJobDetailsField({ key: 'jobDescription', value }));
   }
 
   async markAsApplied() {

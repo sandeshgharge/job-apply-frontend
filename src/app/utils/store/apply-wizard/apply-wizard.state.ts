@@ -31,12 +31,6 @@ export interface ApplyWizardState {
   /** Draft CV data for the current application - replaces draftCV signal in CvService */
   cvDetails: CVInfo | null;
 
-  /** The raw job URL input */
-  jobUrl: string;
-
-  /** The job description text */
-  jobDescription: string;
-
   /** General error message, if any */
   error: string | null;
 }
