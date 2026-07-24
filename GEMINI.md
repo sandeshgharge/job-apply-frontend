@@ -35,4 +35,4 @@ JobApply is a personal job application assistant built with Angular 21, designed
 - `src/app/apply-job/`: Multi-step wizard for new applications.
 - `src/app/cv-builder/`: Structured CV editor.
 - `src/app/job-tracker/`: Application status management.
-- `public/job-apply-translations/`: Local JSON translation files (`manifest.json`, `en.json`, `de.json`) used for dynamic translation loading.
+- `public/temp/job-apply-translations/`: Local JSON translation files (`manifest.json`, `en.json`, `de.json`) used for dynamic translation loading.

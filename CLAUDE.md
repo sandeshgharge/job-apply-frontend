@@ -33,7 +33,7 @@ public/
 - For TypeScript logic (e.g. alerts, modals, toast messages), use `this.translate.t().section.key` or check `this.translate.currentLang() === 'de'` for conditionals.
 - Synchronize new keys across:
   - `src/app/utils/services/translation/fallback-en.ts` (offline typescript dictionary)
-  - `public/job-apply-translations/en.json` (English translation file)
-  - `public/job-apply-translations/de.json` (German translation file)
+  - `public/temp/job-apply-translations/en.json` (English translation file)
+  - `public/temp/job-apply-translations/de.json` (German translation file)
 
 Do NOT rebuild the whole project unless explicitly asked.
