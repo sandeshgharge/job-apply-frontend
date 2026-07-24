@@ -6,4 +6,5 @@ export const environment = {
   translationBaseUrl: 'https://raw.githubusercontent.com/sandeshgharge/job-apply-translations/main',
   extractJobDataPromptUrl: '/assets/prompt/extract_job_details_prompt.txt',
   frontendBaseUrl: 'https://job-apply-de.pages.dev/',
+  guideUrl: "https://sandeshgharge.github.io/job-apply-guide"
 };
